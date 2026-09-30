@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Quality — Wireframe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="logo">Hidden Dissatisfaction</span>
+    <a href="index.html">Risk Queue</a>
+    <a href="order.html">Order Detail</a>
+    <a href="actions.html">Action Tracking</a>
+    <a href="data-quality.html" class="active">Data Quality</a>
+    <span class="user">Nhân viên CSKH: Trần Thị B</span>
+  </div>
+
+  <div class="page">
+    <a class="btn note-toggle" onclick="toggleNotes()">Ẩn/hiện ghi chú</a>
+    <h1>4. Data Quality</h1>
+    <p class="sub">Số này lấy từ đâu, thiếu gì?</p>
+
+    <div class="note">Người xem chính: quản lý và giảng viên khi chấm. Màn này cho thấy hệ thống
+      minh bạch về nguồn dữ liệu. Số in đậm là số ĐÃ ĐẾM THẬT trên Olist (19/09); ô có ngoặc vuông là chưa đếm.</div>
+
+    <!-- Vì sao hệ thống này cần có: nghịch lý nhìn bằng mắt -->
+    <div class="box">
+      <h2>Vì sao cần hệ thống này?</h2>
+      <div class="hbar">
+        <div class="name">Đơn giao <b>trễ</b> bị chê ≤ 2 sao</div>
+        <div class="track"><div class="fill red" style="width:54.1%">[54,1% – 62,4%]</div></div>
+      </div>
+      <div class="hbar">
+        <div class="name">Đơn giao <b>đúng hạn</b> vẫn bị chê ≤ 2 sao</div>
+        <div class="track"><div class="fill amber" style="width:9.2%">9,2%</div></div>
+      </div>
+      <p><b>8.124 khách</b> không hài lòng dù mọi chỉ số giao hàng đều báo xanh. Cả nhóm bị chê lẫn nhóm hài lòng
+        đều được giao <b>sớm hơn hạn dự kiến khoảng 12 ngày</b>: "đúng hạn" không có nghĩa là nhanh.</p>
+      <div class="note">Đây là khối mở đầu khi demo và thuyết trình: nhìn 2 thanh là hiểu bài toán.
+        Tỉ lệ đơn trễ bị chê đang có 2 số: 54,1% (đo 19/09) và 62,4% (đo 23/09, khớp dự án CommerceLens trên GitHub),
+        khác nhau do cách định nghĩa "trễ". Quân cần đo lại một lần và chốt định nghĩa trước khi đưa vào báo cáo.</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">99.441</div><div class="label">Tổng đơn trong Olist</div></div>
+      <div class="stat"><div class="num">88.644</div><div class="label">Đơn giao đúng hạn</div></div>
+      <div class="stat"><div class="num">8.124</div><div class="label">Đúng hạn nhưng bị chê ≤ 2 sao (9,2%)</div></div>
+      <div class="stat"><div class="num">[ngày]</div><div class="label">Cập nhật dự đoán lần cuối</div></div>
+    </div>
+
+    <div class="col-left">
+      <div class="box">
+        <h2>Độ phủ dữ liệu theo trường</h2>
+        <table>
+          <thead><tr><th>Trường</th><th>Bảng gốc</th><th>Có dữ liệu</th><th>Dùng ở màn</th></tr></thead>
+          <tbody>
+            <tr><td>order_delivered_customer_date</td><td>orders</td><td>[%]</td><td>Order Detail</td></tr>
+            <tr><td>order_delivered_carrier_date</td><td>orders</td><td>[%]</td><td>Order Detail</td></tr>
+            <tr><td>product_category_name</td><td>products</td><td>[%]</td><td>Order Detail</td></tr>
+            <tr><td>review_score</td><td>order_reviews</td><td>[%]</td><td>Nhãn huấn luyện (bên ML)</td></tr>
+            <tr><td>risk_score · top_reasons</td><td>predictions</td><td>[%]</td><td>Risk Queue, Order Detail</td></tr>
+          </tbody>
+        </table>
+        <div class="note">Quân (Data) đếm số thật khi nạp 9 bảng vào database.</div>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="box">
+        <h2>Đơn bị loại và lý do</h2>
+        <table>
+          <thead><tr><th>Lý do loại</th><th>Số đơn</th></tr></thead>
+          <tbody>
+            <tr><td>Giao trễ (không thuộc bài toán)</td><td><b>7.826</b></td></tr>
+            <tr><td>Chưa giao / bị huỷ</td><td>[số đơn]</td></tr>
+            <tr><td>Giao đúng hạn nhưng thiếu review</td><td><b>481</b></td></tr>
+          </tbody>
+        </table>
+        <div class="note">481 = 88.644 − 88.163 đơn đúng hạn có review.</div>
+      </div>
+
+      <div class="box">
+        <h2>Nguồn dữ liệu</h2>
+        <p>Brazilian E-Commerce Public Dataset by Olist (Kaggle), 9 bảng, đơn hàng 2016–2018.</p>
+        <p>Kết quả dự đoán: nhóm ML, phiên bản model <b>[model_version]</b>.</p>
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script src="common.js"></script>
+</body>
+</html>
