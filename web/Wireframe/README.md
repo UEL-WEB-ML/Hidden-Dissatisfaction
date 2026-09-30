@@ -1,5 +1,11 @@
 # Wireframe - Hidden Dissatisfaction
 
+> **Bản vẽ trên Figma:** https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl/Wireframe-%E2%80%93-Hidden-Dissatisfaction?node-id=1003-3710
+>
+> Thư mục này là bản **code** (HTML, CSS, JavaScript) của cùng wireframe đó, viết sẵn để sau này sửa giao diện cho dễ.
+> Muốn xem bản vẽ theo từng khổ màn hình (Desktop, iPad, Phone) thì mở link Figma ở trên.
+> Khi sửa một màn thì cập nhật cả hai bản cho khớp nhau.
+
 Bản wireframe bằng HTML, CSS, JavaScript cho đồ án môn Phát triển Web Kinh doanh:
 hệ thống web hỗ trợ phát hiện và xử lý đơn hàng Olist giao đúng hạn nhưng có nguy cơ bị đánh giá thấp.
 
@@ -10,6 +16,9 @@ là dữ liệu giả, chưa nối với cơ sở dữ liệu hay mô hình dự
 
 Mở file `index.html` bằng trình duyệt (bấm đúp vào file), không cần cài gì.
 Thu nhỏ cửa sổ để xem bố cục trên máy tính bảng (768px) và điện thoại (375px).
+
+Cuối mỗi trang có dòng **"Bản vẽ wireframe trên Figma: mở trong tab mới"**. Bấm vào đó để xem bản vẽ trên Figma
+(có sẵn 3 khổ Desktop, iPad, Phone và bản có ghi chú).
 
 ## Các màn hình hiện có
 
