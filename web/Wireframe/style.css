@@ -324,3 +324,6 @@ body.hide-notes .note { display: none; }
   .filters input { width: 100%; margin: 0.3em 0 0; }
   .timeline li b { display: block; width: auto; }
 }
+
+/* Dòng link Figma ở cuối trang */
+.figma-link { text-align: center; font-size: 0.85em; color: #555; margin: 2em 0 1em; }
