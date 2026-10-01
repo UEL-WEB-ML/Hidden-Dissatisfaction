@@ -14,7 +14,14 @@ là dữ liệu giả, chưa nối với cơ sở dữ liệu hay mô hình dự
 
 ## Cách xem
 
-Mở file `index.html` bằng trình duyệt (bấm đúp vào file), không cần cài gì.
+Mở file `login.html` bằng trình duyệt (bấm đúp vào file), không cần cài gì. Tài khoản thử:
+
+| Tên đăng nhập | Mật khẩu | Vai | Vào màn |
+|---|---|---|---|
+| `nhanvien` | `123456` | Nhân viên | Risk Queue |
+| `quanly` | `123456` | Quản lý | Overview |
+
+Mở thẳng `index.html` cũng được, khi đó xem như nhân viên.
 Thu nhỏ cửa sổ để xem bố cục trên máy tính bảng (768px) và điện thoại (375px).
 
 Cuối mỗi trang có dòng **"Bản vẽ wireframe trên Figma: mở trong tab mới"**. Bấm vào đó để xem bản vẽ trên Figma
@@ -24,10 +31,11 @@ Cuối mỗi trang có dòng **"Bản vẽ wireframe trên Figma: mở trong tab
 
 | File | Màn hình | Người dùng |
 |---|---|---|
-| `index.html` | Danh sách đơn cần ưu tiên (Risk Queue) | Nhân viên xử lý đơn |
-| `order.html` | Chi tiết đơn và các yếu tố liên quan đến rủi ro | Nhân viên xử lý đơn |
-| `actions.html` | Ghi nhận và theo dõi xử lý | Nhân viên, quản lý |
-| `data-quality.html` | Nguồn dữ liệu (sẽ bỏ) | |
+| `login.html` | Đăng nhập (không có đăng ký, tài khoản tạo sẵn) | Cả hai vai |
+| `overview.html` | Overview (tổng quan): tiến độ nhóm, seller có nhiều đơn rủi ro | Quản lý |
+| `index.html` | Risk Queue (hàng đợi đơn rủi ro) | Nhân viên, quản lý |
+| `order.html` | Order Detail (chi tiết đơn và các yếu tố liên quan đến rủi ro) | Nhân viên, quản lý |
+| `actions.html` | Action Tracking (ghi nhận và theo dõi xử lý) | Nhân viên, quản lý |
 
 File dùng chung: `style.css` (giao diện), `common.js` (hàm dùng chung), `mock-data.js` (dữ liệu giả).
 
@@ -35,9 +43,8 @@ File dùng chung: `style.css` (giao diện), `common.js` (hàm dùng chung), `mo
 
 ## Việc sẽ thay đổi sau khi chốt FRD
 
-- Thêm màn Đăng nhập (tài khoản tạo sẵn, không có đăng ký) với 2 vai: nhân viên và quản lý.
-- Thêm màn Tổng quan cho quản lý.
-- Bỏ màn Data Quality.
+- Đã thêm màn Đăng nhập và Overview (01/10). Còn chờ FRD chốt bộ trạng thái xử lý và quyền ghi đè của quản lý.
+- Đã bỏ màn Data Quality (01/10).
 - Đổi số liệu theo BRD (88.163 đơn đúng hạn có đánh giá, 8.164 đơn bị chấm 1-2 sao).
 
 ## Dữ liệu mỗi đơn

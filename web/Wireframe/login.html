@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập — Wireframe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="login-box">
+    <div class="login-logo">Hidden Dissatisfaction</div>
+    <p class="sub">Hệ thống hỗ trợ xử lý đơn có nguy cơ không hài lòng ẩn</p>
+
+    <form onsubmit="return login()">
+      <div class="form-row">
+        <label for="l-user">Tên đăng nhập</label>
+        <input id="l-user" type="text" placeholder="vd: nhanvien">
+      </div>
+      <div class="form-row">
+        <label for="l-pass">Mật khẩu</label>
+        <input id="l-pass" type="password">
+      </div>
+      <p class="login-error" id="l-error"></p>
+      <button class="btn primary login-btn" type="submit">Đăng nhập</button>
+    </form>
+
+    <div class="note">Không có nút đăng ký: tài khoản do người quản trị tạo sẵn trong cơ sở dữ liệu.
+      Người dùng không chọn vai, hệ thống tự biết vai theo tài khoản.</div>
+    <div class="note">Đăng nhập xong: nhân viên vào thẳng Risk Queue, quản lý vào màn Overview.
+      Sai tên hoặc mật khẩu thì báo lỗi ngay dưới ô mật khẩu, không nói rõ sai ô nào.</div>
+    <div class="note">Tài khoản thử: nhanvien / 123456 (nhân viên), quanly / 123456 (quản lý).</div>
+    <a class="btn note-toggle" onclick="toggleNotes()">Ẩn/hiện ghi chú</a>
+    <div class="clear"></div>
+  </div>
+
+  <p class="figma-link">Bản vẽ wireframe trên Figma: <a href="https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl/Wireframe-%E2%80%93-Hidden-Dissatisfaction?node-id=1003-3710" target="_blank">mở trong tab mới</a></p>
+
+  <script src="mock-data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    function login() {
+      var username = document.getElementById("l-user").value;
+      var password = document.getElementById("l-pass").value;
+
+      for (var i = 0; i < accounts.length; i++) {
+        var acc = accounts[i];
+        if (acc.username == username && acc.password == password) {
+          // Ghi nhớ người đang đăng nhập để các màn khác hiện tên và quyền
+          localStorage.setItem("userName", acc.name);
+          localStorage.setItem("userRole", acc.role);
+          if (acc.role == "manager") {
+            window.location.href = "overview.html";
+          } else {
+            window.location.href = "index.html";
+          }
+          return false;
+        }
+      }
+      document.getElementById("l-error").innerHTML = "Tên đăng nhập hoặc mật khẩu không đúng.";
+      return false;   // không gửi form đi, chỉ xử lý bằng JavaScript
+    }
+  </script>
+</body>
+</html>

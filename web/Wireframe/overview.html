@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview — Wireframe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="logo">Hidden Dissatisfaction</span>
+    <a href="overview.html" class="manager-only active">Overview</a>
+    <a href="index.html">Risk Queue</a>
+    <a href="order.html">Order Detail</a>
+    <a href="actions.html">Action Tracking</a>
+    <span class="user" id="user-box">Quản lý: Phạm Văn D</span>
+  </div>
+
+  <div class="page">
+    <a class="btn note-toggle" onclick="toggleNotes()">Ẩn/hiện ghi chú</a>
+    <h1>Overview</h1>
+    <p class="sub">Nhóm đang xử lý tới đâu, rủi ro đang dồn ở đâu?</p>
+
+    <div class="note">Màn mặc định của QUẢN LÝ sau khi đăng nhập. Nhân viên không thấy link "Overview" trên thanh điều hướng,
+      gõ thẳng địa chỉ trang này thì hiện thông báo không có quyền.</div>
+
+    <!-- Thông báo khi người đang đăng nhập không phải quản lý -->
+    <div class="alert" id="no-access" style="display:none">
+      <span class="icon">!</span>
+      <a class="btn" href="index.html">Về Risk Queue</a>
+      <b>Màn này chỉ dành cho quản lý.</b><br>Tài khoản của bạn là nhân viên nên không xem được.
+    </div>
+
+    <div id="content">
+      <!-- Băng cảnh báo -->
+      <div class="alert" id="alert"></div>
+      <div class="note">Câu đầu tiên quản lý đọc: còn bao nhiêu đơn rủi ro cao chưa ai nhận.
+        Bản thật thêm cảnh báo đơn rủi ro cao để quá 2-3 ngày chưa ai nhận (chờ BA chốt số ngày).</div>
+
+      <!-- 4 ô số liệu -->
+      <div class="stats">
+        <div class="stat click todo" onclick="openQueue('', 'Chưa xử lý')">
+          <div class="num" id="s-todo">0</div><div class="label">Chưa xử lý (chưa ai nhận)</div>
+          <div class="label" id="s-todo-high"></div>
+        </div>
+        <div class="stat click amber" onclick="openQueue('', 'Đang xử lý')"><div class="num" id="s-doing">0</div><div class="label">Đang xử lý</div></div>
+        <div class="stat plain"><div class="num" id="s-over">0</div><div class="label">Nhân viên chạm mức tối đa</div></div>
+        <div class="stat click green" onclick="openQueue('', 'Đã xong')">
+          <div class="num" id="s-done">0</div><div class="label">Đã xử lý xong</div>
+          <div class="progress"><div id="s-progress"></div></div>
+        </div>
+      </div>
+
+      <div class="note">Khác 4 ô ở Risk Queue: Risk Queue đếm việc CẦN LÀM, còn ở đây 3 ô Chưa xử lý, Đang xử lý, Đã xử lý xong chia TOÀN BỘ đơn theo 3 trạng thái
+        (6 + 1 + 1 = 8 đơn), quản lý thấy cả nhóm đang tắc ở khâu nào. Dùng đúng 3 tên trạng thái như bộ lọc ở Risk Queue.
+        Bấm 3 ô này thì mở Risk Queue đã lọc sẵn theo trạng thái đó.</div>
+
+      <div class="col-left">
+        <!-- Seller có nhiều đơn rủi ro -->
+        <div class="box">
+          <h2>Seller có nhiều đơn rủi ro</h2>
+          <table>
+            <thead>
+              <tr><th>Seller</th><th>Ngành hàng</th><th>Đơn rủi ro</th><th>High</th></tr>
+            </thead>
+            <tbody id="seller-body"></tbody>
+          </table>
+          <div class="note">Chỉ đếm đơn High và Medium, xếp theo số đơn giảm dần, lấy 5 seller đầu.
+            Một seller có nhiều đơn rủi ro thì nên làm việc với seller đó thay vì gọi từng khách.
+            Bấm vào một dòng thì mở Risk Queue chỉ còn đơn của seller đó.</div>
+        </div>
+
+        <!-- Phân bổ mức rủi ro -->
+        <div class="box">
+          <h2>Phân bổ mức rủi ro</h2>
+          <div id="level-bars"></div>
+          <div class="note">Bấm vào một thanh thì mở Risk Queue lọc theo mức đó.</div>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <!-- Tiến độ theo nhân viên -->
+        <div class="box">
+          <h2>Tiến độ theo nhân viên</h2>
+          <table>
+            <thead>
+              <tr><th>Nhân viên</th><th>Đang xử lý</th><th>Đã xong</th></tr>
+            </thead>
+            <tbody id="staff-body"></tbody>
+          </table>
+          <div class="note">Đếm theo người phụ trách của từng đơn (người đã bấm "Nhận xử lý").
+            Chống dồn việc: mỗi nhân viên giữ tối đa 5 đơn "Đang xử lý" cùng lúc, đủ 5 thì nút "Nhận xử lý" bị khoá.
+            Ai chạm mức tối đa thì dòng đó tô đỏ. Quản lý giao lại đơn cho người khác được (chờ BA chốt số 5).
+            Bấm vào một dòng thì mở Risk Queue chỉ còn đơn người đó đang giữ.</div>
+        </div>
+      </div>
+      <div class="clear"></div>
+    </div>
+  </div>
+
+  <p class="figma-link">Bản vẽ wireframe trên Figma: <a href="https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl/Wireframe-%E2%80%93-Hidden-Dissatisfaction?node-id=1003-3710" target="_blank">mở trong tab mới</a></p>
+
+  <script src="mock-data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    var MAX_DOING = 5;   // số đơn "Đang xử lý" tối đa mỗi nhân viên giữ cùng lúc
+
+    // Mở Risk Queue với bộ lọc đặt sẵn
+    function openQueue(level, status) {
+      window.location.href = "index.html?level=" + level + "&status=" + status;
+    }
+
+    // Mở Risk Queue lọc theo một trường: seller, assignee (người phụ trách) hoặc level
+    function openFilter(field, value) {
+      window.location.href = "index.html?" + field + "=" + value;
+    }
+
+    function renderStats() {
+      var free = 0, todo = 0, doing = 0, done = 0;
+      for (var i = 0; i < orders.length; i++) {
+        var o = orders[i];
+        if (o.status == "Chưa xử lý") todo++;
+        if (o.risk_level == "High" && o.status == "Chưa xử lý") free++;
+        if (o.status == "Đang xử lý") doing++;
+        if (o.status == "Đã xong") done++;
+      }
+      // Đếm nhân viên đang giữ đủ số đơn tối đa
+      var over = 0;
+      for (var k = 0; k < users.length; k++) {
+        var n = 0;
+        for (var j = 0; j < orders.length; j++) {
+          if (orders[j].assignee == users[k] && orders[j].status == "Đang xử lý") n++;
+        }
+        if (n >= MAX_DOING) over++;
+      }
+      document.getElementById("s-todo").innerHTML = todo;
+      document.getElementById("s-todo-high").innerHTML = 'trong đó High: <span class="hi">' + free + "</span>";
+      document.getElementById("s-doing").innerHTML = doing;
+      document.getElementById("s-over").innerHTML = over + " / " + users.length;
+      document.getElementById("s-done").innerHTML = done + " / " + orders.length;
+      document.getElementById("s-progress").style.width = (done / orders.length * 100) + "%";
+
+      var alertBox = document.getElementById("alert");
+      if (free > 0) {
+        alertBox.innerHTML = '<span class="icon">!</span>'
+          + '<a class="btn primary" href="index.html?level=High&status=Chưa xử lý">Mở các đơn này</a>'
+          + "<b>" + free + " đơn rủi ro cao chưa ai nhận xử lý.</b><br>"
+          + "Nhắc nhóm nhận các đơn này trước.";
+      } else {
+        alertBox.className = "alert ok";
+        alertBox.innerHTML = '<span class="icon">✓</span><b>Mọi đơn rủi ro cao đều đã có người nhận.</b>';
+      }
+    }
+
+    // Gom đơn High và Medium theo seller
+    function renderSellers() {
+      var list = [];
+      for (var i = 0; i < orders.length; i++) {
+        var o = orders[i];
+        if (o.risk_level == "Low") continue;
+        var found = null;
+        for (var j = 0; j < list.length; j++) {
+          if (list[j].seller_id == o.seller_id) found = list[j];
+        }
+        if (found == null) {
+          found = { seller_id: o.seller_id, categories: [], count: 0, high: 0 };
+          list.push(found);
+        }
+        found.count++;
+        if (o.risk_level == "High") found.high++;
+        if (found.categories.indexOf(o.category) == -1) found.categories.push(o.category);
+      }
+      list.sort(function (a, b) { return b.count - a.count; });
+
+      var rows = "";
+      for (var k = 0; k < list.length && k < 5; k++) {
+        var s = list[k];
+        rows += '<tr class="click" onclick="openFilter(\'seller\', \'' + s.seller_id + '\')">'
+          + '<td class="id">' + shortId(s.seller_id) + "</td>"
+          + "<td>" + s.categories.join(", ") + "</td>"
+          + "<td><b>" + s.count + "</b></td>"
+          + "<td>" + s.high + "</td>"
+          + "</tr>";
+      }
+      document.getElementById("seller-body").innerHTML = rows;
+    }
+
+    // Biểu đồ ngang: số đơn theo mức rủi ro
+    function renderLevels() {
+      var levels = ["High", "Medium", "Low"];
+      var colors = ["red", "amber", "green"];
+      var html = "";
+      for (var i = 0; i < levels.length; i++) {
+        var n = 0;
+        for (var j = 0; j < orders.length; j++) {
+          if (orders[j].risk_level == levels[i]) n++;
+        }
+        var pct = Math.round(n / orders.length * 100);
+        html += '<div class="hbar click" onclick="openFilter(\'level\', \'' + levels[i] + '\')"><div class="name">' + badge(levels[i]) + " " + n + " đơn</div>"
+          + '<div class="track"><div class="fill ' + colors[i] + '" style="width:' + Math.max(pct, 8) + '%">' + pct + "%</div></div></div>";
+      }
+      document.getElementById("level-bars").innerHTML = html;
+    }
+
+    // Tiến độ theo người phụ trách
+    function renderStaff() {
+      var rows = "";
+      for (var i = 0; i < users.length; i++) {
+        var doing = 0, done = 0;
+        for (var j = 0; j < orders.length; j++) {
+          if (orders[j].assignee == users[i]) {
+            if (orders[j].status == "Đang xử lý") doing++;
+            if (orders[j].status == "Đã xong") done++;
+          }
+        }
+        var warn = doing >= MAX_DOING ? " High" : "";   // chạm mức tối đa thì vạch đỏ đầu dòng
+        rows += '<tr class="click' + warn + '" onclick="openFilter(\'assignee\', \'' + users[i] + '\')">'
+          + "<td>" + users[i] + "</td><td>" + doing + " / " + MAX_DOING + "</td><td>" + done + "</td></tr>";
+      }
+      document.getElementById("staff-body").innerHTML = rows;
+    }
+
+    // Chỉ quản lý mới xem được màn này
+    if (localStorage.getItem("userRole") == "staff") {
+      document.getElementById("content").style.display = "none";
+      document.getElementById("no-access").style.display = "block";
+    } else {
+      document.body.classList.add("is-manager");   // mở thẳng file khi chưa đăng nhập vẫn thấy link Overview
+      renderStats();
+      renderSellers();
+      renderLevels();
+      renderStaff();
+    }
+  </script>
+</body>
+</html>
