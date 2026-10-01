@@ -1,5 +1,5 @@
 // =========================================================
-// common.js — hàm dùng chung cho cả 4 màn
+// common.js — hàm dùng chung cho mọi màn
 // =========================================================
 
 // Bật/tắt các ô ghi chú màu vàng
@@ -31,3 +31,25 @@ function shortId(id) {
 function daysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000);
 }
+
+// Người đang đăng nhập: màn Đăng nhập lưu tên và vai vào trình duyệt (localStorage)
+function showUser() {
+  var name = localStorage.getItem("userName");
+  var role = localStorage.getItem("userRole");
+  var box = document.getElementById("user-box");
+  if (name != null && box != null) {
+    box.innerHTML = (role == "manager" ? "Quản lý: " : "Nhân viên: ") + name
+      + ' · <a href="login.html" onclick="logout()">Đăng xuất</a>';
+  }
+  // Quản lý thì hiện thêm link Overview trên thanh điều hướng
+  if (role == "manager") {
+    document.body.classList.add("is-manager");
+  }
+}
+
+function logout() {
+  localStorage.removeItem("userName");
+  localStorage.removeItem("userRole");
+}
+
+showUser();

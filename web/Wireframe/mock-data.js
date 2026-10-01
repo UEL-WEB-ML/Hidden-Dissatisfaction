@@ -30,7 +30,7 @@ var orders = [
     order_value: 189.00, freight: 38.75,
     purchase_date: "2018-05-11", approved_date: "2018-05-11", carrier_date: "2018-05-15",
     delivered_date: "2018-05-29", estimated_date: "2018-06-12",
-    status: "Đang xử lý"
+    assignee: "Trần Thị B", status: "Đang xử lý"
   },
   {
     order_id: "c0d8e4f1a29b4b7c8d6e5f3a2b1c0d9e",
@@ -38,7 +38,7 @@ var orders = [
     top_reasons: ["Seller có 18% đơn cũ bị đánh giá ≤ 2 sao", "Seller mất 3 ngày mới bàn giao cho vận chuyển"],
     recommended_action: "Contact Customer",
     customer_city: "São Paulo", customer_state: "SP",
-    seller_id: "1f50f920176fa81dab994f9023523100", category: "watches_gifts",
+    seller_id: "7c67e1448b00f6e969d365cea6b010ab", category: "watches_gifts",
     order_value: 229.99, freight: 16.10,
     purchase_date: "2017-11-24", approved_date: "2017-11-24", carrier_date: "2017-11-27",
     delivered_date: "2017-12-04", estimated_date: "2017-12-15",
@@ -66,7 +66,7 @@ var orders = [
     order_value: 97.50, freight: 24.40,
     purchase_date: "2018-04-03", approved_date: "2018-04-03", carrier_date: "2018-04-05",
     delivered_date: "2018-04-12", estimated_date: "2018-04-27",
-    status: "Đã xong"
+    assignee: "Nguyễn Văn A", status: "Đã xong"
   },
   {
     order_id: "e8f7a6b5c4d34e2f1a0b9c8d7e6f5a43",
@@ -74,7 +74,7 @@ var orders = [
     top_reasons: ["Seller mới, dưới 10 đơn trước đó"],
     recommended_action: "Monitor",
     customer_city: "Salvador", customer_state: "BA",
-    seller_id: "6560211a19b47992c3666cc44a7e94c0", category: "sports_leisure",
+    seller_id: "7c67e1448b00f6e969d365cea6b010ab", category: "sports_leisure",
     order_value: 74.90, freight: 21.15,
     purchase_date: "2017-09-19", approved_date: "2017-09-19", carrier_date: "2017-09-21",
     delivered_date: "2017-10-02", estimated_date: "2017-10-16",
@@ -106,6 +106,13 @@ var orders = [
   }
 ];
 
+// Tài khoản mẫu (bảng accounts): tạo sẵn trong cơ sở dữ liệu, không có chức năng đăng ký.
+// Bản thật: mật khẩu được mã hoá và kiểm tra ở máy chủ, không để trong file JS như thế này.
+var accounts = [
+  { username: "nhanvien", password: "123456", name: "Trần Thị B", role: "staff" },
+  { username: "quanly",   password: "123456", name: "Phạm Văn D", role: "manager" }
+];
+
 // Nhân viên xử lý (bảng users)
 var users = ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C"];
 
@@ -114,5 +121,5 @@ var actions = [
   { order_id: "5e21b7d09a4c4f8e8b3d2a6c1f0e9d47", action_type: "Contact Customer", user: "Trần Thị B",
     status: "Đang xử lý", note: "Đã gọi, khách chưa nghe máy", created_at: "2018-05-30 09:15" },
   { order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", action_type: "Monitor", user: "Nguyễn Văn A",
-    status: "Đã xong", note: "Khách đã đánh giá 4 sao", created_at: "2018-04-14 14:02" }
+    status: "Đã xong", note: "Đã gọi, khách hài lòng sau khi được hỗ trợ", created_at: "2018-04-14 14:02" }
 ];

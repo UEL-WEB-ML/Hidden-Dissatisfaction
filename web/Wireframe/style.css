@@ -1,5 +1,5 @@
 /* =========================================================
-   style.css — dùng chung cho 4 màn
+   style.css — dùng chung cho mọi màn
    Màu chỉ dùng để báo mức rủi ro (đỏ / vàng cam / xanh lá),
    phần còn lại giữ trung tính để màu cảnh báo nổi lên.
    ========================================================= */
@@ -87,6 +87,13 @@ h1 { font-size: 1.6em; margin: 0 0 0.15em; }
 .stat.amber  { border-top: 4px solid #f9a825; }
 .stat.green  { border-top: 4px solid #2e7d32; }
 .stat.gray   { border-top: 4px solid #9ca3af; }
+
+/* "Chưa xử lý": xanh dương, việc mới vào đang chờ người nhận.
+   Không dùng vàng vì vàng là "Đang xử lý" ở màn Overview; đỏ, vàng, xanh lá đã dành cho mức rủi ro. */
+.stat.todo   { border-top: 4px solid #2563eb; }
+/* Ô chỉ để biết thêm (tổng số đơn, số nhân viên quá tải): không có vạch màu, để các ô trạng thái nổi lên */
+.stat.plain  { border-top: 4px solid #e5e7eb; }
+.stat .hi { color: #c62828; font-weight: bold; }  /* số đơn High nằm trong một ô trạng thái */
 
 /* Thanh tiến độ xử lý */
 .progress { height: 0.5em; background: #e5e7eb; border-radius: 99px; margin-top: 0.5em; overflow: hidden; }
@@ -327,3 +334,44 @@ body.hide-notes .note { display: none; }
 
 /* Dòng link Figma ở cuối trang */
 .figma-link { text-align: center; font-size: 0.85em; color: #555; margin: 2em 0 1em; }
+
+/* ---------- Link chỉ dành cho quản lý ---------- */
+.topbar a.manager-only { display: none; }
+body.is-manager .topbar a.manager-only { display: block; }
+.topbar .user a { float: none; display: inline; padding: 0; border: none; color: #cbd5e1; }
+
+/* ---------- Màn Đăng nhập ---------- */
+.login-box {
+  width: 92%;
+  max-width: 380px;
+  margin: 8vh auto 2em;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1.8em 1.6em 1.2em;
+}
+.login-logo { font-weight: bold; font-size: 1.3em; text-align: center; }
+.login-box .sub { text-align: center; font-size: 0.9em; }
+.login-btn { width: 100%; padding: 0.7em; font-size: 1em; margin-top: 0.4em; }
+.login-error { color: #c62828; font-size: 0.9em; min-height: 1.3em; margin: 0; }
+.login-box form { margin-bottom: 1.6em; }
+
+/* Cột thứ ba của biểu đồ ngang (mức Low) */
+.hbar .fill.green { background: #2e7d32; }
+
+/* Dòng bảng / thanh bấm được để mở danh sách chi tiết */
+tr.click, .hbar.click { cursor: pointer; }
+tr.click:hover td { background: #eef2ff; }
+.hbar.click:hover .track { box-shadow: 0 0 0 2px #c7d2fe; }
+
+/* Ô lọc chỉ quản lý thấy */
+.filters .manager-field { display: none; }
+body.is-manager .filters .manager-field { display: inline; }
+@media (max-width: 480px) { body.is-manager .filters .manager-field { display: block; } }
+
+/* Cột / dòng "Người phụ trách" ở Risk Queue: chỉ quản lý thấy */
+.mcol, .mrow { display: none; }
+body.is-manager .mcol { display: table-cell; }
+body.is-manager .mrow { display: block; }
+.muted { color: #9ca3af; }
