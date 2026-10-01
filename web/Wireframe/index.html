@@ -10,11 +10,11 @@
 
   <div class="topbar">
     <span class="logo">Hidden Dissatisfaction</span>
+    <a href="overview.html" class="manager-only">Overview</a>
     <a href="index.html" class="active">Risk Queue</a>
     <a href="order.html">Order Detail</a>
     <a href="actions.html">Action Tracking</a>
-    <a href="data-quality.html">Data Quality</a>
-    <span class="user">Nhân viên CSKH: Trần Thị B</span>
+    <span class="user" id="user-box">Nhân viên CSKH: Trần Thị B</span>
   </div>
 
   <div class="page">
@@ -32,15 +32,16 @@
 
     <!-- Ô số liệu tổng quan: bấm vào để lọc bảng -->
     <div class="stats">
-      <div class="stat click gray" onclick="quickFilter('', '')"><div class="num" id="s-total">0</div><div class="label">Đơn đang theo dõi</div></div>
+      <div class="stat click plain" onclick="quickFilter('', '')"><div class="num" id="s-total">0</div><div class="label">Đơn đang theo dõi</div></div>
       <div class="stat click red" onclick="quickFilter('High', 'Chưa xử lý')"><div class="num" id="s-high">0</div><div class="label">Rủi ro cao chưa xử lý</div></div>
-      <div class="stat click amber" onclick="quickFilter('', 'Chưa xử lý')"><div class="num" id="s-todo">0</div><div class="label">Tất cả chưa xử lý</div></div>
+      <div class="stat click todo" onclick="quickFilter('', 'Chưa xử lý')"><div class="num" id="s-todo">0</div><div class="label">Tất cả chưa xử lý</div></div>
       <div class="stat click green" onclick="quickFilter('', 'Đã xong')">
         <div class="num" id="s-done">0</div><div class="label">Đã xử lý xong</div>
         <div class="progress"><div id="s-progress"></div></div>
       </div>
     </div>
-    <div class="note">Bấm vào ô nào thì bảng lọc theo ô đó. Ô "Rủi ro cao chưa xử lý" đỏ vì đó là con số cần về 0.</div>
+    <div class="note">Bấm vào ô nào thì bảng lọc theo ô đó. Ô "Rủi ro cao chưa xử lý" đỏ vì đó là con số cần về 0.
+      Ô "Tất cả chưa xử lý" màu xanh dương, không dùng vàng để khỏi nhầm với ô "Đang xử lý" (vàng) ở màn Overview.</div>
 
     <!-- Bộ lọc -->
     <div class="box filters">
@@ -60,12 +61,24 @@
           <option>Đã xong</option>
         </select>
       </label>
+      <label>Seller
+        <select id="f-seller" onchange="render()">
+          <option value="">Tất cả</option>
+        </select>
+      </label>
+      <label class="manager-field">Người phụ trách
+        <select id="f-assignee" onchange="render()">
+          <option value="">Tất cả</option>
+          <option value="none">Chưa ai nhận</option>
+        </select>
+      </label>
       <label>Tìm mã đơn
         <input id="f-search" type="text" placeholder="vd: a3f9c1e2" onkeyup="render()">
       </label>
     </div>
     <div class="note">Mặc định sắp xếp risk_score giảm dần: đơn đáng lo nhất nằm trên cùng.
-      Lọc chạy ngay khi chọn, không cần bấm nút.</div>
+      Lọc chạy ngay khi chọn, không cần bấm nút. Ô lọc và cột "Người phụ trách" chỉ quản lý mới thấy.
+      Bấm vào seller, nhân viên hay thanh mức rủi ro ở màn Overview thì mở trang này đã lọc sẵn.</div>
 
     <!-- Bảng: màn rộng -->
     <div class="box queue-table">
@@ -78,6 +91,7 @@
             <th>Lý do chính</th>
             <th>Đề xuất</th>
             <th>Trạng thái</th>
+            <th class="mcol">Người phụ trách</th>
             <th></th>
           </tr>
         </thead>
@@ -101,6 +115,8 @@
       var level  = document.getElementById("f-level").value;
       var status = document.getElementById("f-status").value;
       var search = document.getElementById("f-search").value.toLowerCase();
+      var seller = document.getElementById("f-seller").value;
+      var assignee = document.getElementById("f-assignee").value;
 
       // Sắp xếp risk_score giảm dần
       orders.sort(function (a, b) { return b.risk_score - a.risk_score; });
@@ -112,6 +128,9 @@
         if (level != "" && o.risk_level != level) continue;
         if (status != "" && o.status != status) continue;
         if (search != "" && o.order_id.indexOf(search) == -1) continue;
+        if (seller != "" && o.seller_id != seller) continue;
+        if (assignee == "none" && o.assignee) continue;
+        if (assignee != "" && assignee != "none" && o.assignee != assignee) continue;
 
         var link = 'order.html?id=' + o.order_id;
         var cls = o.risk_level + (o.status == "Đã xong" ? " done" : "");
@@ -123,6 +142,7 @@
           + "<td>" + o.top_reasons[0] + "</td>"
           + "<td>" + o.recommended_action + "</td>"
           + "<td>" + o.status + "</td>"
+          + '<td class="mcol">' + (o.assignee ? o.assignee : '<span class="muted">Chưa ai nhận</span>') + "</td>"
           + '<td><a class="btn" href="' + link + '">Xem</a></td>'
           + "</tr>";
 
@@ -131,11 +151,12 @@
           + '<span class="id">' + shortId(o.order_id) + "</span></div>"
           + '<div class="row">' + o.top_reasons[0] + "</div>"
           + '<div class="row">Đề xuất: <b>' + o.recommended_action + "</b> · " + o.status + "</div>"
+          + '<div class="row mrow">Phụ trách: ' + (o.assignee ? o.assignee : "chưa ai nhận") + "</div>"
           + '<a class="btn" href="' + link + '">Xem chi tiết</a>'
           + "</div>";
       }
       if (rows == "") {
-        rows = '<tr><td colspan="7">Không có đơn nào khớp bộ lọc.</td></tr>';
+        rows = '<tr><td colspan="8">Không có đơn nào khớp bộ lọc.</td></tr>';
         cards = '<div class="card">Không có đơn nào khớp bộ lọc.</div>';
       }
       document.getElementById("queue-body").innerHTML = rows;
@@ -178,8 +199,31 @@
       document.getElementById("f-level").value = level;
       document.getElementById("f-status").value = status;
       document.getElementById("f-search").value = "";
+      document.getElementById("f-seller").value = "";
+      document.getElementById("f-assignee").value = "";
       render();
     }
+
+    // Đến từ màn Overview thì đặt sẵn bộ lọc theo địa chỉ, vd index.html?level=High&status=Chưa xử lý
+    // Đổ danh sách seller và nhân viên vào 2 ô lọc
+    var sellerBox = document.getElementById("f-seller");
+    var seen = [];
+    for (var i = 0; i < orders.length; i++) {
+      if (seen.indexOf(orders[i].seller_id) == -1) {
+        seen.push(orders[i].seller_id);
+        sellerBox.innerHTML += '<option value="' + orders[i].seller_id + '">' + shortId(orders[i].seller_id) + "</option>";
+      }
+    }
+    var assigneeBox = document.getElementById("f-assignee");
+    for (var j = 0; j < users.length; j++) {
+      assigneeBox.innerHTML += "<option>" + users[j] + "</option>";
+    }
+
+    var params = new URLSearchParams(location.search);
+    if (params.get("level") != null) document.getElementById("f-level").value = params.get("level");
+    if (params.get("status") != null) document.getElementById("f-status").value = params.get("status");
+    if (params.get("seller") != null) document.getElementById("f-seller").value = params.get("seller");
+    if (params.get("assignee") != null) document.getElementById("f-assignee").value = params.get("assignee");
 
     renderStats();
     render();
