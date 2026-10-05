@@ -33,7 +33,7 @@
         <h2>Sign in</h2>
         <p class="sub">Use the account your administrator created for you.</p>
 
-        <form onsubmit="return login()">
+        <form onsubmit="login(); return false;">
           <div class="form-row">
             <label for="l-user">Username</label>
             <input id="l-user" type="text" placeholder="e.g. nhanvien" autocomplete="username">
@@ -62,7 +62,10 @@
     </main>
   </div>
 
+  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
   <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
     function fillDemo(u) {
@@ -71,25 +74,19 @@
       document.getElementById("l-pass").focus();
     }
 
-    function login() {
-      var username = document.getElementById("l-user").value;
+    async function login() {
+      var username = document.getElementById("l-user").value.trim();
       var password = document.getElementById("l-pass").value;
-
-      for (var i = 0; i < accounts.length; i++) {
-        var acc = accounts[i];
-        if (acc.username == username && acc.password == password) {
-          // Ghi nhớ người đang đăng nhập để các màn khác biết tên và quyền
-          try { localStorage.setItem("userId", acc.user_id); } catch (e) { }
-          if (findUser(acc.user_id).role == "manager") {
-            window.location.href = "overview.html";
-          } else {
-            window.location.href = "index.html";
-          }
-          return false;
-        }
+      var btn = document.querySelector("form button[type=submit]");
+      document.getElementById("l-error").innerHTML = "";
+      if (btn) btn.disabled = true;
+      try {
+        var user = await api.login(username, password);   // POST /auth/login
+        location.href = user.role == "MANAGER" ? "overview.html" : "index.html";
+      } catch (e) {
+        document.getElementById("l-error").innerHTML = e.message;
+        if (btn) btn.disabled = false;
       }
-      document.getElementById("l-error").innerHTML = "Incorrect username or password.";
-      return false;   // không gửi form đi, chỉ xử lý bằng JavaScript
     }
   </script>
 </body>

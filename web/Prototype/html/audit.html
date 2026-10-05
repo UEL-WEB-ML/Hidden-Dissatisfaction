@@ -63,28 +63,30 @@
     <div class="note" lang="vi">F09-S03. Chỉ đọc: không có nút sửa, xoá hay xuất lại. Lịch sử không bao giờ bị xoá, kể cả khi đơn được mở lại.</div>
   </div>
 
+  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
   <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
     function el(id) { return document.getElementById(id); }
-    var OVERRIDE_TYPES = ["REASSIGN", "REOPEN", "OVERRIDE"];
     var view = "board";
     try { view = localStorage.getItem("wf-audit-view-3") || "board"; } catch (e) { }
 
     function setView(v) {
       view = v;
       try { localStorage.setItem("wf-audit-view-3", v); } catch (e) { }
-      render();
+      renderView();   // cả hai cách xem đã có dữ liệu, chỉ đổi cái đang hiện
     }
 
     function eventLine(e) {
-      return '<li><div class="ev-head"><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span> "
-        + '<span class="tiny">' + viTime(e.at) + " · " + userName(e.actor) + "</span></div>"
+      return '<li><div class="ev-head"><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> "
+        + '<span class="tiny">' + viTime(e.created_at) + " · " + e.actor_name + "</span></div>"
         + '<div class="ev-val">' + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></div>"
-        + (e.reason ? '<div class="tiny">Reason: ' + e.reason + "</div>" : "") + "</li>";
+        + (e.reason ? '<div class="tiny">Reason: ' + humanValue(e.reason) + "</div>" : "") + "</li>";
     }
 
-    // Kanban: gom event đã lọc theo đơn, xếp đơn vào cột theo trạng thái hiện tại
+    // Kanban: gom event đã lọc theo đơn, xếp đơn vào cột theo trạng thái hiện tại (e.order do API trả kèm)
     function renderBoard(list) {
       var byOrder = {}, orders = [];
       for (var i = 0; i < list.length; i++) {
@@ -96,17 +98,16 @@
       for (var c = 0; c < cols.length; c++) {
         var cards = "", n = 0;
         for (var j = 0; j < orders.length; j++) {
-          var o = findCase(orders[j]);
+          var ev = byOrder[orders[j]], o = ev[0].order;
           if (!o || o.status != cols[c]) continue;
           n++;
-          var ev = byOrder[orders[j]], all = auditsOf(o.order_id), over = false;
-          for (var k = 0; k < all.length; k++) if (OVERRIDE_TYPES.indexOf(all[k].type) != -1) over = true;
+          var total = o.event_count;
           var first = "", rest = "";
           for (var m = 0; m < ev.length; m++) (m < 3 ? (first += eventLine(ev[m])) : (rest += eventLine(ev[m])));
           cards += '<article class="k-card">'
-            + '<div class="k-top">' + idLink(o.order_id, "order.html?id=" + o.order_id) + " " + badge(o.risk_level)
-            + (over ? ' <span class="ev OVERRIDE">Override</span>' : "") + "</div>"
-            + '<div class="tiny">' + (o.assignee ? userName(o.assignee) : "Unassigned") + " · " + (ev.length == all.length ? all.length + (all.length == 1 ? " action" : " actions") : ev.length + " of " + all.length + " actions match") + "</div>"
+            + '<div class="k-top">' + idLink(orders[j], "order.html?id=" + orders[j]) + " " + badge(o.risk_level)
+            + (o.has_override ? ' <span class="ev OVERRIDE">Override</span>' : "") + "</div>"
+            + '<div class="tiny">' + (o.assignee_name || "Unassigned") + " · " + (ev.length == total ? total + (total == 1 ? " action" : " actions") : ev.length + " of " + total + " actions match") + "</div>"
             + '<ul class="k-events">' + first + "</ul>"
             + (rest ? '<details><summary>Show all ' + ev.length + '</summary><ul class="k-events">' + rest + "</ul></details>" : "")
             + "</article>";
@@ -117,46 +118,58 @@
       el("board").innerHTML = html;
     }
 
-    function render() {
-      var type = el("f-type").value, actor = el("f-actor").value;
-      var order = el("f-order").value.trim().toLowerCase(), onlyOverride = el("f-override").checked;
-      var ev = auditsOf(null), rows = "", n = 0;
-      for (var i = 0; i < ev.length; i++) {
-        var e = ev[i];
-        if (type && e.type != type) continue;
-        if (actor && e.actor != actor) continue;
-        if (order && e.order_id.indexOf(order) != 0) continue;
-        if (onlyOverride && OVERRIDE_TYPES.indexOf(e.type) == -1) continue;
-        n++;
-        rows += "<tr><td>" + viTime(e.at) + "</td><td>" + userName(e.actor) + "</td>"
-          + "<td>" + idLink(e.order_id, "order.html?id=" + e.order_id) + "</td>"
-          + '<td><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span></td>"
-          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></td>"
-          + "<td>" + (e.reason || '<span class="muted">—</span>') + "</td></tr>";
-      }
-      var list = [];
-      for (var x = 0; x < ev.length; x++) {
-        var a = ev[x];
-        if ((!type || a.type == type) && (!actor || a.actor == actor) && (!order || a.order_id.indexOf(order) == 0)
-          && (!onlyOverride || OVERRIDE_TYPES.indexOf(a.type) != -1)) list.push(a);
-      }
+    function renderView() {
       el("v-board").className = view == "board" ? "active" : "";
       el("v-table").className = view == "table" ? "active" : "";
       el("v-board").setAttribute("aria-pressed", view == "board");
       el("v-table").setAttribute("aria-pressed", view == "table");
       el("board").style.display = view == "board" ? "" : "none";
       el("table-view").style.display = view == "table" ? "" : "none";
-      renderBoard(list);
-      el("log-body").innerHTML = rows || '<tr><td colspan="6" class="empty">No actions match these filters.</td></tr>';
-      el("log-count").innerHTML = n + " of " + audits.length + " events";
     }
 
-    renderChrome("audit");
-    if (requireManager()) {
-      for (var k in EVENT_LABEL) el("f-type").innerHTML += '<option value="' + k + '">' + EVENT_LABEL[k] + "</option>";
-      for (var u = 0; u < users.length; u++) el("f-actor").innerHTML += '<option value="' + users[u].id + '">' + users[u].name + "</option>";
-      render();
+    // Lọc ở backend: GET /audit-events?type&actor&order_id&override_only
+    var reqNo = 0;
+    async function render() {
+      renderView();
+      var order = el("f-order").value.trim().toLowerCase();
+      var mine = ++reqNo;   // gõ nhanh nhiều ký tự: chỉ lấy kết quả của lần gọi cuối
+      el("log-count").innerHTML = "Loading…";
+      var data;
+      try {
+        data = await api.listAuditEvents({ event_type: el("f-type").value, actor_id: el("f-actor").value,
+          order_id: order, override_only: el("f-override").checked ? "true" : "" });
+      } catch (e) {
+        if (mine != reqNo) return;
+        el("board").innerHTML = errorHtml("the audit history");
+        el("log-body").innerHTML = '<tr><td colspan="6">' + errorHtml("the audit history") + "</td></tr>";
+        el("log-count").innerHTML = "";
+        return;
+      }
+      if (mine != reqNo) return;
+      var rows = "";
+      for (var i = 0; i < data.items.length; i++) {
+        var e = data.items[i];
+        rows += "<tr><td>" + viTime(e.created_at) + "</td><td>" + e.actor_name + "</td>"
+          + "<td>" + idLink(e.order_id, "order.html?id=" + e.order_id) + "</td>"
+          + '<td><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span></td>"
+          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></td>"
+          + "<td>" + (e.reason ? humanValue(e.reason) : '<span class="muted">—</span>') + "</td></tr>";
+      }
+      renderBoard(data.items);
+      el("log-body").innerHTML = rows || '<tr><td colspan="6" class="empty">No actions match these filters.</td></tr>';
+      el("log-count").innerHTML = data.total + " of " + data.all_total + " events";
     }
+
+    el("board").innerHTML = skeletonHtml(4);   // hiện khung xám ngay
+    boot("audit").then(async function () {
+      if (!requireManager()) return;
+      for (var k in EVENT_LABEL) el("f-type").innerHTML += '<option value="' + k + '">' + EVENT_LABEL[k] + "</option>";
+      try {
+        var users = (await api.listUsers()).items;
+        for (var u = 0; u < users.length; u++) el("f-actor").innerHTML += '<option value="' + users[u].user_id + '">' + users[u].full_name + "</option>";
+      } catch (e) { /* ô lọc người thao tác để trống, bảng vẫn tải */ }
+      render();
+    }).catch(function () { });
   </script>
 </body>
 </html>

@@ -10,7 +10,8 @@ Prototype cho đồ án môn Phát triển Web Kinh doanh: hệ thống nhận d
 giao đúng hạn nhưng có nguy cơ bị đánh giá 1–2 sao (bất mãn ẩn).
 
 **Đây là bản phác thảo để thống nhất bố cục và hành vi, chưa phải sản phẩm.** Dữ liệu trong `js/mock-data.js`
-là dữ liệu giả; tên field chỉ để vẽ giao diện, ERD và API Document sẽ chốt sau (BRD mục 9).
+là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng `../API_CONTRACT_olist_hidden_dissatisfaction.md`,
+hiện đang chạy trên backend giả `js/mock-server.js`; khi backend thật xong thì chỉ đổi phần này (xem "Cấu trúc code").
 
 ## Cách xem
 
@@ -23,12 +24,13 @@ Mở `html/login.html` bằng trình duyệt, không cần cài gì. Mật khẩ
 | `quanly` | Phạm Văn D | Manager | Dashboard | Assign, reassign, override capacity, mở lại, ghi chú model, Audit History |
 
 - Góc dưới trái có hai nút vàng: **"Ghi chú: bật/tắt"** và **"Chế độ trình bày"** (ẩn mọi phần chỉ dành cho nhóm; tắt bằng phím `` ` `` hoặc `?present=0`).
-- Cuối mỗi trang có khung vàng **"Công cụ demo"**: ô "Xem với vai" để đổi người dùng nhanh và nút "Đặt lại dữ liệu mẫu".
-  Khung này **không thuộc sản phẩm** (bản thật vai lấy từ tài khoản, Backend kiểm tra quyền) và ẩn cùng nút "Ẩn/hiện ghi chú".
+- Cuối mỗi trang có khung vàng **"Công cụ demo"**: ô "Đăng nhập lại với" để đổi tài khoản nhanh, ô "Giả lập mạng"
+  (chậm 2,5 giây hoặc máy chủ trả lỗi 500, để xem khung đang tải và khối lỗi) và nút "Đặt lại dữ liệu mẫu".
+  Khung này **không thuộc sản phẩm**, chỉ hiện khi đang dùng backend giả, và ẩn cùng nút "Ẩn/hiện ghi chú".
 - Thanh điều hướng theo vai: Specialist chỉ có Risk Queue (tab "Tất cả / Đơn của tôi" nằm trong màn);
   Manager có Dashboard, Risk Queue, Audit History. Mục "Order Detail" chỉ hiện khi đang xem một đơn.
-- Thao tác (nhận đơn, hoàn tất, bỏ qua…) được lưu tạm trong trình duyệt (localStorage) nên chuyển màn không mất.
-- Thời gian được giả lập cố định ở **04/06/2018 14:00** để SLA và aging luôn ra cùng một kết quả.
+- Thao tác (nhận đơn, hoàn tất, bỏ qua…) được backend giả lưu tạm trong trình duyệt (localStorage) nên chuyển màn không mất.
+- Giờ máy chủ giả bắt đầu ở **04/06/2018 14:00** (mỗi thao tác cộng 1 phút) để SLA và aging luôn ra cùng một kết quả.
 - Thu nhỏ cửa sổ để xem bố cục máy tính bảng (768px) và điện thoại (375px).
 - Ô màu vàng là ghi chú cho BA/Frontend (có mã function FRD), không thuộc giao diện thật.
 
@@ -42,7 +44,21 @@ Mở `html/login.html` bằng trình duyệt, không cần cài gì. Mật khẩ
 | `html/order.html` | Order Detail: kết quả model, yếu tố liên quan, xử lý, liên lạc/retry, audit của đơn | Specialist, Manager | F04, F05, F06, F07, F08 |
 | `html/audit.html` | Audit History (chỉ đọc) | Manager | F09 |
 
-File dùng chung: `css/style.css`, `js/common.js` (nhãn, luật nghiệp vụ, hộp thoại), `js/mock-data.js` (dữ liệu giả + cấu hình ngưỡng).
+## Cấu trúc code
+
+| File | Vai trò |
+|---|---|
+| `css/style.css` | Giao diện dùng chung |
+| `js/api.js` | **Nơi duy nhất lấy và ghi dữ liệu.** Mỗi hàm ứng với một endpoint trong API contract |
+| `js/common.js` | Nạp người dùng + cấu hình (`boot()`), nhãn giao diện, định dạng, hộp thoại, thanh điều hướng |
+| `js/mock-server.js` | Backend giả: trả lời đúng contract (JSON, mã lỗi 401/403/404/409/422), chứa luật nghiệp vụ BRD mục 6 |
+| `js/mock-data.js` | Dữ liệu giả cho backend giả |
+
+Luật nghiệp vụ (capacity 5 đơn, tối đa 3 lần liên lạc, chuyển trạng thái, bắt buộc lý do) và các số tính theo thời gian
+(SLA, aging, escalation, số liệu Dashboard) nằm ở backend. Frontend chỉ hiển thị và báo lỗi backend trả về.
+
+**Khi backend thật chạy:** bỏ 2 dòng `<script>` nạp `mock-data.js`, `mock-server.js` trong 5 file `html/*.html` và sửa `BASE_URL`
+trong `js/api.js`. Đã thử: chạy các trang qua một server HTTP thật theo contract, mọi màn và mã lỗi vẫn hoạt động.
 
 ### Bảng thuật ngữ giao diện (đề xuất, nhóm chốt)
 

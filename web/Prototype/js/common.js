@@ -1,41 +1,35 @@
 // =========================================================
 // common.js — hàm dùng chung cho mọi màn
-// Gồm: dữ liệu tạm, nhãn giao diện (tiếng Anh), luật nghiệp vụ (BRD mục 6), hộp thoại, thanh điều hướng.
-// Prototype tự kiểm tra luật ở trình duyệt cho dễ xem; bản thật Backend vẫn kiểm tra độc lập (FRD mục 3).
+// Gồm: nạp người dùng + cấu hình từ API, nhãn giao diện (tiếng Anh), định dạng, hộp thoại, thanh điều hướng.
+// Dữ liệu lấy qua js/api.js. Luật nghiệp vụ (capacity, retry, SLA...) do backend kiểm tra và tính;
+// frontend chỉ hiển thị và báo lỗi backend trả về (FRD mục 3).
 // =========================================================
 
-// ---------- Lưu tạm thao tác vào trình duyệt ----------
-// Claim, complete, skip... được lưu vào localStorage để chuyển màn không mất.
-// Nút "Đặt lại dữ liệu mẫu" trong khung công cụ demo xoá phần này.
-var STORE_KEY = "wf-data-v2";
-(function loadSaved() {
+// ---------- Người đang đăng nhập + cấu hình (nạp một lần khi mở trang) ----------
+var ME = null;        // GET /me
+var config = null;    // GET /config (capacity, max_contact, sla_hours...)
+var NOW = null;       // giờ của máy chủ, lấy từ GET /config
+
+// Gọi đầu mỗi trang: nạp người dùng + cấu hình rồi vẽ thanh điều hướng.
+// Chưa đăng nhập thì api.js tự chuyển về login.html.
+async function boot(active) {
   try {
-    var saved = localStorage.getItem(STORE_KEY);
-    if (saved != null) {
-      var d = JSON.parse(saved);
-      cases = d.cases; contacts = d.contacts; audits = d.audits; NOW = d.now;
-    }
-  } catch (e) { /* không đọc được thì dùng dữ liệu mẫu */ }
-})();
-
-function saveData() {
-  try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({ cases: cases, contacts: contacts, audits: audits, now: NOW }));
-  } catch (e) { }
+    var r = await Promise.all([api.getMe(), api.getConfig()]);
+    ME = r[0]; config = r[1]; NOW = config.server_time;
+  } catch (e) {
+    if (e.status != 401) document.getElementById("content").innerHTML = errorHtml("your account");
+    throw e;
+  }
+  renderChrome(active);
+}
+// Sau mỗi thao tác: nạp lại số đơn đang giữ và giờ máy chủ
+async function reloadMe() {
+  var r = await Promise.all([api.getMe(), api.getConfig()]);
+  ME = r[0]; config = r[1]; NOW = config.server_time;
 }
 
-function resetData() {
-  try { localStorage.removeItem(STORE_KEY); } catch (e) { }
-  location.reload();
-}
-
-// Mỗi thao tác đẩy đồng hồ giả lên 1 phút để lịch sử có thứ tự
-function tick() {
-  var d = parseTime(NOW);
-  d.setMinutes(d.getMinutes() + 1);
-  NOW = fmtTime(d);
-  return NOW;
-}
+// Lỗi API → { ok: false, msg } để hộp thoại hiện ngay trong form
+function apiFail(e) { return { ok: false, msg: e.message || "Something went wrong.", code: e.code }; }
 
 // ---------- Nhãn giao diện (FRD F06-S01: nhất quán Queue/Detail/Dashboard) ----------
 // Bảng thuật ngữ: giao diện dùng tiếng Anh thống nhất; mã trạng thái giữ nguyên như BRD.
@@ -67,7 +61,7 @@ var CONTACT_RESULT_LABEL = {
   CALLBACK: "Asked to call back",
   WRONG_NUMBER: "Wrong number / address"
 };
-var CONTACT_METHODS = ["Phone", "Email", "Message"];
+var CONTACT_METHOD_LABEL = { PHONE: "Phone", EMAIL: "Email", MESSAGE: "Message" };
 
 // Loại audit event (FRD F09-S02)
 var EVENT_LABEL = {
@@ -123,20 +117,6 @@ function nextBusinessDay(s, n) {
 }
 
 // ---------- Tra cứu ----------
-function findCase(id) {
-  for (var i = 0; i < cases.length; i++) if (cases[i].order_id == id) return cases[i];
-  return null;
-}
-function findUser(id) {
-  for (var i = 0; i < users.length; i++) if (users[i].id == id) return users[i];
-  return null;
-}
-function userName(id) { var u = findUser(id); return u ? u.name : ""; }
-function specialists() {
-  var list = [];
-  for (var i = 0; i < users.length; i++) if (users[i].role == "specialist") list.push(users[i]);
-  return list;
-}
 // Tên ngành hàng: mã Olist (bed_bath_table) → nhãn dễ đọc (Bed, bath & table). Giá trị lọc vẫn dùng mã.
 var CATEGORY_LABEL = {
   bed_bath_table: "Bed, bath & table", watches_gifts: "Watches & gifts", health_beauty: "Health & beauty",
@@ -151,70 +131,25 @@ function catLabel(slug) {
 function shortId(id) { return id.substring(0, 8) + "…"; }
 function isClosed(c) { return c.status == "COMPLETED" || c.status == "SKIPPED"; }
 
-function contactsOf(id) {
-  var list = [];
-  for (var i = 0; i < contacts.length; i++) if (contacts[i].order_id == id) list.push(contacts[i]);
-  list.sort(function (a, b) { return parseTime(a.at) - parseTime(b.at); });
-  return list;
-}
-function auditsOf(id) {
-  var list = [];
-  for (var i = 0; i < audits.length; i++) if (id == null || audits[i].order_id == id) list.push(audits[i]);
-  list.sort(function (a, b) { return parseTime(b.at) - parseTime(a.at); });   // mới nhất lên đầu
-  return list;
+function me() { return ME; }
+function isManager() { return ME.role == "MANAGER"; }
+
+async function logout() {
+  await api.logout();
+  location.href = "login.html";
 }
 
-// ---------- Người đang đăng nhập ----------
-// Màn Đăng nhập lưu user_id. Mở thẳng file khi chưa đăng nhập thì xem như Specialist Trần Thị B.
-function me() {
-  var id = null;
-  try { id = localStorage.getItem("userId"); } catch (e) { }
-  return findUser(id) || findUser("u2");
-}
-function isManager() { return me().role == "manager"; }
-
-function logout() {
-  try { localStorage.removeItem("userId"); } catch (e) { }
-}
-
-// ---------- Capacity (BRD 6.3) ----------
-function activeCount(userId) {
-  var n = 0;
-  for (var i = 0; i < cases.length; i++) {
-    if (cases[i].assignee == userId && cases[i].status == "IN_PROGRESS") n++;
-  }
-  return n;
-}
-function slotsLeft(userId) { return Math.max(0, config.capacity - activeCount(userId)); }   // slot không âm
-
-// ---------- SLA, aging, escalation (BRD 6.7) ----------
-function slaDue(c) {
-  var d = parseTime(c.queued_at);
-  d.setHours(d.getHours() + config.sla_hours[c.risk_level]);
-  return fmtTime(d);
-}
+// ---------- SLA, aging, escalation (BRD 6.7): backend tính sẵn, frontend chỉ đọc ----------
+function slaDue(c) { return c.sla_due_at; }
 // Trả về { code: ok | soon | over | none, text }
 function slaState(c) {
-  if (isClosed(c)) return { code: "none", text: "—" };
-  var left = hoursBetween(NOW, slaDue(c));
-  if (left < 0) return { code: "over", text: durationText(left) + " overdue" };
-  if (left < config.soon_hours) return { code: "soon", text: durationText(left) + " left" };
-  return { code: "ok", text: durationText(left) + " left" };
+  if (c.sla_state == "none" || c.sla_hours_left == null) return { code: "none", text: "—" };
+  var left = c.sla_hours_left;
+  return { code: c.sla_state, text: durationText(left) + (left < 0 ? " overdue" : " left") };
 }
-function agingHours(c) { return hoursBetween(c.queued_at, isClosed(c) ? c.updated_at : NOW); }
-// Nằm queue quá 2 ngày mà chưa đóng → escalation queue
-function isEscalated(c) { return !isClosed(c) && agingHours(c) >= config.aging_days * 24; }
-// IN_PROGRESS quá 1 ngày không cập nhật → cảnh báo Manager
-function isStale(c) { return c.status == "IN_PROGRESS" && hoursBetween(c.updated_at, NOW) >= config.stale_hours; }
-
-// ---------- Sắp xếp ưu tiên (BRD 6.2) ----------
-// score giảm dần → gần quá SLA hơn → nằm queue lâu hơn
-function byPriority(a, b) {
-  if (b.risk_score != a.risk_score) return b.risk_score - a.risk_score;
-  var sa = parseTime(slaDue(a)), sb = parseTime(slaDue(b));
-  if (sa - sb != 0) return sa - sb;
-  return parseTime(a.queued_at) - parseTime(b.queued_at);
-}
+function agingHours(c) { return c.aging_hours; }
+function isEscalated(c) { return c.is_escalated; }
+function isStale(c) { return c.is_stale; }
 
 // ---------- Nhãn HTML ----------
 // Mức rủi ro: icon ô vuông viền + 3 cột sóng (HIGH tô 3 cột, MEDIUM 2, LOW 1) và chữ, không dùng nền đỏ đặc,
@@ -245,10 +180,13 @@ function escBadge(c) {
   // Thẻ nhỏ viền, nằm cùng dòng với số giờ để mọi dòng trong bảng cao bằng nhau
   return isEscalated(c) ? ' <span class="esc-tag" title="In queue for ' + config.aging_days + ' days or more">Escalated</span>' : "";
 }
-// Giá trị audit lưu mã (PENDING, IN_PROGRESS…); hiển thị bằng nhãn giao diện cho dễ đọc
+// Giá trị audit lưu mã (PENDING, HAS_ISSUE, NO_ANSWER…); hiển thị bằng nhãn giao diện cho dễ đọc
 function humanValue(v) {
   if (!v) return v;
-  for (var k in STATUS_LABEL) v = v.split(k).join(STATUS_LABEL[k]);
+  var maps = [STATUS_LABEL, OUTCOME_LABEL, SKIP_LABEL, CONTACT_RESULT_LABEL];
+  for (var m = 0; m < maps.length; m++) {
+    for (var k in maps[m]) v = v.replace(new RegExp("\\b" + k + "\\b", "g"), maps[m][k]);
+  }
   return v.replace("(none)", "unassigned");
 }
 function outcomeText(c) {
@@ -296,118 +234,6 @@ function kpiCard(o) {
     + "</a>";
 }
 
-// ---------- Ghi audit (BRD 6.8): actor, thời gian, action, cũ, mới, lý do ----------
-function addAudit(orderId, type, oldValue, newValue, reason) {
-  audits.push({ at: tick(), actor: me().id, order_id: orderId, type: type, old_value: oldValue, new_value: newValue, reason: reason || "" });
-}
-
-// ---------- Thao tác nghiệp vụ ----------
-// Mỗi hàm trả về { ok: true/false, msg } để màn hình hiện thông báo.
-
-// F05-S01..S03: Specialist tự nhận
-function claimCase(id) {
-  var c = findCase(id), u = me();
-  if (c._conflict) {   // giả lập: người khác bấm trước một nhịp
-    c._conflict = false;
-    c.status = "IN_PROGRESS"; c.assignee = "u1"; c.updated_at = NOW;
-    audits.push({ at: NOW, actor: "u1", order_id: id, type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Nguyễn Văn A", reason: "" });
-    saveData();
-    return { ok: false, msg: "Order " + shortId(id) + " was just claimed by Nguyễn Văn A. The list has been refreshed." };
-  }
-  if (c.status != "PENDING") return { ok: false, msg: "This order is no longer pending." };
-  if (activeCount(u.id) >= config.capacity) {
-    return { ok: false, msg: "You already hold " + config.capacity + " orders. Complete or skip one to claim more." };
-  }
-  c.status = "IN_PROGRESS"; c.assignee = u.id; c.updated_at = tick();
-  addAudit(id, "CLAIM", "PENDING · (none)", "IN_PROGRESS · " + u.name);
-  saveData();
-  var n = activeCount(u.id);
-  var msg = "Claimed order " + shortId(id) + ". You now hold " + n + "/" + config.capacity + ".";
-  if (n >= config.capacity) msg += " Limit reached: complete or skip an order before claiming another.";
-  else if (n >= config.capacity_warn) msg += " Almost at the limit: " + slotsLeft(u.id) + " slot left.";
-  return { ok: true, msg: msg, warn: n >= config.capacity_warn };
-}
-
-// F05-S04, F05-S05, F08-S02, F08-S03: Manager assign / reassign, có thể override capacity
-function assignCase(id, toUser, reason, override) {
-  var c = findCase(id);
-  var from = c.assignee;
-  if (from == toUser) return { ok: false, msg: "That specialist is already the assignee." };
-  if (activeCount(toUser) >= config.capacity) {
-    if (!override) return { ok: false, msg: userName(toUser) + " already holds " + config.capacity + " orders. Tick \"Override capacity\" and enter a reason." };
-    addAudit(id, "OVERRIDE", userName(toUser) + ": " + activeCount(toUser) + "/" + config.capacity + " active",
-      (activeCount(toUser) + 1) + "/" + config.capacity + " (over capacity)", reason);
-  }
-  if (from == null) {
-    c.status = "IN_PROGRESS"; c.assignee = toUser; c.updated_at = tick();
-    addAudit(id, "ASSIGN", "PENDING · (none)", "IN_PROGRESS · " + userName(toUser), reason);
-    saveData();
-    return { ok: true, msg: "Assigned order " + shortId(id) + " to " + userName(toUser) + "." };
-  }
-  c.assignee = toUser; c.updated_at = tick();
-  addAudit(id, "REASSIGN", userName(from), userName(toUser), reason);
-  saveData();
-  return { ok: true, msg: "Moved order " + shortId(id) + " from " + userName(from) + " to " + userName(toUser) + "." };
-}
-
-// F07-S01..S04: ghi nhận một lần liên lạc
-function addContact(id, at, method, result, note, nextDate) {
-  var c = findCase(id);
-  var n = contactsOf(id).length;
-  if (n >= config.max_contact) return { ok: false, msg: "All " + config.max_contact + " contact attempts are used; attempt " + (n + 1) + " is not allowed." };
-  if (!at || !method || !result) return { ok: false, msg: "Time, method and result are required." };
-  if (at > NOW) return { ok: false, msg: "Contact time cannot be in the future." };
-  tick();
-  contacts.push({ order_id: id, at: at, user: me().id, method: method, result: result, note: note, next_date: nextDate });
-  c.updated_at = NOW;
-  addAudit(id, "CONTACT", n + "/" + config.max_contact, (n + 1) + "/" + config.max_contact + " · " + CONTACT_RESULT_LABEL[result], "");
-  saveData();
-  return { ok: true, msg: "Saved contact attempt " + (n + 1) + "/" + config.max_contact + "." };
-}
-
-// F06-S02: Hoàn tất, bắt buộc outcome
-function completeCase(id, outcome, note) {
-  var c = findCase(id);
-  if (!outcome) return { ok: false, msg: "Choose an outcome before completing." };
-  if (c.status != "IN_PROGRESS") return { ok: false, msg: "Only in-progress orders can be completed." };
-  c.status = "COMPLETED"; c.outcome = outcome; c.updated_at = tick();
-  addAudit(id, "STATUS", "IN_PROGRESS", "COMPLETED · " + OUTCOME_LABEL[outcome], note);
-  saveData();
-  return { ok: true, msg: "Completed order " + shortId(id) + ". Slot released." };
-}
-
-// F06-S03: Bỏ qua, bắt buộc reason
-function skipCase(id, reason, note) {
-  var c = findCase(id);
-  if (!reason) return { ok: false, msg: "Choose a skip reason." };
-  if (reason == "OTHER" && !note) return { ok: false, msg: "\"Other\" requires a note." };
-  if (c.status != "IN_PROGRESS") return { ok: false, msg: "Only in-progress orders can be skipped." };
-  c.status = "SKIPPED"; c.skip_reason = reason; c.updated_at = tick();
-  addAudit(id, "SKIP", "IN_PROGRESS", "SKIPPED", SKIP_LABEL[reason] + (note ? ": " + note : ""));
-  saveData();
-  return { ok: true, msg: "Skipped order " + shortId(id) + ". Slot released." };
-}
-
-// F08-S01: Manager mở lại, bắt buộc override reason
-function reopenCase(id, reason) {
-  var c = findCase(id);
-  if (!reason) return { ok: false, msg: "A reason is required to reopen." };
-  var old = c.status + (outcomeText(c) ? " · " + outcomeText(c) : "");
-  c.status = "PENDING"; c.assignee = null; c.outcome = null; c.skip_reason = null;
-  c.reopen_count++; c.queued_at = tick(); c.updated_at = NOW;
-  addAudit(id, "REOPEN", old, "PENDING", reason);
-  saveData();
-  return { ok: true, msg: "Reopened order " + shortId(id) + "; it is back to Pending." };
-}
-
-// F08-S04: không sửa score, chỉ ghi chú model review
-function addModelNote(id, note) {
-  if (!note) return { ok: false, msg: "Enter a note." };
-  addAudit(id, "MODEL_NOTE", "", "Flagged for model review", note);
-  saveData();
-  return { ok: true, msg: "Model review note saved. The original risk score is unchanged." };
-}
-
 // ---------- Hộp thoại ----------
 // Không dùng alert()/confirm() của trình duyệt. Esc để đóng, Tab không thoát ra ngoài hộp thoại,
 // đóng xong trả focus về nút đã mở.
@@ -434,8 +260,13 @@ function openModal(title, bodyHtml, confirmText, onConfirm) {
     if (e.shiftKey && document.activeElement == first) { last.focus(); e.preventDefault(); }
     else if (!e.shiftKey && document.activeElement == last) { first.focus(); e.preventDefault(); }
   });
-  document.getElementById("modal-ok").onclick = function () {
-    var r = onConfirm();
+  // onConfirm có thể trả { ok, msg } hoặc Promise (gọi API). Đang gửi thì khoá nút để không bấm hai lần.
+  var okBtn = document.getElementById("modal-ok");
+  okBtn.onclick = async function () {
+    okBtn.disabled = true;
+    var r;
+    try { r = await onConfirm(); } catch (e) { r = apiFail(e); }
+    okBtn.disabled = false;
     if (r && r.ok === false) {
       document.getElementById("modal-error").innerHTML = r.msg;   // lỗi hiện ngay trong hộp thoại, dữ liệu không đổi
     } else {
@@ -471,40 +302,43 @@ function hideToast() {
   if (t) t.className += " hide";
 }
 
-// Hộp thoại assign/reassign dùng chung cho Risk Queue và Order Detail
-function openAssign(id, onDone) {
-  var c = findCase(id);
-  var list = specialists();
+// Hộp thoại assign/reassign dùng chung cho Risk Queue và Order Detail. c: đơn từ API.
+async function openAssign(c, onDone) {
+  var list;
+  try { list = (await api.listUsers("SPECIALIST")).items; } catch (e) { toast(e.message, "error"); return; }
   var opts = '<option value="">-- Choose a specialist --</option>';
   for (var i = 0; i < list.length; i++) {
-    var n = activeCount(list[i].id);
-    opts += '<option value="' + list[i].id + '">' + list[i].name + " · " + n + "/" + config.capacity
-      + (n >= config.capacity ? " (full)" : " · " + slotsLeft(list[i].id) + " slot(s) left") + "</option>";
+    var n = list[i].active_count;
+    opts += '<option value="' + list[i].user_id + '">' + list[i].full_name + " · " + n + "/" + config.capacity
+      + (n >= config.capacity ? " (full)" : " · " + list[i].slots_left + " slot(s) left") + "</option>";
   }
-  var reassign = c.assignee != null;
-  var body = '<p>Order <span class="id">' + shortId(id) + "</span> · " + badge(c.risk_level) + " " + c.risk_score.toFixed(2) + "</p>"
-    + (reassign ? "<p>Current assignee: <b>" + userName(c.assignee) + "</b></p>" : "")
+  var reassign = c.assignee_id != null;
+  var body = '<p>Order <span class="id">' + shortId(c.order_id) + "</span> · " + badge(c.risk_level) + " " + c.risk_score.toFixed(2) + "</p>"
+    + (reassign ? "<p>Current assignee: <b>" + c.assignee_name + "</b></p>" : "")
     + '<div class="form-row"><label for="as-user">' + (reassign ? "Move to" : "Assign to") + "</label><select id=\"as-user\">" + opts + "</select></div>"
     + '<div class="form-row"><label for="as-reason">Reason' + (reassign ? " (required)" : " (required if overriding)") + '</label>'
     + '<textarea id="as-reason" rows="2"></textarea></div>'
     + '<label class="check"><input type="checkbox" id="as-override"> Override capacity: allow assigning to someone who already holds ' + config.capacity + " orders</label>";
-  openModal(reassign ? "Reassign order" : "Assign order", body, "Confirm", function () {
+  openModal(reassign ? "Reassign order" : "Assign order", body, "Confirm", async function () {
     var to = document.getElementById("as-user").value;
     var reason = document.getElementById("as-reason").value.trim();
     var override = document.getElementById("as-override").checked;
+    // Kiểm tra nhanh trên form cho đỡ một lượt gọi; backend vẫn kiểm tra lại
     if (!to) return { ok: false, msg: "Choose a specialist." };
     if ((reassign || override) && !reason) return { ok: false, msg: "Enter a reason: reassignments and overrides are recorded in the audit log." };
-    var r = assignCase(id, to, reason, override);
-    if (r.ok) { toast(r.msg); onDone(); }
-    return r;
+    try {
+      var r = await api.assign(c.order_id, to, reason, override);
+      toast(r.previous_assignee_name
+        ? "Moved order " + shortId(c.order_id) + " from " + r.previous_assignee_name + " to " + r.order.assignee_name + "."
+        : "Assigned order " + shortId(c.order_id) + " to " + r.order.assignee_name + ".");
+      onDone();
+      return { ok: true };
+    } catch (e) { return apiFail(e); }
   });
 }
 
-// ---------- Giả lập trạng thái tải / lỗi (FRD F01-S02, F02-S05) ----------
-// Chọn trong khung công cụ demo: normal | loading | error. Màn nào có dữ liệu tổng hợp thì đọc giá trị này.
-function simState() {
-  try { return localStorage.getItem("wf-sim") || "normal"; } catch (e) { return "normal"; }
-}
+// ---------- Trạng thái tải / lỗi (FRD F01-S02, F02-S05) ----------
+// Backend giả đọc ô "Giả lập trạng thái" trong khung công cụ demo: normal | loading (chậm 2,5 giây) | error (trả 500).
 function setSim(v) {
   try { localStorage.setItem("wf-sim", v); } catch (e) { }
   location.reload();
@@ -516,7 +350,7 @@ function skeletonHtml(rows) {
 }
 function errorHtml(what) {
   return '<div class="load-error" role="alert"><b>Couldn\'t load ' + what + ".</b> Check your connection and try again. "
-    + '<button class="btn sm" type="button" onclick="setSim(\'normal\')">Retry</button></div>';
+    + '<button class="btn sm" type="button" onclick="location.reload()">Retry</button></div>';
 }
 
 // ---------- Thanh điều hướng + chân trang ----------
@@ -530,55 +364,59 @@ function renderTopbar(active) {
   var u = me();
   // Mục theo vai (BRD 3.1, 3.2): mỗi mục là một màn thật. "My orders" là tab trong Risk Queue.
   var links = [];
-  if (u.role == "manager") links.push(["overview.html", "Dashboard", "dashboard"]);
+  if (u.role == "MANAGER") links.push(["overview.html", "Dashboard", "dashboard"]);
   links.push(["index.html", "Risk Queue", "queue"]);
   if (active == "detail") links.push([location.pathname.split("/").pop() + location.search, "Order Detail", "detail"]);
-  if (u.role == "manager") links.push(["audit.html", "Audit History", "audit"]);
+  if (u.role == "MANAGER") links.push(["audit.html", "Audit History", "audit"]);
 
   var html = '<span class="logo"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="2" y="9" width="3" height="5" rx="1" fill="currentColor"/>'
     + '<rect x="6.5" y="6" width="3" height="8" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="12" rx="1" fill="currentColor"/></svg></span>Hidden Dissatisfaction</span>';
   for (var i = 0; i < links.length; i++) {
     html += '<a href="' + links[i][0] + '"' + (links[i][2] == active ? ' class="active" aria-current="page"' : "") + ">" + links[i][1] + "</a>";
   }
-  var role = u.role == "manager" ? "Manager" : "Specialist";
+  var role = u.role == "MANAGER" ? "Manager" : "Specialist";
   // Khu vực người dùng: avatar chữ viết tắt + tên/vai + nút Sign out (trên điện thoại chỉ còn avatar + nút)
-  var parts = u.name.split(" "), initials = parts[0].charAt(0) + parts[parts.length - 1].charAt(0);
+  var parts = u.full_name.split(" "), initials = parts[0].charAt(0) + parts[parts.length - 1].charAt(0);
   html += '<span class="user"><span class="avatar" aria-hidden="true">' + initials + "</span>"
-    + '<span class="u-text"><b>' + u.name + "</b><small>" + role + "</small></span>"
-    + '<a class="signout" href="login.html" onclick="logout()" title="Sign out"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.5H3.5v11H6M10 5l3 3-3 3M13 8H6"/></svg><span>Sign out</span></a></span>';
+    + '<span class="u-text"><b>' + u.full_name + "</b><small>" + role + "</small></span>"
+    + '<a class="signout" href="login.html" onclick="logout(); return false;" title="Sign out"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.5H3.5v11H6M10 5l3 3-3 3M13 8H6"/></svg><span>Sign out</span></a></span>';
   document.getElementById("topbar").innerHTML = html;
 }
 
 function renderFooter() {
-  var u = me();
+  // Công cụ demo: KHÔNG thuộc sản phẩm, chỉ có khi đang dùng backend giả.
+  // Ẩn cùng nút "Ẩn/hiện ghi chú" để xem giao diện đúng như sản phẩm.
+  if (!API_CONFIG.USE_MOCK) return;
+  var u = me(), accounts = [["u2", "nhanvien", "Trần Thị B – Specialist"], ["u3", "nhanvien2", "Lê Văn C – Specialist"], ["u4", "quanly", "Phạm Văn D – Manager"]];
   var opts = "";
-  for (var j = 0; j < users.length; j++) {
-    opts += '<option value="' + users[j].id + '"' + (users[j].id == u.id ? " selected" : "") + ">"
-      + users[j].name + " – " + (users[j].role == "manager" ? "Manager" : "Specialist") + "</option>";
+  for (var j = 0; j < accounts.length; j++) {
+    opts += '<option value="' + accounts[j][1] + '"' + (accounts[j][0] == u.user_id ? " selected" : "") + ">" + accounts[j][2] + "</option>";
   }
-  var sim = simState(), simOpts = "";
-  var sims = [["normal", "Bình thường"], ["loading", "Đang tải"], ["error", "Lỗi tải dữ liệu"]];
+  var sim = "normal", simOpts = "";
+  try { sim = localStorage.getItem("wf-sim") || "normal"; } catch (e) { }
+  var sims = [["normal", "Bình thường"], ["loading", "Mạng chậm (2,5 giây)"], ["error", "Máy chủ lỗi (500)"]];
   for (var k = 0; k < sims.length; k++) simOpts += '<option value="' + sims[k][0] + '"' + (sims[k][0] == sim ? " selected" : "") + ">" + sims[k][1] + "</option>";
 
-  // Công cụ demo: KHÔNG thuộc sản phẩm. Bản thật vai lấy từ tài khoản đăng nhập, Backend kiểm tra quyền mỗi request.
-  // Ẩn cùng nút "Ẩn/hiện ghi chú" để xem giao diện đúng như sản phẩm.
   var tools = document.createElement("div");
   tools.className = "wf-tools";
   tools.innerHTML = '<b>Công cụ demo prototype, không có trong sản phẩm.</b> '
-    + "Bản thật: vai do tài khoản đăng nhập quyết định, người dùng không tự đổi được, Backend kiểm tra quyền độc lập.<br>"
-    + '<label>Xem với vai: <select onchange="switchUser(this.value)">' + opts + "</select></label>"
-    + ' · <label>Giả lập trạng thái: <select onchange="setSim(this.value)">' + simOpts + "</select></label>"
+    + "Đang dùng backend giả (js/mock-server.js) theo API_CONTRACT_olist_hidden_dissatisfaction.md. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
+    + '<label>Đăng nhập lại với: <select onchange="switchUser(this.value)">' + opts + "</select></label>"
+    + ' · <label>Giả lập mạng: <select onchange="setSim(this.value)">' + simOpts + "</select></label>"
     + ' · <a href="#" onclick="resetData(); return false;">Đặt lại dữ liệu mẫu</a>'
-    + " · Giờ giả lập: <b>" + viTime(NOW) + "</b>";
+    + " · Giờ máy chủ giả: <b>" + viTime(NOW) + "</b>";
   document.body.appendChild(tools);
-
 }
-function switchUser(id) {
-  try { localStorage.setItem("userId", id); } catch (e) { }
+async function switchUser(username) {
+  await api.login(username, "123456");
+  location.reload();
+}
+function resetData() {
+  MockServer.reset();
   location.reload();
 }
 
-// Màn chỉ dành cho Manager: Specialist mở thẳng địa chỉ thì báo không có quyền
+// Màn chỉ dành cho Manager: Specialist mở thẳng địa chỉ thì báo không có quyền (backend cũng trả 403)
 function requireManager() {
   if (isManager()) return true;
   document.getElementById("content").innerHTML = '<div class="alert"><span class="icon">!</span>'
