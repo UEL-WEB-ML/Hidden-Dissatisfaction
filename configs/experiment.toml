@@ -1,0 +1,37 @@
+[project]
+name = "olist-hidden-dissatisfaction"
+random_seed = 42
+prediction_time = "order_delivered_customer_date"
+
+[cohort]
+delivered_status = "delivered"
+on_time_operator = "<="
+low_review_scores = [1, 2]
+require_observed_review_for_primary_outcome = true
+
+[validation]
+strategy = "rolling_origin"
+time_column = "order_delivered_customer_date"
+# Exact boundaries must be selected after plotting monthly cohort and label counts.
+train_end = ""
+validation_end = ""
+test_end = ""
+
+[evaluation]
+primary_metric = "average_precision"
+report_metrics = [
+    "average_precision",
+    "roc_auc",
+    "minority_precision",
+    "minority_recall",
+    "minority_f1",
+    "brier_score",
+]
+budgets = [0.05, 0.10, 0.20]
+bootstrap_iterations = 1000
+
+[models]
+baselines = ["prevalence", "logistic_regression", "random_forest"]
+candidates = ["catboost", "lightgbm", "xgboost"]
+default_resampling = "none"
+calibration_methods = ["sigmoid", "isotonic"]

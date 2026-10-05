@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hidden-dissatisfaction"
+version = "0.1.0"
+description = "Time-safe prediction and prioritization of hidden dissatisfaction in Olist orders"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+ml = [
+    "joblib>=1.4,<2",
+    "numpy>=1.26,<3",
+    "pandas>=2.2,<3",
+    "pyarrow>=16,<22",
+    "scikit-learn>=1.5,<2",
+]
+boosting = [
+    "catboost>=1.2,<2",
+    "lightgbm>=4.5,<5",
+    "xgboost>=2.1,<4",
+]
+explain = ["shap>=0.46,<1"]
+notebook = [
+    "ipykernel>=6.29,<8",
+    "jupyterlab>=4.2,<5",
+    "matplotlib>=3.9,<4",
+    "seaborn>=0.13,<1",
+]
+dev = [
+    "black>=24.8,<27",
+    "mypy>=1.11,<2",
+    "pre-commit>=3.8,<5",
+    "pytest>=8.3,<10",
+    "pytest-cov>=5,<8",
+    "ruff>=0.6,<1",
+]
+
+[project.scripts]
+hidden-dissatisfaction = "hidden_dissatisfaction.interfaces.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "notebooks"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+markers = [
+    "integration: tests that exercise filesystem or external adapters",
+    "acceptance: end-to-end research workflow tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["hidden_dissatisfaction"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
