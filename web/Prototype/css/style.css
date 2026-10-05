@@ -269,7 +269,7 @@ tr.done td { color: #6b7280; }                 /* đơn đã xử lý xong thì 
 .form-row label { display: block; font-weight: 600; font-size: 0.9em; margin-bottom: 0.35em; }
 .form-row select, .form-row input, .form-row textarea { width: 100%; margin-left: 0; }
 
-/* ---------- Ghi chú wireframe (cho BA viết đặc tả) ---------- */
+/* ---------- Ghi chú prototype (cho BA viết đặc tả) ---------- */
 .note {
   background: #fffbea;
   border: 1px dashed #e6c200;
@@ -530,7 +530,7 @@ ul.plain li { padding: 0.5em 0; border-bottom: 1px solid #f0f1f3; }
 .tab-count { display: inline-block; margin-left: 0.3em; padding: 0 0.5em; border-radius: 99px; background: #e5e7eb; font-size: 0.8rem; }
 .tabs-bar button.active .tab-count { background: #1f2937; color: #fff; }
 
-/* Công cụ demo: trông như ghi chú wireframe, ẩn cùng ghi chú */
+/* Công cụ demo: trông như ghi chú prototype, ẩn cùng ghi chú */
 .wf-tools { max-width: 1200px; width: 94%; margin: 2em auto 0; background: #fffbea; border: 1px dashed #e6c200; border-radius: 6px; padding: 0.6em 0.9em; font-size: 0.85em; color: #6b5800; line-height: 1.9; }
 .wf-tools select { font: inherit; padding: 0.1em 0.3em; }
 body.hide-notes .wf-tools { display: none; }
@@ -678,7 +678,7 @@ th[aria-sort] .th-sort { color: #1f2937; }
 @media (max-width: 1024px) { .stats.six { grid-template-columns: 1fr 1fr 1fr; } .stat.key { grid-column: span 1; } }
 @media (max-width: 480px) { .stats.six { grid-template-columns: 1fr 1fr; } .stat.key { grid-column: 1 / -1; } }
 
-/* Nút bật/tắt ghi chú wireframe: công cụ, không phải UI sản phẩm */
+/* Nút bật/tắt ghi chú prototype: công cụ, không phải UI sản phẩm */
 .wf-note-btn { position: fixed; left: 1em; bottom: 1em; z-index: 40; font: inherit; font-size: 0.8125rem; background: #fffbea; color: #6b5800; border: 1px dashed #e6c200; border-radius: 6px; padding: 0.45em 0.8em; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
 @media (max-width: 768px), (pointer: coarse) { .wf-note-btn { min-height: 44px; } }
 
@@ -979,7 +979,7 @@ ul.plain li:last-child { border-bottom: none; }
   .auth-main { justify-content: flex-start; padding-top: 3em; }
 }
 
-/* 5. Nút công cụ wireframe + chế độ trình bày */
+/* 5. Nút công cụ prototype + chế độ trình bày */
 .wf-btns { position: fixed; left: 1em; bottom: 1em; z-index: 40; display: flex; gap: 0.4em; }
 .wf-btns .wf-note-btn { position: static; }
 body.present .note, body.present .wf-tools, body.present .wf-footer, body.present .figma-link,
