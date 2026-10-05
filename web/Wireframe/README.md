@@ -4,7 +4,7 @@
 >
 > Thư mục này là bản **code** (HTML, CSS, JavaScript) của cùng wireframe đó.
 > Khi sửa một màn thì cập nhật cả hai bản cho khớp nhau.
-> **05/10/2026:** bản code đã chỉnh theo BRD v3.0 và FRD v1.0, bản Figma chưa cập nhật theo.
+> **05/10/2026:** bản code đã chỉnh theo BRD v3.0 và FRD v1.0, bản Figma đã cập nhật.
 
 Wireframe cho đồ án môn Phát triển Web Kinh doanh: hệ thống nhận diện và ưu tiên đơn hàng Olist
 giao đúng hạn nhưng có nguy cơ bị đánh giá 1–2 sao (bất mãn ẩn).
