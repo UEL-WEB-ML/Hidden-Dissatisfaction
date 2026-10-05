@@ -1,44 +1,76 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đăng nhập — Wireframe</title>
+  <title>Sign in · Hidden Dissatisfaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="auth-page">
 
-  <div class="login-box">
-    <div class="login-logo">Hidden Dissatisfaction</div>
-    <p class="sub">Hệ thống hỗ trợ xử lý đơn có nguy cơ không hài lòng ẩn</p>
-
-    <form onsubmit="return login()">
-      <div class="form-row">
-        <label for="l-user">Tên đăng nhập</label>
-        <input id="l-user" type="text" placeholder="vd: nhanvien">
+  <div class="auth">
+    <!-- Cột giới thiệu (ẩn trên điện thoại, chỉ còn logo) -->
+    <aside class="auth-brand">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="2" y="9" width="3" height="5" rx="1" fill="currentColor"/><rect x="6.5" y="6" width="3" height="8" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="12" rx="1" fill="currentColor"/></svg></span>Hidden Dissatisfaction</div>
+      <div class="auth-pitch">
+        <h1>Reach unhappy customers before they leave a 1–2 star review.</h1>
+        <p>Orders that arrived on time can still disappoint. The risk model ranks them so your team calls the right customers first.</p>
+        <ul class="auth-points">
+          <li><span class="ap-icon" aria-hidden="true">1</span>A risk-ranked queue of on-time orders</li>
+          <li><span class="ap-icon" aria-hidden="true">2</span>SLA timers and contact tracking for every case</li>
+          <li><span class="ap-icon" aria-hidden="true">3</span>Workload and full audit trail for managers</li>
+        </ul>
       </div>
-      <div class="form-row">
-        <label for="l-pass">Mật khẩu</label>
-        <input id="l-pass" type="password">
-      </div>
-      <p class="login-error" id="l-error"></p>
-      <button class="btn primary login-btn" type="submit">Đăng nhập</button>
-    </form>
+      <p class="auth-foot">Olist e-commerce data · Web Business Development project</p>
+    </aside>
 
-    <div class="note">Không có nút đăng ký: tài khoản do người quản trị tạo sẵn trong cơ sở dữ liệu.
-      Người dùng không chọn vai, hệ thống tự biết vai theo tài khoản.</div>
-    <div class="note">Đăng nhập xong: nhân viên vào thẳng Risk Queue, quản lý vào màn Overview.
-      Sai tên hoặc mật khẩu thì báo lỗi ngay dưới ô mật khẩu, không nói rõ sai ô nào.</div>
-    <div class="note">Tài khoản thử: nhanvien / 123456 (nhân viên), quanly / 123456 (quản lý).</div>
-    <a class="btn note-toggle" onclick="toggleNotes()">Ẩn/hiện ghi chú</a>
-    <div class="clear"></div>
+    <main class="auth-main">
+      <div class="auth-card">
+        <div class="brand brand-sm"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="2" y="9" width="3" height="5" rx="1" fill="currentColor"/><rect x="6.5" y="6" width="3" height="8" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="12" rx="1" fill="currentColor"/></svg></span>Hidden Dissatisfaction</div>
+        <h2>Sign in</h2>
+        <p class="sub">Use the account your administrator created for you.</p>
+
+        <form onsubmit="return login()">
+          <div class="form-row">
+            <label for="l-user">Username</label>
+            <input id="l-user" type="text" placeholder="e.g. nhanvien" autocomplete="username">
+          </div>
+          <div class="form-row">
+            <label for="l-pass">Password</label>
+            <input id="l-pass" type="password" autocomplete="current-password">
+          </div>
+          <p class="login-error" id="l-error" role="alert"></p>
+          <button class="btn primary login-btn" type="submit">Sign in</button>
+        </form>
+
+        <!-- Chỉ có trong wireframe: điền nhanh tài khoản thử. Ẩn ở chế độ trình bày. -->
+        <div class="demo-accounts wf-only">
+          <span>Demo accounts (password 123456):</span>
+          <button type="button" onclick="fillDemo('nhanvien')">nhanvien · Specialist 3/5</button>
+          <button type="button" onclick="fillDemo('nhanvien2')">nhanvien2 · Specialist 5/5</button>
+          <button type="button" onclick="fillDemo('quanly')">quanly · Manager</button>
+        </div>
+
+        <div class="note" lang="vi">Không có nút đăng ký: tài khoản do người quản trị tạo sẵn trong cơ sở dữ liệu.
+          Người dùng không chọn vai, hệ thống tự biết vai theo tài khoản.
+          Đăng nhập xong: Specialist vào thẳng Risk Queue, Manager vào Risk Overview Dashboard.
+          Sai tên hoặc mật khẩu thì báo lỗi ngay dưới ô mật khẩu, không nói rõ sai ô nào.</div>
+      </div>
+    </main>
   </div>
-
-  <p class="figma-link">Bản vẽ wireframe trên Figma: <a href="https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl/Wireframe-%E2%80%93-Hidden-Dissatisfaction?node-id=1003-3710" target="_blank">mở trong tab mới</a></p>
 
   <script src="mock-data.js"></script>
   <script src="common.js"></script>
   <script>
+    function fillDemo(u) {
+      document.getElementById("l-user").value = u;
+      document.getElementById("l-pass").value = "123456";
+      document.getElementById("l-pass").focus();
+    }
+
     function login() {
       var username = document.getElementById("l-user").value;
       var password = document.getElementById("l-pass").value;
@@ -46,10 +78,9 @@
       for (var i = 0; i < accounts.length; i++) {
         var acc = accounts[i];
         if (acc.username == username && acc.password == password) {
-          // Ghi nhớ người đang đăng nhập để các màn khác hiện tên và quyền
-          localStorage.setItem("userName", acc.name);
-          localStorage.setItem("userRole", acc.role);
-          if (acc.role == "manager") {
+          // Ghi nhớ người đang đăng nhập để các màn khác biết tên và quyền
+          try { localStorage.setItem("userId", acc.user_id); } catch (e) { }
+          if (findUser(acc.user_id).role == "manager") {
             window.location.href = "overview.html";
           } else {
             window.location.href = "index.html";
@@ -57,7 +88,7 @@
           return false;
         }
       }
-      document.getElementById("l-error").innerHTML = "Tên đăng nhập hoặc mật khẩu không đúng.";
+      document.getElementById("l-error").innerHTML = "Incorrect username or password.";
       return false;   // không gửi form đi, chỉ xử lý bằng JavaScript
     }
   </script>
