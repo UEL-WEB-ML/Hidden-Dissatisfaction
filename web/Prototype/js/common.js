@@ -1,7 +1,7 @@
 // =========================================================
 // common.js — hàm dùng chung cho mọi màn
 // Gồm: dữ liệu tạm, nhãn giao diện (tiếng Anh), luật nghiệp vụ (BRD mục 6), hộp thoại, thanh điều hướng.
-// Wireframe tự kiểm tra luật ở trình duyệt cho dễ xem; bản thật Backend vẫn kiểm tra độc lập (FRD mục 3).
+// Prototype tự kiểm tra luật ở trình duyệt cho dễ xem; bản thật Backend vẫn kiểm tra độc lập (FRD mục 3).
 // =========================================================
 
 // ---------- Lưu tạm thao tác vào trình duyệt ----------
@@ -564,7 +564,7 @@ function renderFooter() {
   // Ẩn cùng nút "Ẩn/hiện ghi chú" để xem giao diện đúng như sản phẩm.
   var tools = document.createElement("div");
   tools.className = "wf-tools";
-  tools.innerHTML = '<b>Công cụ demo wireframe, không có trong sản phẩm.</b> '
+  tools.innerHTML = '<b>Công cụ demo prototype, không có trong sản phẩm.</b> '
     + "Bản thật: vai do tài khoản đăng nhập quyết định, người dùng không tự đổi được, Backend kiểm tra quyền độc lập.<br>"
     + '<label>Xem với vai: <select onchange="switchUser(this.value)">' + opts + "</select></label>"
     + ' · <label>Giả lập trạng thái: <select onchange="setSim(this.value)">' + simOpts + "</select></label>"
@@ -594,7 +594,7 @@ function toggleNotes() {
 }
 
 // ---------- Chế độ trình bày ----------
-// Ẩn mọi thứ chỉ dành cho nhóm làm wireframe (ghi chú vàng, khung công cụ demo, gợi ý tài khoản thử)
+// Ẩn mọi thứ chỉ dành cho nhóm làm prototype (ghi chú vàng, khung công cụ demo, gợi ý tài khoản thử)
 // để giao diện trông đúng như sản phẩm khi nộp bài / thuyết trình.
 // Bật/tắt: nút góc dưới trái, phím ` (backtick), hoặc thêm ?present=1 / ?present=0 vào địa chỉ trang. Trạng thái được nhớ.
 function setPresent(on) {
@@ -606,7 +606,7 @@ function togglePresent() {
   setPresent(on);
   if (on) toast("Chế độ trình bày đã bật. Nhấn phím ` (cạnh số 1) để tắt.");
 }
-(function initWireframeTools() {
+(function initPrototypeTools() {
   var on = false;
   try { on = localStorage.getItem("wf-present") == "1"; } catch (e) { }
   var q = new URLSearchParams(location.search).get("present");
