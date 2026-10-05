@@ -19,7 +19,7 @@
 
     <div class="note" lang="vi">F01. Màn mặc định của Manager sau khi đăng nhập. Specialist không có link trên thanh điều hướng;
       gõ thẳng địa chỉ thì báo không có quyền. Dashboard và Risk Queue dùng chung định nghĩa status, risk level, SLA
-      (cùng hàm trong common.js), nên bấm một con số sẽ ra đúng số dòng ở Queue.</div>
+      (backend tính cùng một chỗ, xem API_CONTRACT_olist_hidden_dissatisfaction.md), nên bấm một con số sẽ ra đúng số dòng ở Queue.</div>
 
     <!-- F01-S01: Bộ lọc -->
     <form class="box filters" onsubmit="apply(); return false;" onchange="markDirty()">
@@ -63,7 +63,7 @@
       Đổi filter mà chưa bấm: hiện dòng "Filters changed, not applied yet" và nút Apply chuyển thành nút đậm, để không ai đọc số liệu cũ tưởng là mới.
       Filter đang dùng hiện thành chip; "Reset" về mặc định (All). Mọi thẻ, biểu đồ, bảng bên dưới dùng cùng một filter.
       Đang tải: thẻ và bảng hiện khung xám; lỗi: hiện thông báo + nút "Retry", không hiện số 0 giả
-      (thử bằng ô "Giả lập trạng thái" trong khung công cụ demo).</div>
+      (thử bằng ô "Giả lập mạng" trong khung công cụ demo: chậm 2,5 giây hoặc máy chủ trả lỗi 500).</div>
 
     <div id="dash">
       <!-- Băng cảnh báo -->
@@ -135,7 +135,10 @@
     </div>
   </div>
 
+  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
   <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
     var KEYS = ["time", "level", "seller", "category", "assignee", "status"];
@@ -144,17 +147,13 @@
 
     function el(id) { return document.getElementById(id); }
 
-    function fillOptions() {
-      var sellers = [], cats = [];
-      for (var i = 0; i < cases.length; i++) {
-        if (sellers.indexOf(cases[i].seller_id) == -1) sellers.push(cases[i].seller_id);
-        if (cats.indexOf(cases[i].category) == -1) cats.push(cases[i].category);
-      }
-      cats.sort();
+    // GET /orders/filter-options + GET /users?role=specialist
+    async function fillOptions() {
+      var r = await Promise.all([api.getFilterOptions(), api.listUsers("SPECIALIST")]);
+      var sellers = r[0].sellers, cats = r[0].categories, sp = r[1].items;
       for (var s = 0; s < sellers.length; s++) el("f-seller").innerHTML += '<option value="' + sellers[s] + '">' + shortId(sellers[s]) + "</option>";
       for (var c = 0; c < cats.length; c++) el("f-category").innerHTML += '<option value="' + cats[c] + '">' + catLabel(cats[c]) + "</option>";
-      var sp = specialists();
-      for (var u = 0; u < sp.length; u++) el("f-assignee").innerHTML += '<option value="' + sp[u].id + '">' + sp[u].name + "</option>";
+      for (var u = 0; u < sp.length; u++) el("f-assignee").innerHTML += '<option value="' + sp[u].user_id + '">' + sp[u].full_name + "</option>";
     }
 
     function apply() {
@@ -175,34 +174,13 @@
     }
     function clearOne(k) { el("f-" + k).value = ""; apply(); }
 
-    // Ngày bắt đầu của bộ lọc thời gian
-    function fromDate() {
-      if (!applied.time) return "";
-      var d = parseTime(NOW.substring(0, 10));
-      d.setDate(d.getDate() - (+applied.time - 1));
-      return fmtDate(d);
-    }
-
-    function filtered() {
-      var from = fromDate(), list = [];
-      for (var i = 0; i < cases.length; i++) {
-        var c = cases[i];
-        if (from && c.queued_at.substring(0, 10) < from) continue;
-        if (applied.level && c.risk_level != applied.level) continue;
-        if (applied.seller && c.seller_id != applied.seller) continue;
-        if (applied.category && c.category != applied.category) continue;
-        if (applied.assignee && c.assignee != applied.assignee) continue;
-        if (applied.status && c.status != applied.status) continue;
-        list.push(c);
-      }
-      return list;
-    }
+    var DASH = null;   // phản hồi GET /dashboard gần nhất
 
     // Link drill-down sang Risk Queue: filter của Dashboard + điều kiện của ô được bấm
     function queueLink(extra) {
       var p = new URLSearchParams();
       p.set("status", "");                       // Dashboard tính trên mọi trạng thái
-      if (fromDate()) p.set("from", fromDate());
+      if (DASH && DASH.from) p.set("from", DASH.from);
       if (applied.level) p.set("level", applied.level);
       if (applied.seller) p.set("seller", applied.seller);
       if (applied.category) p.set("category", applied.category);
@@ -226,66 +204,62 @@
       el("chips").innerHTML = html ? '<span class="muted">Applied:</span> ' + html : "";
     }
 
-    // Giả lập trạng thái tải / lỗi (FRD F01-S02): không hiện số 0 giả
-    var SIM_BLOCKS = ["level-bars", "bands", "group-table", "staff-table", "attention", "recent"];
-    function renderSim(sim) {
+    // Đang tải: khung xám. Lỗi: khối thông báo + Retry, không hiện số 0 giả (FRD F01-S02)
+    var BLOCKS = ["level-bars", "bands", "group-table", "staff-table", "attention", "recent"];
+    function renderLoading() {
       el("alert").className = ""; el("alert").innerHTML = "";
-      if (sim == "loading") {
-        el("updated").innerHTML = "· Loading…";
-        var k = "";
-        for (var i = 0; i < 6; i++) k += '<div class="stat sk-block" aria-hidden="true">' + skeletonHtml(2) + "</div>";
-        el("kpi").innerHTML = k;
-        el("rates").innerHTML = skeletonHtml(1);
-        for (var j = 0; j < SIM_BLOCKS.length; j++) el(SIM_BLOCKS[j]).innerHTML = skeletonHtml(3);
-      } else {
-        el("updated").innerHTML = "";
-        el("kpi").innerHTML = "";
-        el("rates").style.display = "none";
-        el("alert").innerHTML = errorHtml("dashboard data");
-        for (var m = 0; m < SIM_BLOCKS.length; m++) el(SIM_BLOCKS[m]).innerHTML = '<p class="muted">Not available.</p>';
-      }
+      el("updated").innerHTML = "· Loading…";
+      var k = "";
+      for (var i = 0; i < 6; i++) k += '<div class="stat sk-block" aria-hidden="true">' + skeletonHtml(2) + "</div>";
+      el("kpi").innerHTML = k;
+      el("rates").style.display = "";
+      el("rates").innerHTML = skeletonHtml(1);
+      for (var j = 0; j < BLOCKS.length; j++) el(BLOCKS[j]).innerHTML = skeletonHtml(3);
+    }
+    function renderError() {
+      el("updated").innerHTML = "";
+      el("totals").innerHTML = "";
+      el("kpi").innerHTML = "";
+      el("rates").style.display = "none";
+      el("alert").innerHTML = errorHtml("dashboard data");
+      for (var m = 0; m < BLOCKS.length; m++) el(BLOCKS[m]).innerHTML = '<p class="muted">Not available.</p>';
     }
 
-    function renderAll() {
+    var reqNo = 0;
+    async function renderAll() {
       renderChips();
-      var sim = simState();
-      if (sim != "normal") { renderSim(sim); return; }
-      var data = filtered();
-      el("updated").innerHTML = "· Data as of " + viTime(NOW);
-      if (data.length == 0) {
-        el("alert").className = "";
-        el("alert").innerHTML = "";
+      renderLoading();
+      var mine = ++reqNo;
+      try {
+        DASH = await api.getDashboard({ days: applied.time, level: applied.level, seller: applied.seller,
+          category: applied.category, assignee: applied.assignee, status: applied.status });
+      } catch (e) {
+        if (mine == reqNo) renderError();
+        return;
+      }
+      if (mine != reqNo) return;
+      el("updated").innerHTML = "· Data as of " + viTime(DASH.as_of);
+      el("alert").className = ""; el("alert").innerHTML = "";
+      renderKpi(DASH.totals);
+      if (DASH.totals.total == 0) {
         el("kpi").innerHTML = '<div class="box empty">No orders in the current filters. <a href="#" onclick="resetAll(); return false;">Reset</a></div>';
       }
-      renderKpi(data);
-      renderRates(data);
-      renderLevels(data);
-      renderGroups(data);
-      renderStaff(data);
-      renderAttention(data);
-      renderRecent();
+      renderRates(DASH.rates);
+      renderLevels(DASH);
+      renderGroups();
+      renderStaff(DASH.workload);
+      renderAttention(DASH.attention);
+      renderRecent(DASH.recent_overrides);
     }
 
     // ---------- F01-S02 ----------
-    function renderKpi(data) {
-      var n = { total: data.length, high: 0, PENDING: 0, IN_PROGRESS: 0, COMPLETED: 0, SKIPPED: 0, over: 0, highOver: 0, stale: 0 };
-      for (var i = 0; i < data.length; i++) {
-        var c = data[i];
-        n[c.status]++;
-        if (c.risk_level == "HIGH" && c.status == "PENDING") { n.high++; if (slaState(c).code == "over") n.highOver++; }
-        if (slaState(c).code == "over") n.over++;
-        if (isStale(c)) n.stale++;
-      }
-      function card(cls, num, label, extra, link, sub) {
-        return '<a class="stat click ' + cls + '" href="' + queueLink(link) + '"><div class="num">' + num + '</div><div class="label">' + label + "</div>"
-          + (sub ? '<div class="label">' + sub + "</div>" : "") + (extra || "") + "</a>";
-      }
+    function renderKpi(n) {
       var closed = n.COMPLETED + n.SKIPPED;
       // Hai chỉ số cần hành động đứng đầu và to hơn; tổng số đơn chuyển lên dòng phụ dưới tiêu đề
-      if (data.length > 0) el("kpi").innerHTML =
-          kpiCard({ href: queueLink({ level: "HIGH", status: "PENDING" }), cls: "key", icon: '<span class="badge HIGH">' + levelIcon("HIGH") + "</span>", label: "Pending HIGH", num: n.high,
-            sub: n.highOver ? '<b class="hi">' + n.highOver + " overdue</b>" : "All within SLA", action: "Open and assign" })
-        + kpiCard({ href: queueLink({ sla: "over", status: "OPEN" }), cls: "key", tone: n.over ? "danger" : "neutral", icon: "clock", label: "Overdue SLA", num: n.over,
+      el("kpi").innerHTML =
+          kpiCard({ href: queueLink({ level: "HIGH", status: "PENDING" }), cls: "key", icon: '<span class="badge HIGH">' + levelIcon("HIGH") + "</span>", label: "Pending HIGH", num: n.high_pending,
+            sub: n.high_pending_overdue ? '<b class="hi">' + n.high_pending_overdue + " overdue</b>" : "All within SLA", action: "Open and assign" })
+        + kpiCard({ href: queueLink({ sla: "over", status: "OPEN" }), cls: "key", tone: n.overdue ? "danger" : "neutral", icon: "clock", label: "Overdue SLA", num: n.overdue,
             sub: "Open orders past their SLA", action: "View overdue orders" })
         + kpiCard({ href: queueLink({ status: "IN_PROGRESS" }), tone: "purple", icon: "progress", label: "In progress", num: n.IN_PROGRESS,
             sub: n.stale ? n.stale + " with no update ≥ 1 day" : "All updated in the last day", action: "View" })
@@ -293,56 +267,38 @@
             sub: "Closed " + closed + " of " + n.total + " orders", action: "View" })
         + kpiCard({ href: queueLink({ status: "SKIPPED" }), tone: "gray", icon: "skip", label: "Skipped", num: n.SKIPPED,
             sub: closed ? Math.round(n.SKIPPED / closed * 100) + "% of closed orders" : "No closed orders yet", action: "View" });
-      el("totals").innerHTML = data.length ? ' · <a href="' + queueLink({}) + '">' + n.total + " risk orders</a>, " + n.PENDING + " pending" : "";
-
-      // Không còn băng cảnh báo riêng: nó lặp đúng số của hai thẻ "Pending HIGH" và "Overdue SLA"
-      el("alert").className = ""; el("alert").innerHTML = "";
+      el("totals").innerHTML = n.total ? ' · <a href="' + queueLink({}) + '">' + n.total + " risk orders</a>, " + n.PENDING + " pending" : "";
     }
 
-    function renderRates(data) {
-      var closed = 0, done = 0, skipped = 0, unreach = 0, issue = 0;
-      for (var i = 0; i < data.length; i++) {
-        var c = data[i];
-        if (!isClosed(c)) continue;
-        closed++;
-        if (c.status == "COMPLETED") { done++; if (c.outcome == "HAS_ISSUE") issue++; if (c.outcome == "UNREACHABLE") unreach++; }
-        if (c.status == "SKIPPED") { skipped++; if (c.skip_reason == "UNREACHABLE") unreach++; }
-      }
-      function pct(x) { return closed ? Math.round(x / closed * 100) + "%" : "—"; }
+    function renderRates(r) {
+      function pct(x) { return r.closed ? Math.round(x / r.closed * 100) + "%" : "—"; }
       el("rates").style.display = "";
-      el("rates").innerHTML = '<span class="r-title">Of ' + closed + " closed orders:</span>"
-        + '<span class="r"><b>' + pct(done) + "</b> completed</span>"
-        + '<span class="r"><b>' + pct(skipped) + "</b> skipped</span>"
-        + '<span class="r"><b>' + pct(unreach) + "</b> unreachable</span>"
-        + '<span class="r"><b>' + pct(issue) + "</b> issue found</span>";
+      el("rates").innerHTML = '<span class="r-title">Of ' + r.closed + " closed orders:</span>"
+        + '<span class="r"><b>' + pct(r.completed) + "</b> completed</span>"
+        + '<span class="r"><b>' + pct(r.skipped) + "</b> skipped</span>"
+        + '<span class="r"><b>' + pct(r.unreachable) + "</b> unreachable</span>"
+        + '<span class="r"><b>' + pct(r.issue_found) + "</b> issue found</span>";
     }
 
     // ---------- F01-S03 ----------
-    function renderLevels(data) {
-      var levels = ["HIGH", "MEDIUM", "LOW"], colors = ["red", "amber", "green"], html = "";
-      for (var i = 0; i < levels.length; i++) {
-        var n = 0;
-        for (var j = 0; j < data.length; j++) if (data[j].risk_level == levels[i]) n++;
-        var pct = data.length ? Math.round(n / data.length * 100) : 0;
-        html += '<a class="hbar click" href="' + queueLink({ level: levels[i] }) + '"><div class="hb-row">' + badge(levels[i])
-          + '<span class="hb-n">' + n + " orders</span>" + '<span class="hb-pct">' + pct + "%</span></div>"
-          + '<div class="track"><div class="fill ' + colors[i] + '" style="width:' + pct + '%"></div></div></a>';
+    function renderLevels(d) {
+      var colors = { HIGH: "red", MEDIUM: "amber", LOW: "green" }, html = "", total = d.totals.total;
+      for (var i = 0; i < d.by_level.length; i++) {
+        var lv = d.by_level[i], pct = total ? Math.round(lv.count / total * 100) : 0;
+        html += '<a class="hbar click" href="' + queueLink({ level: lv.level }) + '"><div class="hb-row">' + badge(lv.level)
+          + '<span class="hb-n">' + lv.count + " orders</span>" + '<span class="hb-pct">' + pct + "%</span></div>"
+          + '<div class="track"><div class="fill ' + colors[lv.level] + '" style="width:' + pct + '%"></div></div></a>';
       }
       el("level-bars").innerHTML = html;
 
-      var bands = [[0.8, 1.0], [0.6, 0.8], [0.4, 0.6], [0.2, 0.4], [0, 0.2]];
       var rows = "<thead><tr><th>Score</th><th>Orders</th><th>Open</th></tr></thead><tbody>", sum = 0;
-      for (var b = 0; b < bands.length; b++) {
-        var lo = bands[b][0], hi = bands[b][1], cnt = 0, open = 0;
-        for (var k = 0; k < data.length; k++) {
-          var s = data[k].risk_score;
-          if (s >= lo && (s < hi || (hi == 1 && s <= 1))) { cnt++; if (!isClosed(data[k])) open++; }
-        }
-        sum += cnt;
+      for (var b = 0; b < d.score_bands.length; b++) {
+        var band = d.score_bands[b], lo = band.min, hi = band.max;
+        sum += band.count;
         rows += '<tr class="click" onclick="location.href=\'' + queueLink({ smin: lo, smax: hi == 1 ? 1 : (hi - 0.01).toFixed(2) }) + '\'">'
-          + "<td>" + lo.toFixed(1) + " – " + (hi == 1 ? "1.0" : "&lt; " + hi.toFixed(1)) + "</td><td>" + cnt + "</td><td>" + open + "</td></tr>";
+          + "<td>" + lo.toFixed(1) + " – " + (hi == 1 ? "1.0" : "&lt; " + hi.toFixed(1)) + "</td><td>" + band.count + "</td><td>" + band.open + "</td></tr>";
       }
-      rows += '<tr class="total"><td>Total</td><td>' + sum + "</td><td>" + (sum == data.length ? "✓ matches risk orders" : "✗ off by " + (data.length - sum)) + "</td></tr></tbody>";
+      rows += '<tr class="total"><td>Total</td><td>' + sum + "</td><td>" + (sum == total ? "✓ matches risk orders" : "✗ off by " + (total - sum)) + "</td></tr></tbody>";
       el("bands").innerHTML = rows;
     }
 
@@ -353,27 +309,18 @@
       el("tab-category").className = g == "category" ? "active" : "";
       el("tab-seller").setAttribute("aria-selected", g == "seller");
       el("tab-category").setAttribute("aria-selected", g == "category");
-      renderGroups(filtered());
+      if (DASH) renderGroups();   // dữ liệu cả hai nhóm đã có trong phản hồi, không gọi lại API
     }
-    function renderGroups(data) {
-      var key = group == "seller" ? "seller_id" : "category", map = {}, list = [];
-      for (var i = 0; i < data.length; i++) {
-        var c = data[i], k = c[key];
-        if (!map[k]) { map[k] = { key: k, total: 0, high: 0, open: 0, other: [] }; list.push(map[k]); }
-        map[k].total++;
-        if (c.risk_level == "HIGH") map[k].high++;
-        if (!isClosed(c)) map[k].open++;
-        var other = group == "seller" ? catLabel(c.category) : shortId(c.seller_id);
-        if (map[k].other.indexOf(other) == -1) map[k].other.push(other);
-      }
-      list.sort(function (a, b) { return (b.high - a.high) || (b.open - a.open) || (b.total - a.total); });
+    function renderGroups() {
+      var list = group == "seller" ? DASH.by_seller : DASH.by_category;
       var head = "<thead><tr><th>" + (group == "seller" ? "Seller" : "Category") + "</th><th>Risk orders</th><th>HIGH</th><th>Open</th><th>HIGH share</th></tr></thead>";
       var rows = "";
       for (var j = 0; j < list.length && j < 5; j++) {
-        var g = list[j], extra = {};
+        var g = list[j], extra = {}, related = [];
         extra[group] = g.key;
+        for (var r = 0; r < g.related.length; r++) related.push(group == "seller" ? catLabel(g.related[r]) : shortId(g.related[r]));
         rows += '<tr class="click" onclick="location.href=\'' + queueLink(extra) + '\'">'
-          + "<td>" + (group == "seller" ? '<span class="id">' + shortId(g.key) + "</span>" : catLabel(g.key)) + '<div class="tiny">' + g.other.join(", ") + "</div></td>"
+          + "<td>" + (group == "seller" ? '<span class="id">' + shortId(g.key) + "</span>" : catLabel(g.key)) + '<div class="tiny">' + related.join(", ") + "</div></td>"
           + "<td>" + g.total + "</td><td><b>" + g.high + "</b></td><td>" + g.open + "</td>"
           + "<td>" + Math.round(g.high / g.total * 100) + "%</td></tr>";
       }
@@ -381,64 +328,55 @@
     }
 
     // ---------- F01-S05 ----------
-    function renderStaff(data) {
-      var sp = specialists(), rows = "";
-      for (var i = 0; i < sp.length; i++) {
-        var u = sp[i];
-        if (applied.assignee && applied.assignee != u.id) continue;
-        var active = activeCount(u.id), over = 0, stale = 0, done = 0, any = false;
-        for (var j = 0; j < data.length; j++) {
-          var c = data[j];
-          if (c.assignee != u.id) continue;
-          any = true;
-          if (c.status == "IN_PROGRESS" && slaState(c).code == "over") over++;
-          if (isStale(c)) stale++;
-          if (c.status == "COMPLETED") done++;
-        }
-        var cls = active >= config.capacity ? "full" : (active >= config.capacity_warn ? "warn" : "");
-        rows += '<tr class="click ' + cls + '" onclick="location.href=\'index.html?assignee=' + u.id + '&status=IN_PROGRESS\'">'
-          + "<td>" + u.name + "</td>"
-          + '<td><b>' + active + "/" + config.capacity + '</b><div class="progress cap"><div style="width:' + (active / config.capacity * 100) + '%"></div></div></td>'
-          + "<td>" + slotsLeft(u.id) + "</td>"
-          + "<td>" + (any ? (over ? '<b class="hi">' + over + "</b>" : "0") : '<span class="muted">—</span>') + "</td>"
-          + "<td>" + (any ? (stale ? '<b class="warn-text">' + stale + "</b>" : "0") : '<span class="muted">—</span>') + "</td>"
-          + "<td>" + (any ? done : '<span class="muted">No data yet</span>') + "</td></tr>";
+    function renderStaff(list) {
+      var rows = "";
+      for (var i = 0; i < list.length; i++) {
+        var w = list[i];
+        var cls = w.active_count >= w.capacity ? "full" : (w.active_count >= config.capacity_warn ? "warn" : "");
+        rows += '<tr class="click ' + cls + '" onclick="location.href=\'index.html?assignee=' + w.user_id + '&status=IN_PROGRESS\'">'
+          + "<td>" + w.full_name + "</td>"
+          + '<td><b>' + w.active_count + "/" + w.capacity + '</b><div class="progress cap"><div style="width:' + (w.active_count / w.capacity * 100) + '%"></div></div></td>'
+          + "<td>" + w.slots_left + "</td>"
+          + "<td>" + (w.has_data ? (w.overdue ? '<b class="hi">' + w.overdue + "</b>" : "0") : '<span class="muted">—</span>') + "</td>"
+          + "<td>" + (w.has_data ? (w.stale ? '<b class="warn-text">' + w.stale + "</b>" : "0") : '<span class="muted">—</span>') + "</td>"
+          + "<td>" + (w.has_data ? w.completed : '<span class="muted">No data yet</span>') + "</td></tr>";
       }
       el("staff-table").innerHTML = "<thead><tr><th>Specialist</th><th>Holding</th><th>Free</th><th>Overdue</th><th>Stale</th><th>Done</th></tr></thead><tbody>" + rows + "</tbody>";
     }
 
-    function renderAttention(data) {
+    function renderAttention(list) {
       var items = [];
-      var list = data.slice().sort(byPriority);
       for (var i = 0; i < list.length; i++) {
-        var c = list[i], why = [];
-        if (slaState(c).code == "over" && c.risk_level == "HIGH") why.push("SLA overdue");
-        if (isEscalated(c)) why.push("in queue " + durationText(agingHours(c)));
-        if (isStale(c)) why.push(userName(c.assignee) + ": no update for " + durationText(hoursBetween(c.updated_at, NOW)));
-        if (why.length) items.push("<li>" + idLink(c.order_id, "order.html?id=" + c.order_id) + " " + badge(c.risk_level) + " "
+        var c = list[i].order, why = [];
+        for (var k = 0; k < list[i].reasons.length; k++) {
+          var r = list[i].reasons[k];
+          if (r.code == "SLA_OVERDUE") why.push("SLA overdue");
+          if (r.code == "ESCALATED") why.push("in queue " + durationText(r.hours));
+          if (r.code == "STALE") why.push(r.assignee_name + ": no update for " + durationText(r.hours));
+        }
+        items.push("<li>" + idLink(c.order_id, "order.html?id=" + c.order_id) + " " + badge(c.risk_level) + " "
           + statusBadge(c.status) + '<div class="tiny">' + why.join(" · ") + "</div></li>");
       }
       el("attention").innerHTML = items.length ? items.slice(0, 6).join("") + (items.length > 6 ? '<li><a href="' + queueLink({ sla: "esc" }) + '">+ ' + (items.length - 6) + " more</a></li>" : "")
         : '<li class="empty">Nothing needs attention.</li>';
     }
 
-    function renderRecent() {
-      var ev = auditsOf(null), html = "", n = 0;
-      for (var i = 0; i < ev.length && n < 5; i++) {
+    function renderRecent(ev) {
+      var html = "";
+      for (var i = 0; i < ev.length; i++) {
         var e = ev[i];
-        if (["ASSIGN", "REASSIGN", "REOPEN", "OVERRIDE"].indexOf(e.type) == -1) continue;
-        n++;
-        html += '<li><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span> " + userName(e.actor) + " · " + idLink(e.order_id, "order.html?id=" + e.order_id)
-          + '<div class="tiny">' + viTime(e.at) + " · " + (e.old_value ? humanValue(e.old_value) + " → " : "") + humanValue(e.new_value) + (e.reason ? " · Reason: " + e.reason : "") + "</div></li>";
+        html += '<li><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> " + e.actor_name + " · " + idLink(e.order_id, "order.html?id=" + e.order_id)
+          + '<div class="tiny">' + viTime(e.created_at) + " · " + (e.old_value ? humanValue(e.old_value) + " → " : "") + humanValue(e.new_value) + (e.reason ? " · Reason: " + e.reason : "") + "</div></li>";
       }
       el("recent").innerHTML = html || '<li class="empty">No actions yet.</li>';
     }
 
-    renderChrome("dashboard");
-    if (requireManager()) {
-      fillOptions();
+    renderLoading();   // hiện khung xám ngay, trong lúc chờ nạp tài khoản và cấu hình
+    boot("dashboard").then(async function () {
+      if (!requireManager()) return;
+      try { await fillOptions(); } catch (e) { /* ô lọc phụ để trống, số liệu vẫn tải */ }
       apply();
-    }
+    }).catch(function () { });
   </script>
 </body>
 </html>

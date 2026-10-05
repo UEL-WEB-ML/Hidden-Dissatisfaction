@@ -153,7 +153,10 @@
     <div class="clear"></div>
   </div>
 
+  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
   <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
     // Trung vị của 80.039 đơn giao đúng hạn được 3–5 sao (đo trên Olist 19/09)
@@ -163,34 +166,27 @@
 
     // Lấy mã đơn trên địa chỉ trang, không có thì lấy đơn Pending ưu tiên cao nhất
     var id = new URLSearchParams(location.search).get("id");
-    var o = findCase(id);
-    if (o == null) {
-      var list = cases.slice().sort(byPriority);
-      for (var i = 0; i < list.length; i++) if (list[i].status == "PENDING") { o = list[i]; break; }
-      if (o == null) o = list[0];
-    }
-
-    var mine = o.assignee == me().id;
-    var canWork = o.status == "IN_PROGRESS" && (mine || isManager());
+    var D = null, o = null, contacts = [];   // D: phản hồi GET /orders/{id}
+    var mine = false, canWork = false;
 
     // ---------- Tóm tắt ----------
     function renderSummary() {
       var box = el("d-summary"), html, cls;
-      var n = contactsOf(o.order_id).length;
+      var n = contacts.length;
       var over = slaState(o).code == "over";
       if (o.status == "PENDING") {
         html = "<b>Waiting to be claimed.</b> " + (over ? "Past the " + config.sla_hours[o.risk_level] + "-hour SLA for " + o.risk_level + "." : "SLA: " + slaState(o).text + ".");
       } else if (o.status == "IN_PROGRESS") {
-        var last = contactsOf(o.order_id).pop();
-        html = "<b>" + (mine ? "You are handling this order." : userName(o.assignee) + " is handling this order.") + "</b> "
+        var last = contacts[n - 1];
+        html = "<b>" + (mine ? "You are handling this order." : o.assignee_name + " is handling this order.") + "</b> "
           + "Contacted " + n + "/" + config.max_contact + " times"
-          + (last && last.next_date ? ", next contact planned for " + viTime(last.next_date) : "") + ".";
+          + (last && last.next_contact_date ? ", next contact planned for " + viTime(last.next_contact_date) : "") + ".";
         if (n >= config.max_contact) html += " No contact attempts left: complete or skip.";
         if (over) html += " SLA overdue.";
       }
       if (isClosed(o)) {
         cls = "alert ok";
-        html = "<b>" + STATUS_LABEL[o.status] + ":</b> " + outcomeText(o) + " (" + userName(o.assignee) + ", " + viTime(o.updated_at) + ").";
+        html = "<b>" + STATUS_LABEL[o.status] + ":</b> " + outcomeText(o) + " (" + o.assignee_name + ", " + viTime(o.updated_at) + ").";
       } else {
         cls = over ? "alert" : "alert info";   // nền đỏ chỉ khi quá hạn
       }
@@ -210,15 +206,13 @@
       el("d-action").innerHTML = ACTION_LABEL[o.risk_level];
       el("d-model").innerHTML = o.model_version;
       el("d-predicted").innerHTML = viTime(o.predicted_at);
-      el("d-threshold").innerHTML = config.threshold_version + " (HIGH ≥ " + config.high_from + ", MEDIUM ≥ " + config.medium_from + ")";
+      el("d-threshold").innerHTML = o.threshold_version + " (HIGH ≥ " + config.high_from + ", MEDIUM ≥ " + config.medium_from + ")";
       el("d-script-box").style.display = o.risk_level == "HIGH" && !isClosed(o) ? "" : "none";
 
-      var notes = [];
-      var ev = auditsOf(o.order_id);
-      for (var i = 0; i < ev.length; i++) if (ev[i].type == "MODEL_NOTE") notes.push(ev[i]);
       var html = "";
-      for (var j = 0; j < notes.length; j++) {
-        html += '<div class="model-note"><b>Flagged for model review</b> · ' + userName(notes[j].actor) + ", " + viTime(notes[j].at) + "<br>" + notes[j].reason + "</div>";
+      for (var j = 0; j < D.model_notes.length; j++) {
+        var mn = D.model_notes[j];
+        html += '<div class="model-note"><b>Flagged for model review</b> · ' + mn.actor_name + ", " + viTime(mn.created_at) + "<br>" + mn.note + "</div>";
       }
       if (isManager()) html += '<button class="btn sm" onclick="modelNote()">Add model review note</button>';
       el("d-model-note").innerHTML = html;
@@ -237,21 +231,21 @@
     function renderStatus() {
       el("d-status").innerHTML = statusBadge(o.status);
       el("d-outcome").innerHTML = outcomeText(o) || '<span class="muted">None yet</span>';
-      el("d-assignee").innerHTML = o.assignee ? userName(o.assignee) + (mine ? " (you)" : "") : '<span class="muted">Unassigned</span>';
+      el("d-assignee").innerHTML = o.assignee_id ? o.assignee_name + (mine ? " (you)" : "") : '<span class="muted">Unassigned</span>';
       el("d-queued").innerHTML = viTime(o.queued_at);
       el("d-aging").innerHTML = durationText(agingHours(o)) + escBadge(o);
       el("d-sla").innerHTML = slaBadge(o) + (isClosed(o) ? "" : '<div class="tiny">Due ' + viTime(slaDue(o)) + " (" + config.sla_hours[o.risk_level] + " h for " + o.risk_level + ")</div>");
       el("d-updated").innerHTML = viTime(o.updated_at) + (isStale(o) ? ' <span class="sla soon">No update for ≥ 1 day</span>' : "");
       el("d-reopen").innerHTML = o.reopen_count;
 
-      // Số liệu để xử lý: hiện to ở đầu cột thao tác (trước đây nằm trong bảng ở cuối cột)
+      // Số liệu để xử lý: hiện to ở đầu cột thao tác
       var kn = "";
       if (!isClosed(o)) {
-        var st = slaState(o), cl = contactsOf(o.order_id), lastC = cl[cl.length - 1];
+        var st = slaState(o), lastC = contacts[contacts.length - 1];
         kn = '<div class="kn"><div class="kn-label">SLA</div><div class="kn-num sla-num ' + st.code + '">' + st.text + "</div>"
             + '<div class="kn-sub">Due ' + viTime(slaDue(o)) + "</div></div>"
-          + '<div class="kn"><div class="kn-label">Contact attempts</div><div class="kn-num">' + cl.length + '<span class="kn-of">/' + config.max_contact + "</span></div>"
-            + '<div class="kn-sub">' + (lastC && lastC.next_date ? "Next: " + viTime(lastC.next_date) : (cl.length ? "No follow-up set" : "None yet")) + "</div></div>"
+          + '<div class="kn"><div class="kn-label">Contact attempts</div><div class="kn-num">' + contacts.length + '<span class="kn-of">/' + config.max_contact + "</span></div>"
+            + '<div class="kn-sub">' + (lastC && lastC.next_contact_date ? "Next: " + viTime(lastC.next_contact_date) : (contacts.length ? "No follow-up set" : "None yet")) + "</div></div>"
           + '<div class="kn"><div class="kn-label">In queue</div><div class="kn-num">' + durationText(agingHours(o)) + "</div>"
             + '<div class="kn-sub">' + (isEscalated(o) ? "Escalated" : "Escalates at " + config.aging_days + " d") + "</div></div>";
       }
@@ -260,21 +254,21 @@
 
       var b = "";
       if (o.status == "PENDING") {
-        if (isManager()) b += '<button class="btn primary" onclick="openAssign(o.order_id, refresh)">Assign</button>';
+        if (isManager()) b += '<button class="btn primary" onclick="openAssign(o, refresh)">Assign</button>';
         else {
-          var full = activeCount(me().id) >= config.capacity;
+          var full = ME.active_count >= config.capacity;
           b += '<button class="btn primary" onclick="claim()"' + (full ? " disabled" : "") + ">Claim</button>";
-          b += '<p class="tiny">You hold ' + activeCount(me().id) + "/" + config.capacity + " orders"
-            + (full ? ". <b>Limit reached: complete or skip an order to claim more.</b>" : ", " + slotsLeft(me().id) + " slots left.") + "</p>";
+          b += '<p class="tiny">You hold ' + ME.active_count + "/" + config.capacity + " orders"
+            + (full ? ". <b>Limit reached: complete or skip an order to claim more.</b>" : ", " + ME.slots_left + " slots left.") + "</p>";
         }
       } else if (canWork) {
         // Nút chính theo bước: còn phải liên lạc thì "Save attempt" là nút đậm (trong form), Complete là nút viền
         b += '<button class="btn' + (needContact() ? "" : " primary") + '" onclick="complete()">Complete</button> '
           + '<button class="btn" onclick="skip()">Skip</button> ';
         if (needContact()) b += '<p class="tiny">Next step: log a contact attempt below.</p>';
-        if (isManager()) b += '<button class="btn" onclick="openAssign(o.order_id, refresh)">Reassign</button>';
+        if (isManager()) b += '<button class="btn" onclick="openAssign(o, refresh)">Reassign</button>';
       } else if (o.status == "IN_PROGRESS") {
-        b += '<p class="muted">' + userName(o.assignee) + " is handling this order. You can view it only; ask a manager to reassign it.</p>";
+        b += '<p class="muted">' + o.assignee_name + " is handling this order. You can view it only; ask a manager to reassign it.</p>";
       } else if (isManager()) {
         b += '<button class="btn primary" onclick="reopen()">Reopen</button>';
       } else {
@@ -286,25 +280,23 @@
     // Người phụ trách chưa liên lạc được khách và vẫn còn lượt → bước tiếp theo là ghi lần liên lạc
     function needContact() {
       if (!(o.status == "IN_PROGRESS" && mine)) return false;
-      var list = contactsOf(o.order_id);
-      if (list.length >= config.max_contact) return false;
-      for (var i = 0; i < list.length; i++) if (list[i].result == "REACHED") return false;
+      if (contacts.length >= config.max_contact) return false;
+      for (var i = 0; i < contacts.length; i++) if (contacts[i].result == "REACHED") return false;
       return true;
     }
 
     // ---------- Liên lạc ----------
     function renderContacts() {
-      var list = contactsOf(o.order_id);
-      var n = list.length;
+      var n = contacts.length;
       el("d-retry").innerHTML = n + "/" + config.max_contact;
       el("d-retry").className = "counter" + (n >= config.max_contact ? " full" : "");
       var html = "";
-      for (var i = list.length - 1; i >= 0; i--) {   // mới nhất lên đầu, ngay dưới form
-        var c = list[i];
-        html += "<li" + (c.result == "REACHED" ? ' class="ok"' : "") + "><b>Attempt " + (i + 1) + " · " + viTime(c.at) + "</b>"
-          + c.method + " · " + CONTACT_RESULT_LABEL[c.result] + " · " + userName(c.user)
+      for (var i = n - 1; i >= 0; i--) {   // mới nhất lên đầu, ngay dưới form
+        var c = contacts[i];
+        html += "<li" + (c.result == "REACHED" ? ' class="ok"' : "") + "><b>Attempt " + (i + 1) + " · " + viTime(c.contacted_at) + "</b>"
+          + CONTACT_METHOD_LABEL[c.method] + " · " + CONTACT_RESULT_LABEL[c.result] + " · " + c.created_by_name
           + (c.note ? '<div class="tiny">' + c.note + "</div>" : "")
-          + (c.next_date ? '<div class="tiny">Next contact: ' + viTime(c.next_date) + "</div>" : "") + "</li>";
+          + (c.next_contact_date ? '<div class="tiny">Next contact: ' + viTime(c.next_contact_date) + "</div>" : "") + "</li>";
       }
       el("d-contacts").innerHTML = html || '<li class="empty">No contact attempts yet.</li>';
 
@@ -316,14 +308,14 @@
             + "Attempt " + (n + 1) + " is not allowed. If the customer is still unreachable, skip with the reason \"" + SKIP_LABEL.UNREACHABLE + "\", "
             + 'or ask a manager if you need an exception. <br><button class="btn sm" onclick="skip(\'UNREACHABLE\')">Skip: unreachable</button></div>';
         } else {
-          var last = list[n - 1];
-          var early = last && last.next_date && NOW.substring(0, 10) < last.next_date;
+          var last = contacts[n - 1];
+          var early = last && last.next_contact_date && NOW.substring(0, 10) < last.next_contact_date;
           var methods = "", results = "";
-          for (var m = 0; m < CONTACT_METHODS.length; m++) methods += "<option>" + CONTACT_METHODS[m] + "</option>";
+          for (var m in CONTACT_METHOD_LABEL) methods += '<option value="' + m + '">' + CONTACT_METHOD_LABEL[m] + "</option>";
           for (var r in CONTACT_RESULT_LABEL) results += '<option value="' + r + '">' + CONTACT_RESULT_LABEL[r] + "</option>";
-          form = '<form class="contact-form" onsubmit="return saveContact()">'
+          form = '<form class="contact-form" onsubmit="saveContact(); return false;">'
             + "<h3>Log attempt " + (n + 1) + " of " + config.max_contact + "</h3>"
-            + (early ? '<p class="tiny warn-text">Before the planned date (' + viTime(last.next_date) + "). The default gap is " + config.retry_gap_days + " business day.</p>" : "")
+            + (early ? '<p class="tiny warn-text">Before the planned date (' + viTime(last.next_contact_date) + "). The default gap is " + config.retry_gap_days + " business day.</p>" : "")
             + '<div class="grid2">'
             + '<div class="form-row"><label for="c-at">Time *</label><input id="c-at" type="datetime-local" value="' + NOW.replace(" ", "T") + '" max="' + NOW.replace(" ", "T") + '"></div>'
             + '<div class="form-row"><label for="c-method">Method *</label><select id="c-method">' + methods + "</select></div>"
@@ -332,30 +324,36 @@
             + "</div>"
             + '<div class="form-row"><label for="c-note">Note</label><textarea id="c-note" rows="2" placeholder="e.g. Box was dented, product still works"></textarea></div>'
             + '<p class="form-error" id="c-error" role="alert"></p>'
-            + '<button class="btn' + (needContact() ? " primary" : "") + '" type="submit">Save attempt</button></form>';
+            + '<button class="btn' + (needContact() ? " primary" : "") + '" type="submit" id="c-save">Save attempt</button></form>';
         }
       }
       el("d-contact-form").innerHTML = form;
     }
 
-    function saveContact() {
-      var at = el("c-at").value.replace("T", " ");
-      var r = addContact(o.order_id, at, el("c-method").value, el("c-result").value, el("c-note").value.trim(), el("c-next").value);
-      if (!r.ok) { el("c-error").innerHTML = r.msg; return false; }
-      toast(r.msg);
-      refresh();
-      return false;
+    // POST /orders/{id}/contacts. 422 MAX_CONTACTS_REACHED khi đã đủ lượt
+    async function saveContact() {
+      var btn = el("c-save");
+      btn.disabled = true;
+      try {
+        var r = await api.addContact(o.order_id, { contacted_at: el("c-at").value.replace("T", " "), method: el("c-method").value,
+          result: el("c-result").value, note: el("c-note").value.trim(), next_contact_date: el("c-next").value });
+        toast("Saved contact attempt " + r.order.contact_count + "/" + config.max_contact + ".");
+        refresh();
+      } catch (e) {
+        el("c-error").innerHTML = e.message;
+        btn.disabled = false;
+      }
     }
 
-    // ---------- Audit của đơn (Manager) ----------
+    // ---------- Audit của đơn (Manager; backend chỉ trả audit_events cho Manager) ----------
     function renderAudit() {
       var box = document.querySelector(".manager-box");
-      if (!isManager()) { box.style.display = "none"; return; }
-      var ev = auditsOf(o.order_id), html = "";
+      if (!isManager() || !D.audit_events) { box.style.display = "none"; return; }
+      var ev = D.audit_events, html = "";
       for (var i = 0; i < ev.length; i++) {
         var e = ev[i];
-        html += "<tr><td>" + viTime(e.at) + "</td><td>" + userName(e.actor) + '</td><td><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span></td>"
-          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + humanValue(e.new_value) + "</td><td>" + (e.reason || '<span class="muted">—</span>') + "</td></tr>";
+        html += "<tr><td>" + viTime(e.created_at) + "</td><td>" + e.actor_name + '</td><td><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span></td>"
+          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + humanValue(e.new_value) + "</td><td>" + (e.reason ? humanValue(e.reason) : '<span class="muted">—</span>') + "</td></tr>";
       }
       el("d-audit").innerHTML = html ? '<table class="small"><thead><tr><th>Time</th><th>By</th><th>Type</th><th>Old → new</th><th>Reason</th></tr></thead><tbody>' + html + "</tbody></table>"
         : '<p class="empty">No actions yet.</p>';
@@ -363,9 +361,9 @@
 
     // ---------- Context đơn hàng ----------
     function renderContext() {
-      var handover = daysBetween(o.approved_date, o.carrier_date);
-      var delivery = daysBetween(o.purchase_date, o.delivered_date);
-      var early = daysBetween(o.delivered_date, o.estimated_date);
+      var handover = daysBetween(o.approved_at, o.carrier_at);
+      var delivery = daysBetween(o.purchase_at, o.delivered_at);
+      var early = daysBetween(o.delivered_at, o.estimated_at);
 
       function compareRow(label, mine, typical, unit) {
         var max = Math.max(mine, typical) * 1.1;
@@ -382,11 +380,11 @@
         + compareRow("Shipping fee", o.freight, normal.freight, " R$");
 
       el("d-timeline").innerHTML =
-          "<li><b>Ordered</b>" + viTime(o.purchase_date) + "</li>"
-        + "<li><b>Payment approved</b>" + viTime(o.approved_date) + "</li>"
-        + "<li" + (handover > 2 ? " class='slow'" : "") + "><b>Handed to carrier</b>" + viTime(o.carrier_date) + " (after " + handover + " d)</li>"
-        + "<li><b>Delivered</b>" + viTime(o.delivered_date) + "</li>"
-        + "<li><b>Estimated date</b>" + viTime(o.estimated_date) + " → " + early + " d early</li>"
+          "<li><b>Ordered</b>" + viTime(o.purchase_at) + "</li>"
+        + "<li><b>Payment approved</b>" + viTime(o.approved_at) + "</li>"
+        + "<li" + (handover > 2 ? " class='slow'" : "") + "><b>Handed to carrier</b>" + viTime(o.carrier_at) + " (after " + handover + " d)</li>"
+        + "<li><b>Delivered</b>" + viTime(o.delivered_at) + "</li>"
+        + "<li><b>Estimated date</b>" + viTime(o.estimated_at) + " → " + early + " d early</li>"
         + "<li><b>Entered Risk Queue</b>" + viTime(o.queued_at) + "</li>";
 
       el("d-id").innerHTML = '<span class="id id-full">' + o.order_id + '</span>' + copyBtn(o.order_id) + '';
@@ -395,20 +393,31 @@
       el("d-category").innerHTML = catLabel(o.category);
       el("d-value").innerHTML = "R$ " + o.order_value.toFixed(2);
       el("d-freight").innerHTML = "R$ " + o.freight.toFixed(2);
-      var same = 0;
-      for (var i = 0; i < cases.length; i++) if (cases[i].seller_id == o.seller_id && !isClosed(cases[i]) && cases[i] != o) same++;
-      el("d-seller-open").innerHTML = same + ' open · <a href="index.html?seller=' + o.seller_id + '">view</a>';
+      el("d-seller-open").innerHTML = D.seller_open_count + ' open · <a href="index.html?seller=' + o.seller_id + '">view</a>';
     }
 
-    // ---------- Hộp thoại ----------
-    function claim() {
-      var r = claimCase(o.order_id);
-      toast(r.msg, r.ok ? (r.warn ? "warn" : "ok") : "error");
+    // ---------- Thao tác (API_CONTRACT 4.5) ----------
+    async function claim() {
+      try {
+        var r = await api.claim(o.order_id);
+        var n = r.me.active_count, msg = "Claimed order " + shortId(o.order_id) + ". You now hold " + n + "/" + config.capacity + ".";
+        if (n >= config.capacity) msg += " Limit reached: complete or skip an order before claiming another.";
+        else if (n >= config.capacity_warn) msg += " Almost at the limit: " + r.me.slots_left + " slot left.";
+        toast(msg, n >= config.capacity_warn ? "warn" : "ok");
+      } catch (e) {
+        toast(e.message, "error");
+      }
       refresh();
     }
 
+    // Gửi thao tác trong hộp thoại: thành công thì báo + tải lại, lỗi thì hiện ngay trong hộp thoại
+    async function submit(promise, okMsg) {
+      try { await promise; toast(okMsg); refresh(); return { ok: true }; }
+      catch (e) { return apiFail(e); }
+    }
+
     function complete() {
-      var n = contactsOf(o.order_id).length;
+      var n = contacts.length;
       var radios = "";
       for (var k in OUTCOME_LABEL) {
         var lock = k == "UNREACHABLE" && n < config.max_contact;
@@ -419,9 +428,8 @@
         + '<div class="form-row"><label for="oc-note">Note</label><textarea id="oc-note" rows="2"></textarea></div>'
         + '<p class="tiny">Completing releases the assignee\'s slot.</p>', "Complete", function () {
         var pick = document.querySelector('input[name="oc"]:checked');
-        var r = completeCase(o.order_id, pick ? pick.value : "", el("oc-note").value.trim());
-        if (r.ok) { toast(r.msg); refresh(); }
-        return r;
+        if (!pick) return { ok: false, msg: "Choose an outcome before completing." };
+        return submit(api.complete(o.order_id, pick.value, el("oc-note").value.trim()), "Completed order " + shortId(o.order_id) + ". Slot released.");
       });
     }
 
@@ -431,9 +439,8 @@
       openModal("Skip order", '<div class="form-row"><label for="sk-reason">Reason *</label><select id="sk-reason">' + opts + "</select></div>"
         + '<div class="form-row"><label for="sk-note">Note (required for "Other")</label><textarea id="sk-note" rows="2"></textarea></div>'
         + '<p class="tiny">The order becomes Skipped and the slot is released. Only a manager can reopen it.</p>', "Skip", function () {
-        var r = skipCase(o.order_id, el("sk-reason").value, el("sk-note").value.trim());
-        if (r.ok) { toast(r.msg); refresh(); }
-        return r;
+        if (!el("sk-reason").value) return { ok: false, msg: "Choose a skip reason." };
+        return submit(api.skip(o.order_id, el("sk-reason").value, el("sk-note").value.trim()), "Skipped order " + shortId(o.order_id) + ". Slot released.");
       });
     }
 
@@ -446,32 +453,59 @@
       openModal("Reopen order", "<p>Current status: " + statusBadge(o.status) + " · " + outcomeText(o) + "</p>"
         + "<p>After reopening: <b>Pending</b>, no assignee, back in the Risk Queue.</p>" + warn
         + '<div class="form-row"><label for="ro-reason">Override reason *</label><textarea id="ro-reason" rows="2"></textarea></div>', "Reopen", function () {
-        if (needReview && !el("ro-ok").checked) return { ok: false, msg: "Tick the review confirmation before reopening." };
-        var r = reopenCase(o.order_id, el("ro-reason").value.trim());
-        if (r.ok) { toast(r.msg); refresh(); }
-        return r;
+        var confirmed = needReview ? el("ro-ok").checked : false;
+        return submit(api.reopen(o.order_id, el("ro-reason").value.trim(), confirmed), "Reopened order " + shortId(o.order_id) + "; it is back to Pending.");
       });
     }
 
     function modelNote() {
       openModal("Model review note", "<p>Score <b>" + o.risk_score.toFixed(2) + "</b> and level " + badge(o.risk_level) + " stay unchanged and cannot be edited.</p>"
         + '<div class="form-row"><label for="mn-note">Why should the model be reviewed? *</label><textarea id="mn-note" rows="3"></textarea></div>', "Save note", function () {
-        var r = addModelNote(o.order_id, el("mn-note").value.trim());
-        if (r.ok) { toast(r.msg); refresh(); }
-        return r;
+        return submit(api.addModelNote(o.order_id, el("mn-note").value.trim()), "Model review note saved. The original risk score is unchanged.");
       });
     }
 
-    function refresh() {
-      mine = o.assignee == me().id;
+    // ---------- Nạp dữ liệu ----------
+    // Không có ?id= thì lấy đơn Pending ưu tiên cao nhất (GET /orders?status=PENDING&limit=1)
+    async function resolveId() {
+      if (id) return id;
+      var r = await api.listOrders({ status: "PENDING", limit: 1 });
+      if (r.items.length == 0) r = await api.listOrders({ status: "", limit: 1 });
+      return r.items.length ? r.items[0].order_id : null;
+    }
+
+    async function load() {
+      var r = await Promise.all([api.getOrder(id), reloadMe()]);
+      D = r[0]; o = D.order; contacts = D.contacts;
+      mine = o.assignee_id == ME.user_id;
       canWork = o.status == "IN_PROGRESS" && (mine || isManager());
+    }
+
+    function render() {
       renderTopbar("detail");
+      renderContext();
       renderSummary(); renderRisk(); renderStatus(); renderContacts(); renderAudit();
     }
 
-    renderChrome("detail");
-    renderContext();
-    refresh();
+    async function refresh() {
+      try { await load(); render(); }
+      catch (e) { toast("Couldn't reload this order: " + e.message, "error"); }
+    }
+
+    el("d-summary").innerHTML = skeletonHtml(2);   // hiện khung xám ngay, trong lúc chờ nạp dữ liệu
+    boot("detail").then(async function () {
+      try {
+        id = await resolveId();
+        if (!id) { el("content").innerHTML = '<div class="box empty">There are no orders in the Risk Queue yet.</div>'; return; }
+        await load();
+      } catch (e) {
+        el("content").innerHTML = e.code == "ORDER_NOT_FOUND"
+          ? '<div class="alert"><span class="icon">!</span><b>Order not found.</b><br>' + e.message + ' <a href="index.html">Back to Risk Queue</a></div>'
+          : errorHtml("this order");
+        return;
+      }
+      render();
+    }).catch(function () { });
   </script>
 </body>
 </html>
