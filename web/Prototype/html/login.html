@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../css/style.css">
 </head>
 <body class="auth-page">
 
@@ -46,7 +46,7 @@
           <button class="btn primary login-btn" type="submit">Sign in</button>
         </form>
 
-        <!-- Chỉ có trong wireframe: điền nhanh tài khoản thử. Ẩn ở chế độ trình bày. -->
+        <!-- Chỉ có trong prototype: điền nhanh tài khoản thử. Ẩn ở chế độ trình bày. -->
         <div class="demo-accounts wf-only">
           <span>Demo accounts (password 123456):</span>
           <button type="button" onclick="fillDemo('nhanvien')">nhanvien · Specialist 3/5</button>
@@ -62,8 +62,8 @@
     </main>
   </div>
 
-  <script src="mock-data.js"></script>
-  <script src="common.js"></script>
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/common.js"></script>
   <script>
     function fillDemo(u) {
       document.getElementById("l-user").value = u;

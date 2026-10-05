@@ -1,12 +1,12 @@
 // =========================================================
 // mock-data.js
-// DỮ LIỆU GIẢ cho wireframe, bám theo logical data object của FRD mục 4.1:
+// DỮ LIỆU GIẢ cho prototype, bám theo logical data object của FRD mục 4.1:
 //   Order Risk Case · Review Assignment · Review Status · Review Activity
 //   Review Outcome · Audit Event · User/Role · Threshold Configuration
 // Chưa phải ERD/API: tên field chỉ để vẽ giao diện, ERD và API Document sẽ chốt sau.
 // =========================================================
 
-// Thời điểm "hiện tại" giả lập (thứ Hai 04/06/2018) để tính SLA, aging cho ổn định khi xem wireframe
+// Thời điểm "hiện tại" giả lập (thứ Hai 04/06/2018) để tính SLA, aging cho ổn định khi xem prototype
 var NOW = "2018-06-04 14:00";
 
 // ---------- Threshold Configuration (BRD 6.3, 6.6, 6.7) ----------
@@ -20,7 +20,7 @@ var config = {
   capacity_warn: 4,         // từ đơn thứ 4 hiện cảnh báo
   max_contact: 3,           // tối đa 3 lần liên lạc
   retry_gap_days: 1,        // cách nhau 1 ngày làm việc
-  sla_hours: { HIGH: 4, MEDIUM: 24, LOW: 48 },   // wireframe tính theo giờ đồng hồ; bản thật theo business calendar
+  sla_hours: { HIGH: 4, MEDIUM: 24, LOW: 48 },   // prototype tính theo giờ đồng hồ; bản thật theo business calendar
   soon_hours: 2,            // còn dưới 2 giờ → "Sắp quá hạn"
   stale_hours: 24,          // IN_PROGRESS 1 ngày không cập nhật → cảnh báo Manager
   aging_days: 2,            // nằm queue 2 ngày → escalation queue
