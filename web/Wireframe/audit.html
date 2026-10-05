@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit History · Hidden Dissatisfaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="topbar" id="topbar"></nav>
+
+  <div class="page" id="content">
+    <h1>Audit History</h1>
+    <p class="sub">Who did what, on which order, when and why.</p>
+
+    <div class="note" lang="vi">F09. Dành cho Manager và người được cấp quyền đọc. Thay cho màn "Action Tracking" cũ:
+      việc ghi nhận liên lạc giờ nằm trong Order Detail (F07), còn màn này chỉ để truy vết.
+      Mỗi event lưu actor, thời gian, action, giá trị cũ, giá trị mới, lý do (BRD 6.8).</div>
+
+    <div class="box filters">
+      <div class="f-row">
+        <label>Action type
+          <select id="f-type" onchange="render()"><option value="">All</option></select>
+        </label>
+        <label>By
+          <select id="f-actor" onchange="render()"><option value="">All</option></select>
+        </label>
+        <label>Order ID
+          <input id="f-order" type="search" placeholder="e.g. 8c9d0e1f" oninput="render()">
+        </label>
+        <label class="check"><input type="checkbox" id="f-override" onchange="render()"> Overrides only (reassign, reopen, over capacity)</label>
+        <span class="view-switch" role="group" aria-label="View">
+          <button type="button" id="v-board" onclick="setView('board')">Board</button><button type="button" id="v-table" onclick="setView('table')">Table</button>
+        </span>
+      </div>
+    </div>
+    <div class="note" lang="vi">F09-S02. Lọc theo loại: trạng thái, assign/reassign, liên lạc (retry), bỏ qua, mở lại, override, ghi chú model.
+      Mặc định mới nhất lên đầu.
+      Loại thao tác có màu nền nhạt theo nhóm: nhận/giao/chuyển người xanh ngọc, liên lạc chàm, hoàn tất xanh lá, bỏ qua xám nét đứt, mở lại/vượt capacity cam, ghi chú model hồng. Không dùng đỏ (đỏ chỉ cho quá hạn); override (reassign, mở lại, vượt capacity) có thêm viền đậm. Luôn kèm chữ nên không phụ thuộc màu. Giá trị cũ gạch ngang dùng xám đủ tương phản (≥ 4.5:1).</div>
+
+    <!-- Kanban (mặc định): cột = trạng thái hiện tại của đơn, thẻ = một đơn kèm các thao tác của nó -->
+    <div class="board" id="board"></div>
+    <div class="note" lang="vi">Dạng Kanban (mặc định). Cột = trạng thái hiện tại của đơn (Pending / In progress / Completed / Skipped),
+      mỗi thẻ là một đơn: người phụ trách, số thao tác, cờ "Override" nếu từng bị reassign/mở lại/vượt capacity, và 3 thao tác gần nhất
+      (bấm "Show all" để xem hết). Bộ lọc phía trên vẫn áp dụng: chỉ hiện đơn có thao tác khớp.
+      Lưu ý: Kanban thường gợi ý "kéo thẻ để đổi trạng thái", nhưng màn này chỉ đọc nên thẻ KHÔNG kéo được.
+      Nhóm chọn Kanban ("Board") làm mặc định vì dễ nhìn hơn. "Table" giữ làm cách xem phụ khi cần đọc theo thứ tự thời gian
+      (vd: "sáng nay đã có những thao tác gì"), vì Board gom theo đơn nên không thấy thứ tự thời gian giữa các đơn.</div>
+
+    <div class="box" id="table-view">
+      <table>
+        <thead>
+          <tr><th>Time</th><th>By</th><th>Order ID</th><th>Type</th><th>Old → new value</th><th>Reason</th></tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
+      <p class="muted tiny" id="log-count"></p>
+    </div>
+    <div class="note" lang="vi">F09-S03. Chỉ đọc: không có nút sửa, xoá hay xuất lại. Lịch sử không bao giờ bị xoá, kể cả khi đơn được mở lại.</div>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    function el(id) { return document.getElementById(id); }
+    var OVERRIDE_TYPES = ["REASSIGN", "REOPEN", "OVERRIDE"];
+    var view = "board";
+    try { view = localStorage.getItem("wf-audit-view-3") || "board"; } catch (e) { }
+
+    function setView(v) {
+      view = v;
+      try { localStorage.setItem("wf-audit-view-3", v); } catch (e) { }
+      render();
+    }
+
+    function eventLine(e) {
+      return '<li><div class="ev-head"><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span> "
+        + '<span class="tiny">' + viTime(e.at) + " · " + userName(e.actor) + "</span></div>"
+        + '<div class="ev-val">' + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></div>"
+        + (e.reason ? '<div class="tiny">Reason: ' + e.reason + "</div>" : "") + "</li>";
+    }
+
+    // Kanban: gom event đã lọc theo đơn, xếp đơn vào cột theo trạng thái hiện tại
+    function renderBoard(list) {
+      var byOrder = {}, orders = [];
+      for (var i = 0; i < list.length; i++) {
+        var id = list[i].order_id;
+        if (!byOrder[id]) { byOrder[id] = []; orders.push(id); }
+        byOrder[id].push(list[i]);   // list đã mới nhất lên đầu
+      }
+      var cols = ["PENDING", "IN_PROGRESS", "COMPLETED", "SKIPPED"], html = "";
+      for (var c = 0; c < cols.length; c++) {
+        var cards = "", n = 0;
+        for (var j = 0; j < orders.length; j++) {
+          var o = findCase(orders[j]);
+          if (!o || o.status != cols[c]) continue;
+          n++;
+          var ev = byOrder[orders[j]], all = auditsOf(o.order_id), over = false;
+          for (var k = 0; k < all.length; k++) if (OVERRIDE_TYPES.indexOf(all[k].type) != -1) over = true;
+          var first = "", rest = "";
+          for (var m = 0; m < ev.length; m++) (m < 3 ? (first += eventLine(ev[m])) : (rest += eventLine(ev[m])));
+          cards += '<article class="k-card">'
+            + '<div class="k-top">' + idLink(o.order_id, "order.html?id=" + o.order_id) + " " + badge(o.risk_level)
+            + (over ? ' <span class="ev OVERRIDE">Override</span>' : "") + "</div>"
+            + '<div class="tiny">' + (o.assignee ? userName(o.assignee) : "Unassigned") + " · " + (ev.length == all.length ? all.length + (all.length == 1 ? " action" : " actions") : ev.length + " of " + all.length + " actions match") + "</div>"
+            + '<ul class="k-events">' + first + "</ul>"
+            + (rest ? '<details><summary>Show all ' + ev.length + '</summary><ul class="k-events">' + rest + "</ul></details>" : "")
+            + "</article>";
+        }
+        html += '<section class="k-col" aria-labelledby="kc-' + cols[c] + '"><h2 id="kc-' + cols[c] + '">' + statusBadge(cols[c])
+          + ' <span class="k-count">' + n + "</span></h2>" + (cards || '<p class="empty">No orders.</p>') + "</section>";
+      }
+      el("board").innerHTML = html;
+    }
+
+    function render() {
+      var type = el("f-type").value, actor = el("f-actor").value;
+      var order = el("f-order").value.trim().toLowerCase(), onlyOverride = el("f-override").checked;
+      var ev = auditsOf(null), rows = "", n = 0;
+      for (var i = 0; i < ev.length; i++) {
+        var e = ev[i];
+        if (type && e.type != type) continue;
+        if (actor && e.actor != actor) continue;
+        if (order && e.order_id.indexOf(order) != 0) continue;
+        if (onlyOverride && OVERRIDE_TYPES.indexOf(e.type) == -1) continue;
+        n++;
+        rows += "<tr><td>" + viTime(e.at) + "</td><td>" + userName(e.actor) + "</td>"
+          + "<td>" + idLink(e.order_id, "order.html?id=" + e.order_id) + "</td>"
+          + '<td><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span></td>"
+          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></td>"
+          + "<td>" + (e.reason || '<span class="muted">—</span>') + "</td></tr>";
+      }
+      var list = [];
+      for (var x = 0; x < ev.length; x++) {
+        var a = ev[x];
+        if ((!type || a.type == type) && (!actor || a.actor == actor) && (!order || a.order_id.indexOf(order) == 0)
+          && (!onlyOverride || OVERRIDE_TYPES.indexOf(a.type) != -1)) list.push(a);
+      }
+      el("v-board").className = view == "board" ? "active" : "";
+      el("v-table").className = view == "table" ? "active" : "";
+      el("v-board").setAttribute("aria-pressed", view == "board");
+      el("v-table").setAttribute("aria-pressed", view == "table");
+      el("board").style.display = view == "board" ? "" : "none";
+      el("table-view").style.display = view == "table" ? "" : "none";
+      renderBoard(list);
+      el("log-body").innerHTML = rows || '<tr><td colspan="6" class="empty">No actions match these filters.</td></tr>';
+      el("log-count").innerHTML = n + " of " + audits.length + " events";
+    }
+
+    renderChrome("audit");
+    if (requireManager()) {
+      for (var k in EVENT_LABEL) el("f-type").innerHTML += '<option value="' + k + '">' + EVENT_LABEL[k] + "</option>";
+      for (var u = 0; u < users.length; u++) el("f-actor").innerHTML += '<option value="' + users[u].id + '">' + users[u].name + "</option>";
+      render();
+    }
+  </script>
+</body>
+</html>
