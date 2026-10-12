@@ -4,6 +4,7 @@ import argparse
 import json
 from collections.abc import Sequence
 from datetime import datetime
+from pathlib import Path
 
 from hidden_dissatisfaction.domain.cohort import OrderObservation
 
@@ -30,6 +31,18 @@ def _build_parser() -> argparse.ArgumentParser:
     assess.add_argument("--estimated-at", required=True, type=_parse_datetime)
     assess.add_argument("--review-score", type=int)
     assess.add_argument("--review-created-at", type=_parse_datetime)
+    train = subparsers.add_parser(
+        "train",
+        help="Run temporal model selection, calibration, and final evaluation.",
+    )
+    train.add_argument(
+        "--data",
+        type=Path,
+        default=Path("data/processed/modelling_orders.parquet"),
+    )
+    train.add_argument("--output-root", type=Path, default=Path("."))
+    train.add_argument("--config", type=Path, default=Path("configs/experiment.toml"))
+    train.add_argument("--bootstrap-iterations", type=int)
     return parser
 
 
@@ -55,6 +68,27 @@ def main(argv: Sequence[str] | None = None) -> int:
                 }
             )
         )
+        return 0
+
+    if args.command == "train":
+        from hidden_dissatisfaction.modeling.training import TrainingConfig, run_training
+
+        config = TrainingConfig.from_toml(args.config)
+        if args.bootstrap_iterations is not None:
+            config = TrainingConfig(
+                validation_start=config.validation_start,
+                test_start=config.test_start,
+                test_end=config.test_end,
+                seed=config.seed,
+                budgets=config.budgets,
+                bootstrap_iterations=args.bootstrap_iterations,
+            )
+        report = run_training(
+            args.data,
+            config=config,
+            output_root=args.output_root,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
         return 0
 
     return 2
