@@ -1,0 +1,377 @@
+/* =========================================================
+   style.css — dùng chung cho mọi màn
+   Màu chỉ dùng để báo mức rủi ro (đỏ / vàng cam / xanh lá),
+   phần còn lại giữ trung tính để màu cảnh báo nổi lên.
+   ========================================================= */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #1f2937;
+  background: #f3f4f6;
+}
+
+a { color: #1f4e8c; }
+
+/* ---------- Thanh điều hướng ---------- */
+.topbar {
+  background: #1f2937;
+  color: #fff;
+  padding: 0 1.5em;
+  overflow: hidden;
+}
+.topbar .logo {
+  float: left;
+  font-weight: bold;
+  font-size: 1.1em;
+  padding: 0.85em 1.2em 0.85em 0;
+  margin-right: 1em;
+  border-right: 1px solid #4b5563;   /* vạch ngăn tên hệ thống với các link */
+}
+.topbar a {
+  float: left;
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 0.85em 0.9em;
+  border-bottom: 3px solid transparent;
+}
+.topbar a:hover { color: #fff; }
+.topbar a.active { color: #fff; font-weight: bold; border-bottom-color: #fff; }
+.topbar .user { float: right; color: #9ca3af; padding: 0.85em 0; font-size: 0.9em; }
+
+/* ---------- Khung nội dung ---------- */
+.page { width: 94%; max-width: 1200px; margin: 1.8em auto 3em; }
+h1 { font-size: 1.6em; margin: 0 0 0.15em; }
+.sub { color: #6b7280; margin: 0 0 1.4em; }
+
+.box {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1.2em 1.3em;
+  margin-bottom: 1.2em;
+  overflow-x: auto;   /* bảng rộng quá thì cuộn trong khung, không làm tràn cả trang */
+}
+.box h2 {
+  font-size: 1.05em;
+  margin: 0 0 0.9em;
+  padding-bottom: 0.6em;
+  border-bottom: 1px solid #f0f1f3;
+}
+
+/* ---------- Ô số liệu tổng quan ---------- */
+.stats { overflow: hidden; margin-bottom: 1.2em; padding-bottom: 2px; }
+.stat {
+  float: left;
+  width: 23.5%;
+  margin-right: 2%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1em 1.1em;
+}
+.stat:last-child { margin-right: 0; }
+.stat .num { font-size: 2em; font-weight: bold; line-height: 1.2; }
+.stat .label { color: #6b7280; font-size: 0.9em; }
+
+.stat.click { cursor: pointer; }
+.stat.click:hover { box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); }
+.stat.red    { border-top: 4px solid #c62828; }
+.stat.red .num { color: #c62828; }
+.stat.amber  { border-top: 4px solid #f9a825; }
+.stat.green  { border-top: 4px solid #2e7d32; }
+.stat.gray   { border-top: 4px solid #9ca3af; }
+
+/* "Chưa xử lý": xanh dương, việc mới vào đang chờ người nhận.
+   Không dùng vàng vì vàng là "Đang xử lý" ở màn Overview; đỏ, vàng, xanh lá đã dành cho mức rủi ro. */
+.stat.todo   { border-top: 4px solid #2563eb; }
+/* Ô chỉ để biết thêm (tổng số đơn, số nhân viên quá tải): không có vạch màu, để các ô trạng thái nổi lên */
+.stat.plain  { border-top: 4px solid #e5e7eb; }
+.stat .hi { color: #c62828; font-weight: bold; }  /* số đơn High nằm trong một ô trạng thái */
+
+/* Thanh tiến độ xử lý */
+.progress { height: 0.5em; background: #e5e7eb; border-radius: 99px; margin-top: 0.5em; overflow: hidden; }
+.progress div { height: 100%; background: #2e7d32; }
+
+/* ---------- Bộ lọc ---------- */
+.filters label { margin-right: 1.4em; color: #4b5563; font-size: 0.95em; }
+.filters select, .filters input,
+.form-row select, .form-row input, .form-row textarea {
+  padding: 0.45em 0.6em;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95em;
+  font-family: inherit;
+  background: #fff;
+  margin-left: 0.3em;
+}
+.filters input { width: 12em; }
+
+/* ---------- Bảng ---------- */
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td {
+  padding: 0.7em 0.8em;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #eef0f2;
+  overflow-wrap: break-word;
+}
+th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid #e5e7eb;
+}
+tbody tr:hover td { background: #f9fafb; }
+td.id, .id { font-family: Consolas, monospace; font-size: 0.9em; color: #4b5563; }
+
+/* Bảng 2 cột dạng "nhãn | giá trị" (Thông tin đơn, Lịch sử seller) */
+.kv th { width: 45%; text-transform: none; font-size: 0.9em; letter-spacing: 0; background: none; color: #6b7280; font-weight: normal; }
+.kv td { font-weight: 600; }
+
+/* Dòng trong bảng: vạch màu bên trái theo mức rủi ro */
+tr.High td:first-child   { box-shadow: inset 4px 0 0 #c62828; }
+tr.Medium td:first-child { box-shadow: inset 4px 0 0 #f9a825; }
+tr.Low td:first-child    { box-shadow: inset 4px 0 0 #2e7d32; }
+tr.done td { color: #9ca3af; }                 /* đơn đã xử lý xong thì mờ đi */
+
+/* ---------- Nhãn mức rủi ro: đỏ / vàng cam / xanh lá ----------
+   Luôn kèm chữ High/Medium/Low, người khó phân biệt màu vẫn đọc được. */
+.badge {
+  display: inline-block;
+  padding: 0.15em 0.7em;
+  border-radius: 99px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+.badge.High   { background: #c62828; color: #fff; }
+.badge.Medium { background: #f9a825; color: #3b2a00; }
+.badge.Low    { background: #2e7d32; color: #fff; }
+
+/* Thanh điểm nhỏ trong ô bảng */
+.mini { display: inline-block; width: 3.5em; height: 0.4em; background: #e5e7eb; border-radius: 99px; margin-left: 0.5em; vertical-align: middle; overflow: hidden; }
+.mini div { height: 100%; }
+.mini .High { background: #c62828; }
+.mini .Medium { background: #f9a825; }
+.mini .Low { background: #2e7d32; }
+
+/* ---------- Nút ---------- */
+.btn {
+  display: inline-block;
+  padding: 0.45em 1em;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-family: inherit;
+}
+.btn:hover { background: #f3f4f6; }
+.btn.primary { background: #1f2937; border-color: #1f2937; color: #fff; }
+.btn.primary:hover { background: #374151; }
+
+/* ---------- Băng cảnh báo "làm gì ngay" ---------- */
+.alert {
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  border-left: 5px solid #c62828;
+  border-radius: 8px;
+  padding: 0.9em 1.1em;
+  margin-bottom: 1.2em;
+  overflow: hidden;
+}
+.alert .icon {
+  float: left;
+  width: 1.9em; height: 1.9em; line-height: 1.9em;
+  margin-right: 0.9em;
+  text-align: center;
+  border-radius: 50%;
+  background: #c62828; color: #fff; font-weight: bold;
+}
+.alert .btn { float: right; margin-left: 1em; }
+.alert.ok { background: #e8f5e9; border-color: #b7dfb9; border-left-color: #2e7d32; }
+.alert.ok .icon { background: #2e7d32; }
+
+/* ---------- Hai cột (Order Detail, Action Tracking) ---------- */
+.col-left  { float: left; width: 59%; }
+.col-right { float: right; width: 39%; }
+.clear { clear: both; }
+
+/* Thanh điểm rủi ro */
+.bar { height: 0.8em; background: #e5e7eb; border-radius: 99px; overflow: hidden; margin: 0.6em 0; }
+.bar div { height: 100%; background: #6b7280; }
+.bar div.High   { background: #c62828; }
+.bar div.Medium { background: #f9a825; }
+.bar div.Low    { background: #2e7d32; }
+
+/* So sánh đơn này với đơn khách hài lòng */
+.compare td { border: none; padding: 0.45em 0.3em; }
+.compare tr:hover td { background: none; }
+.compare .label { width: 36%; font-size: 0.93em; }
+.compare .val { width: 18%; text-align: right; font-weight: bold; white-space: nowrap; }
+.cbar { height: 0.6em; background: #d1d5db; border-radius: 99px; margin: 0.2em 0; }
+.cbar.this { background: #4b5563; }
+.cbar.this.bad { background: #c62828; }
+.legend { font-size: 0.82em; color: #6b7280; font-weight: normal; }
+.flag { color: #c62828; font-size: 0.8em; }
+
+/* Dòng thời gian đơn hàng: chấm tròn nối bằng vạch dọc */
+.timeline { list-style: none; padding: 0 0 0 0.4em; margin: 0; }
+.timeline li {
+  position: relative;
+  padding: 0.35em 0 0.9em 1.5em;
+  border-left: 2px solid #e5e7eb;
+}
+.timeline li:last-child { border-left-color: transparent; }
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -0.45em; top: 0.55em;
+  width: 0.8em; height: 0.8em;
+  border-radius: 50%;
+  background: #9ca3af;
+  border: 2px solid #fff;
+}
+.timeline li b { display: inline-block; width: 11em; }
+.timeline li.slow { color: #c62828; font-weight: bold; }
+.timeline li.slow::before { background: #c62828; }
+
+/* Khối kịch bản gọi khách */
+.script { background: #f9fafb; border-left: 3px solid #9ca3af; border-radius: 0 6px 6px 0; margin: 0; padding: 0.7em 1em 0.7em 2em; }
+.script li { margin: 0.35em 0; }
+
+/* Biểu đồ cột ngang so sánh tỉ lệ bị chê */
+.hbar { margin: 0.8em 0; }
+.hbar .name { font-size: 0.95em; margin-bottom: 0.3em; }
+.hbar .track { background: #f3f4f6; height: 1.8em; border-radius: 6px; overflow: hidden; }
+.hbar .fill { height: 100%; color: #fff; font-weight: bold; padding-left: 0.6em; line-height: 1.8em; white-space: nowrap; }
+.hbar .fill.red { background: #c62828; }
+.hbar .fill.amber { background: #f9a825; color: #3b2a00; }
+
+/* ---------- Form (Action Tracking) ---------- */
+.form-row { margin-bottom: 1em; }
+.form-row label { display: block; font-weight: 600; font-size: 0.9em; margin-bottom: 0.35em; }
+.form-row select, .form-row input, .form-row textarea { width: 100%; margin-left: 0; }
+
+/* ---------- Ghi chú wireframe (cho BA viết đặc tả) ---------- */
+.note {
+  background: #fffbea;
+  border: 1px dashed #e6c200;
+  border-radius: 6px;
+  padding: 0.5em 0.8em;
+  margin: -0.4em 0 1.2em;
+  font-size: 0.85em;
+  color: #6b5800;
+}
+.note::before { content: "Ghi chú: "; font-weight: bold; }
+.box .note { margin: 0.9em 0 0; }
+body.hide-notes .note { display: none; }
+.note-toggle { float: right; font-size: 0.85em; }
+
+/* Thẻ đơn hàng: chỉ hiện ở màn hẹp, thay cho bảng */
+.cards { display: none; }
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 0.9em 1em;
+  margin-bottom: 0.8em;
+}
+.card .row { margin: 0.3em 0; }
+.card .btn { margin-top: 0.4em; }
+.card.High   { border-left: 4px solid #c62828; }
+.card.Medium { border-left: 4px solid #f9a825; }
+.card.Low    { border-left: 4px solid #2e7d32; }
+
+/* =========================================================
+   RESPONSIVE — 3 mốc: 1280 (mặc định) / 768 / 375
+   ========================================================= */
+
+/* Tablet: 4 ô số liệu → 2 ô mỗi hàng; hai cột → một cột */
+@media (max-width: 768px) {
+  .stat { width: 49%; margin-right: 2%; margin-bottom: 0.8em; }
+  .stat:nth-child(2n) { margin-right: 0; }
+  .col-left, .col-right { float: none; width: 100%; }
+  .topbar .user { display: none; }
+
+  /* Tên hệ thống lên một hàng riêng, link xuống hàng dưới */
+  .topbar { padding: 0 1em; }
+  .topbar .logo {
+    float: none;
+    display: block;
+    border-right: none;
+    border-bottom: 1px solid #4b5563;
+    padding: 0.8em 0 0.6em;
+    margin: 0;
+  }
+  .topbar a { padding: 0.6em 0.9em 0.6em 0; margin-right: 0.3em; }
+
+  /* Risk Queue: bảng → thẻ */
+  .queue-table { display: none; }
+  .cards { display: block; }
+}
+
+/* Điện thoại: mọi thứ một cột */
+@media (max-width: 480px) {
+  body { font-size: 14px; }
+  .page { margin-top: 1.2em; }
+  .stat { width: 100%; margin-right: 0; }
+  .filters label { display: block; margin-bottom: 0.6em; }
+  .filters input { width: 100%; margin: 0.3em 0 0; }
+  .timeline li b { display: block; width: auto; }
+}
+
+/* Dòng link Figma ở cuối trang */
+.figma-link { text-align: center; font-size: 0.85em; color: #555; margin: 2em 0 1em; }
+
+/* ---------- Link chỉ dành cho quản lý ---------- */
+.topbar a.manager-only { display: none; }
+body.is-manager .topbar a.manager-only { display: block; }
+.topbar .user a { float: none; display: inline; padding: 0; border: none; color: #cbd5e1; }
+
+/* ---------- Màn Đăng nhập ---------- */
+.login-box {
+  width: 92%;
+  max-width: 380px;
+  margin: 8vh auto 2em;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1.8em 1.6em 1.2em;
+}
+.login-logo { font-weight: bold; font-size: 1.3em; text-align: center; }
+.login-box .sub { text-align: center; font-size: 0.9em; }
+.login-btn { width: 100%; padding: 0.7em; font-size: 1em; margin-top: 0.4em; }
+.login-error { color: #c62828; font-size: 0.9em; min-height: 1.3em; margin: 0; }
+.login-box form { margin-bottom: 1.6em; }
+
+/* Cột thứ ba của biểu đồ ngang (mức Low) */
+.hbar .fill.green { background: #2e7d32; }
+
+/* Dòng bảng / thanh bấm được để mở danh sách chi tiết */
+tr.click, .hbar.click { cursor: pointer; }
+tr.click:hover td { background: #eef2ff; }
+.hbar.click:hover .track { box-shadow: 0 0 0 2px #c7d2fe; }
+
+/* Ô lọc chỉ quản lý thấy */
+.filters .manager-field { display: none; }
+body.is-manager .filters .manager-field { display: inline; }
+@media (max-width: 480px) { body.is-manager .filters .manager-field { display: block; } }
+
+/* Cột / dòng "Người phụ trách" ở Risk Queue: chỉ quản lý thấy */
+.mcol, .mrow { display: none; }
+body.is-manager .mcol { display: table-cell; }
+body.is-manager .mrow { display: block; }
+.muted { color: #9ca3af; }

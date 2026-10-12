@@ -2,3 +2,36 @@ Hidden-Dissatisfaction\local-docs
 .ipynb_checkpoints/
 notebooks/dataset/*.csv
 notebooks/dataset/*.parquet
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment and local tooling
+.env
+.idea/
+.vscode/
+
+# Local datasets and generated artifacts
+data/raw/*
+data/interim/*
+data/processed/*
+artifacts/models/*
+artifacts/predictions/*
+
+# Keep directory documentation/placeholders
+!data/raw/README.md
+!data/interim/README.md
+!data/processed/README.md
+!artifacts/models/.gitkeep
+!artifacts/predictions/.gitkeep
