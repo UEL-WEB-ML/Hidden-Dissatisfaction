@@ -20,8 +20,6 @@ ml = [
 ]
 boosting = [
     "catboost>=1.2,<2",
-    "lightgbm>=4.5,<5",
-    "xgboost>=2.1,<4",
 ]
 explain = ["shap>=0.46,<1"]
 notebook = [
@@ -67,7 +65,7 @@ warn_unused_configs = true
 files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["joblib", "pandas", "sklearn.*"]
+module = ["catboost", "joblib", "pandas", "sklearn.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

@@ -52,6 +52,7 @@ def test_training_pipeline_writes_auditable_artifacts(tmp_path: Path) -> None:
         "logistic_regression",
         "random_forest",
         "hist_gradient_boosting",
+        "catboost",
     }
     assert (tmp_path / "artifacts/models/hidden_dissatisfaction.joblib").exists()
     assert (tmp_path / "artifacts/predictions/test_predictions.csv").exists()
