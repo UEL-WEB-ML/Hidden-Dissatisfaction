@@ -82,6 +82,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 seed=config.seed,
                 budgets=config.budgets,
                 bootstrap_iterations=args.bootstrap_iterations,
+                rolling_folds=config.rolling_folds,
             )
         report = run_training(
             args.data,

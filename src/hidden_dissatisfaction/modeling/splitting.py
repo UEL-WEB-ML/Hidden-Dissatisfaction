@@ -83,3 +83,36 @@ def partition_summary(
         }
         for name, part in partitions.as_dict().items()
     }
+
+
+def rolling_origin_splits(
+    frame: pd.DataFrame,
+    *,
+    n_splits: int,
+    time_column: str = "order_delivered_customer_date",
+    initial_train_fraction: float = 0.4,
+) -> list[tuple[pd.DataFrame, pd.DataFrame]]:
+    """Create expanding-window folds without allowing future rows into training."""
+    if n_splits < 2:
+        raise ModelingDataError("rolling-origin validation requires at least two folds")
+    if not 0 < initial_train_fraction < 1:
+        raise ModelingDataError("initial_train_fraction must be between zero and one")
+    ordered = frame.sort_values(time_column).reset_index(drop=True)
+    initial_end = int(len(ordered) * initial_train_fraction)
+    remaining = len(ordered) - initial_end
+    fold_size = remaining // n_splits
+    if initial_end == 0 or fold_size == 0:
+        raise ModelingDataError("not enough rows for rolling-origin validation")
+
+    folds: list[tuple[pd.DataFrame, pd.DataFrame]] = []
+    for index in range(n_splits):
+        validation_start = initial_end + index * fold_size
+        validation_end = len(ordered) if index == n_splits - 1 else validation_start + fold_size
+        train = ordered.iloc[:validation_start].copy()
+        validation = ordered.iloc[validation_start:validation_end].copy()
+        if train[TARGET].nunique() != 2 or validation[TARGET].nunique() != 2:
+            raise ModelingDataError(f"rolling fold {index + 1} must contain both target classes")
+        if train[time_column].max() > validation[time_column].min():
+            raise ModelingDataError(f"rolling fold {index + 1} has temporal overlap")
+        folds.append((train, validation))
+    return folds

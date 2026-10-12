@@ -60,8 +60,10 @@ and pass unit tests plus the repository quality workflow.
 - [x] Fit each transformer only as part of its estimator pipeline on training data.
 - [x] Implement the prevalence baseline as a real estimator with `predict_proba`.
 - [x] Use deterministic seeds and bounded parallelism.
-- [ ] Add optional CatBoost/LightGBM/XGBoost experiments only after the sklearn baseline is stable;
-  they are not required to reproduce the first benchmark.
+- [x] Add optional CatBoost with native categorical handling; it participates when the `boosting`
+  extra is installed.
+- [x] Add deterministic multi-item/multi-seller flags and per-item/per-seller ratio features.
+- [ ] Add LightGBM/XGBoost only if CatBoost and corrected sklearn baselines justify wider search.
 - [ ] Treat SMOTE as a later ablation and recalibrate probabilities if it is introduced.
 
 ## Phase 4 — Selection, thresholding, and calibration
@@ -73,7 +75,8 @@ and pass unit tests plus the repository quality workflow.
 - [x] Retain the uncalibrated model when neither calibration method improves held-out Brier score.
 - [x] Select a classification threshold on validation only by minority-class F1.
 - [x] Record the selected estimator, calibration method, threshold, seed, and config.
-- [ ] Add rolling-origin hyperparameter search after the end-to-end baseline is reproducible.
+- [x] Replace single-period model selection with expanding-window rolling-origin comparison.
+- [ ] Add bounded rolling-origin hyperparameter search after the revised feature baseline is run.
 
 ## Phase 5 — Final evaluation and prioritization
 

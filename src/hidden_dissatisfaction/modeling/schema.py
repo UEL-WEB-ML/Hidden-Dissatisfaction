@@ -6,7 +6,7 @@ from collections.abc import Sequence
 
 import pandas as pd
 
-NUMERIC_FEATURES = (
+SOURCE_NUMERIC_FEATURES = (
     "delivery_days",
     "days_vs_estimate",
     "promised_days",
@@ -16,8 +16,14 @@ NUMERIC_FEATURES = (
     "n_items",
     "n_products",
     "n_sellers",
+    "n_categories",
+    "n_seller_states",
     "price",
+    "price_max",
+    "price_std",
     "freight",
+    "freight_max",
+    "freight_std",
     "freight_ratio",
     "distance_km",
     "installments",
@@ -25,12 +31,30 @@ NUMERIC_FEATURES = (
     "photos",
     "desc_len",
     "weight_g",
+    "weight_max_g",
+    "weight_std_g",
     "seller_prior_neg_rate",
     "seller_prior_n",
 )
-BINARY_FEATURES = ("dispatch_late",)
+DERIVED_NUMERIC_FEATURES = (
+    "items_per_seller",
+    "products_per_seller",
+    "price_per_item",
+    "freight_per_item",
+    "weight_per_item",
+)
+SOURCE_BINARY_FEATURES = ("dispatch_late",)
+DERIVED_BINARY_FEATURES = (
+    "is_multi_item",
+    "is_multi_product",
+    "is_multi_seller",
+    "seller_history_available",
+)
+NUMERIC_FEATURES = SOURCE_NUMERIC_FEATURES + DERIVED_NUMERIC_FEATURES
+BINARY_FEATURES = SOURCE_BINARY_FEATURES + DERIVED_BINARY_FEATURES
 CATEGORICAL_FEATURES = ("category", "customer_state", "payment_type")
 FEATURES = NUMERIC_FEATURES + BINARY_FEATURES + CATEGORICAL_FEATURES
+SOURCE_FEATURES = SOURCE_NUMERIC_FEATURES + SOURCE_BINARY_FEATURES + CATEGORICAL_FEATURES
 
 KEY_COLUMNS = (
     "order_id",
@@ -57,7 +81,7 @@ FORBIDDEN_FEATURES = frozenset(
         TARGET,
     }
 )
-REQUIRED_COLUMNS = frozenset({*KEY_COLUMNS, *FEATURES, TARGET})
+REQUIRED_COLUMNS = frozenset({*KEY_COLUMNS, *SOURCE_FEATURES, TARGET})
 
 
 class ModelingDataError(ValueError):
@@ -84,7 +108,27 @@ def validate_modeling_table(frame: pd.DataFrame) -> pd.DataFrame:
     if normalized[TARGET].isna().any() or not target_values.issubset({0, 1}):
         raise ModelingDataError("negative must be a non-null binary target")
     normalized[TARGET] = normalized[TARGET].astype(int)
-    return normalized
+    return add_derived_features(normalized)
+
+
+def add_derived_features(frame: pd.DataFrame) -> pd.DataFrame:
+    """Add deterministic, prediction-time-safe order structure features."""
+    enriched = frame.copy()
+    enriched["is_multi_item"] = enriched["n_items"].gt(1).astype(int)
+    enriched["is_multi_product"] = enriched["n_products"].gt(1).astype(int)
+    enriched["is_multi_seller"] = enriched["n_sellers"].gt(1).astype(int)
+    enriched["seller_history_available"] = enriched["seller_prior_neg_rate"].notna().astype(int)
+    enriched["items_per_seller"] = _safe_ratio(enriched["n_items"], enriched["n_sellers"])
+    enriched["products_per_seller"] = _safe_ratio(enriched["n_products"], enriched["n_sellers"])
+    enriched["price_per_item"] = _safe_ratio(enriched["price"], enriched["n_items"])
+    enriched["freight_per_item"] = _safe_ratio(enriched["freight"], enriched["n_items"])
+    enriched["weight_per_item"] = _safe_ratio(enriched["weight_g"], enriched["n_items"])
+    return enriched
+
+
+def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
+    ratio = numerator.div(denominator.where(denominator.gt(0)))
+    return ratio.replace([float("inf"), float("-inf")], pd.NA)
 
 
 def validate_feature_list(features: Sequence[str]) -> None:

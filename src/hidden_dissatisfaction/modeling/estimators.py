@@ -106,7 +106,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
             ),
         ]
     )
-    return {
+    candidates: dict[str, BaseEstimator] = {
         "prevalence": PrevalenceClassifier(),
         "logistic_regression": Pipeline(
             [
@@ -143,9 +143,60 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                         max_leaf_nodes=31,
                         l2_regularization=1.0,
                         class_weight="balanced",
+                        categorical_features=[False]
+                        * (len(NUMERIC_FEATURES) + len(BINARY_FEATURES))
+                        + [True] * len(CATEGORICAL_FEATURES),
                         random_state=seed,
                     ),
                 ),
             ]
         ),
     }
+    catboost = _build_catboost_candidate(seed)
+    if catboost is not None:
+        candidates["catboost"] = catboost
+    return candidates
+
+
+def _build_catboost_candidate(seed: int) -> BaseEstimator | None:
+    """Build the optional native-categorical candidate when CatBoost is installed."""
+    try:
+        from catboost import CatBoostClassifier
+    except ImportError:
+        return None
+
+    numeric_and_binary = [*NUMERIC_FEATURES, *BINARY_FEATURES]
+    preprocess = ColumnTransformer(
+        [
+            ("numeric", SimpleImputer(strategy="median"), numeric_and_binary),
+            (
+                "categorical",
+                SimpleImputer(strategy="most_frequent"),
+                [*CATEGORICAL_FEATURES],
+            ),
+        ]
+    )
+    categorical_indices = list(
+        range(len(numeric_and_binary), len(numeric_and_binary) + len(CATEGORICAL_FEATURES))
+    )
+    return Pipeline(
+        [
+            ("preprocess", preprocess),
+            (
+                "model",
+                CatBoostClassifier(
+                    iterations=500,
+                    depth=6,
+                    learning_rate=0.05,
+                    loss_function="Logloss",
+                    eval_metric="PRAUC",
+                    auto_class_weights="Balanced",
+                    cat_features=categorical_indices,
+                    random_seed=seed,
+                    verbose=False,
+                    allow_writing_files=False,
+                    thread_count=-1,
+                ),
+            ),
+        ]
+    )
