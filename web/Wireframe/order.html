@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Detail — Wireframe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="logo">Hidden Dissatisfaction</span>
+    <a href="overview.html" class="manager-only">Overview</a>
+    <a href="index.html">Risk Queue</a>
+    <a href="order.html" class="active">Order Detail</a>
+    <a href="actions.html">Action Tracking</a>
+    <span class="user" id="user-box">Nhân viên CSKH: Trần Thị B</span>
+  </div>
+
+  <div class="page">
+    <a class="btn note-toggle" onclick="toggleNotes()">Ẩn/hiện ghi chú</a>
+    <p><a href="index.html">← Quay lại Risk Queue</a></p>
+    <h1>2. Order Detail</h1>
+    <p class="sub">Vì sao đơn này đáng lo?</p>
+
+    <div class="note">Mở từ nút "Xem" ở Risk Queue. Mã đơn truyền qua địa chỉ trang (order.html?id=...).
+      Mở thẳng không có mã thì hiện đơn rủi ro cao nhất.</div>
+
+    <!-- Tóm tắt 1 câu + hành động, nằm trên cùng -->
+    <div class="alert" id="d-summary"></div>
+    <div class="note">Đọc 1 câu là biết chuyện gì và làm gì, không cần kéo xuống. Câu tóm tắt ghép tự động từ
+      lý do đầu tiên và dòng thời gian của đơn.</div>
+
+    <div class="col-left">
+      <div class="box">
+        <h2>Mức rủi ro</h2>
+        <p><span id="d-badge"></span> &nbsp; Risk score: <b id="d-score"></b></p>
+        <div class="bar"><div id="d-bar"></div></div>
+        <p>Mã đơn: <span class="id" id="d-id"></span></p>
+      </div>
+
+      <div class="box">
+        <h2>So với đơn khách hài lòng</h2>
+        <table class="compare" id="d-compare"></table>
+        <p class="legend"><span class="cbar this" style="display:inline-block;width:1.5em"></span> đơn này &nbsp;
+          <span class="cbar" style="display:inline-block;width:1.5em"></span> trung vị 80.039 đơn đúng hạn được khen</p>
+        <div class="note">Mốc so sánh là số ĐÃ ĐO THẬT trên Olist (19/09). Thanh đỏ = đơn này vượt 1,5 lần mức bình thường.
+          Bàn giao cho vận chuyển là tín hiệu mạnh nhất: nhóm bị chê chậm gấp đôi nhóm hài lòng.</div>
+      </div>
+
+      <div class="box">
+        <h2>Lý do (top_reasons)</h2>
+        <ol id="d-reasons"></ol>
+        <div class="note">Lý do lấy nguyên văn từ kết quả của nhóm ML, Web chỉ hiển thị, không tự tính.</div>
+      </div>
+
+      <div class="box">
+        <h2>Dòng thời gian đơn hàng</h2>
+        <ul class="timeline" id="d-timeline"></ul>
+        <div class="note">Bước bàn giao chậm hơn 2 ngày tô đỏ. Điểm cần nhìn: đơn giao SỚM hơn hạn nhiều ngày,
+          nhưng khách đã phải chờ lâu ở khâu seller.</div>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="box">
+        <h2>Đề xuất hành động</h2>
+        <p style="font-size:1.3em"><b id="d-action"></b></p>
+        <a class="btn primary" id="d-go" href="actions.html">Ghi nhận xử lý</a>
+        <div class="note">Bấm nút chuyển sang Action Tracking, điền sẵn mã đơn.</div>
+      </div>
+
+      <div class="box" id="d-script-box">
+        <h2>Gợi ý khi gọi khách</h2>
+        <ul class="script" id="d-script"></ul>
+        <div class="note">Chỉ hiện với đơn đề xuất Contact Customer. Nhân viên mới không phải tự nghĩ nói gì.</div>
+      </div>
+
+      <div class="box">
+        <h2>Thông tin đơn</h2>
+        <table class="kv">
+          <tr><th>Khách hàng</th><td id="d-customer"></td></tr>
+          <tr><th>Danh mục</th><td id="d-category"></td></tr>
+          <tr><th>Giá trị đơn</th><td id="d-value"></td></tr>
+          <tr><th>Phí ship</th><td id="d-freight"></td></tr>
+          <tr><th>Trạng thái</th><td id="d-status"></td></tr>
+        </table>
+      </div>
+
+      <div class="box">
+        <h2>Lịch sử seller</h2>
+        <table class="kv">
+          <tr><th>Seller</th><td class="id" id="d-seller"></td></tr>
+          <tr><th>Số đơn trước đó</th><td>[số đơn]</td></tr>
+          <tr><th>Tỉ lệ bị chê ≤ 2 sao</th><td>[tỉ lệ]</td></tr>
+          <tr><th>Thời gian bàn giao TB</th><td>[số ngày]</td></tr>
+        </table>
+        <div class="note">Tính từ 9 bảng Olist (bảng sellers + order_items + order_reviews). Chưa có số thật.</div>
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+
+  <p class="figma-link">Bản vẽ wireframe trên Figma: <a href="https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl/Wireframe-%E2%80%93-Hidden-Dissatisfaction?node-id=1003-3710" target="_blank">mở trong tab mới</a></p>
+
+  <script src="mock-data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    // Trung vị của 80.039 đơn giao đúng hạn được khen (đo trên Olist 19/09)
+    var normal = { handover: 1.0, value: 84.9, freight: 16.9, delivery: 9.0 };
+
+    // Lấy mã đơn trên địa chỉ trang, không có thì lấy đơn rủi ro cao nhất
+    var id = new URLSearchParams(location.search).get("id");
+    var o = findOrder(id);
+    if (o == null) {
+      orders.sort(function (a, b) { return b.risk_score - a.risk_score; });
+      o = orders[0];
+    }
+
+    var handover = daysBetween(o.approved_date, o.carrier_date);
+    var delivery = daysBetween(o.purchase_date, o.delivered_date);
+    var early = daysBetween(o.delivered_date, o.estimated_date);
+
+    // ---- Tóm tắt 1 câu ----
+    var summary = document.getElementById("d-summary");
+    var text = "<b>" + o.recommended_action + ":</b> đơn giao sớm " + early + " ngày so với hạn, nhưng "
+      + o.top_reasons[0].toLowerCase() + ".";
+    if (o.risk_level == "Low") {
+      summary.className = "alert ok";
+      summary.innerHTML = '<span class="icon">✓</span><b>Không cần xử lý.</b> Đơn không có yếu tố rủi ro nổi bật.';
+    } else {
+      summary.innerHTML = '<span class="icon">!</span>'
+        + '<a class="btn primary" href="actions.html?id=' + o.order_id + '">Ghi nhận xử lý</a>' + text;
+    }
+
+    // ---- Mức rủi ro ----
+    document.getElementById("d-badge").innerHTML = badge(o.risk_level);
+    document.getElementById("d-score").innerHTML = o.risk_score.toFixed(2);
+    document.getElementById("d-bar").style.width = (o.risk_score * 100) + "%";
+    document.getElementById("d-bar").className = o.risk_level;   // tô màu thanh theo mức
+    document.getElementById("d-id").innerHTML = o.order_id;
+
+    // ---- So sánh với đơn bình thường ----
+    function compareRow(label, mine, typical, unit) {
+      var max = Math.max(mine, typical) * 1.1;
+      var bad = mine > typical * 1.5;
+      return "<tr><td class='label'>" + label + (bad ? " <span class='flag'>▲</span>" : "") + "</td>"
+        + "<td>"
+        + "<div class='cbar this" + (bad ? " bad" : "") + "' style='width:" + (mine / max * 100) + "%'></div>"
+        + "<div class='cbar' style='width:" + (typical / max * 100) + "%'></div>"
+        + "</td>"
+        + "<td class='val'>" + mine + unit + "<br><span class='legend'>" + typical + unit + "</span></td></tr>";
+    }
+    document.getElementById("d-compare").innerHTML =
+        compareRow("Seller bàn giao cho vận chuyển", handover, normal.handover, " ngày")
+      + compareRow("Tổng thời gian giao", delivery, normal.delivery, " ngày")
+      + compareRow("Giá trị đơn", o.order_value, normal.value, " R$")
+      + compareRow("Phí ship", o.freight, normal.freight, " R$");
+
+    // ---- Lý do ----
+    var reasons = "";
+    for (var i = 0; i < o.top_reasons.length; i++) {
+      reasons += "<li>" + o.top_reasons[i] + "</li>";
+    }
+    document.getElementById("d-reasons").innerHTML = reasons;
+
+    // ---- Dòng thời gian, tô đỏ bước bàn giao chậm ----
+    document.getElementById("d-timeline").innerHTML =
+        "<li><b>Đặt hàng</b>" + o.purchase_date + "</li>"
+      + "<li><b>Duyệt thanh toán</b>" + o.approved_date + "</li>"
+      + "<li" + (handover > 2 ? " class='slow'" : "") + "><b>Giao cho vận chuyển</b>" + o.carrier_date
+      + " (sau " + handover + " ngày)</li>"
+      + "<li><b>Giao tới khách</b>" + o.delivered_date + "</li>"
+      + "<li><b>Hạn dự kiến</b>" + o.estimated_date + " → giao sớm " + early + " ngày</li>";
+
+    // ---- Gợi ý khi gọi khách ----
+    if (o.recommended_action == "Contact Customer") {
+      document.getElementById("d-script").innerHTML =
+          "<li>Hỏi khách đã nhận hàng và dùng thử chưa, sản phẩm có đúng mô tả không.</li>"
+        + "<li>Nếu khách phàn nàn thời gian chờ: xin lỗi vì khâu chuẩn bị hàng của người bán chậm.</li>"
+        + "<li>Ghi lại lời khách vào ô Ghi chú ở Action Tracking.</li>";
+    } else {
+      document.getElementById("d-script-box").style.display = "none";
+    }
+
+    // ---- Thông tin đơn ----
+    document.getElementById("d-action").innerHTML = o.recommended_action;
+    document.getElementById("d-go").href = "actions.html?id=" + o.order_id;
+    document.getElementById("d-customer").innerHTML = o.customer_city + " (" + o.customer_state + ")";
+    document.getElementById("d-category").innerHTML = o.category;
+    document.getElementById("d-value").innerHTML = "R$ " + o.order_value.toFixed(2);
+    document.getElementById("d-freight").innerHTML = "R$ " + o.freight.toFixed(2);
+    document.getElementById("d-status").innerHTML = o.status;
+    document.getElementById("d-seller").innerHTML = shortId(o.seller_id);
+  </script>
+</body>
+</html>
