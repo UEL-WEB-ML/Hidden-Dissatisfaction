@@ -28,6 +28,7 @@ data/interim/*
 data/processed/*
 artifacts/models/*
 artifacts/predictions/*
+runs/
 
 # Keep directory documentation/placeholders
 !data/raw/README.md
