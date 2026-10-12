@@ -3,7 +3,7 @@
 Tài liệu này cung cấp toàn cảnh những phần việc đã được thực hiện trong repository, dựa trên lịch
 sử Git. Đây không phải bảng chấm công và không dùng số commit để đánh giá mức độ đóng góp.
 
-**Phạm vi:** nhánh `dev` đến commit `e997d35`, cập nhật ngày 2026-10-12. Các merge commit được ghi
+**Phạm vi:** nhánh `dev` đến commit `446e283`, cập nhật ngày 2026-10-12. Các merge commit được ghi
 nhận như mốc tích hợp, không tính thành một phần việc độc lập.
 
 ## Thành viên và định danh Git
@@ -104,6 +104,17 @@ Commit tiêu biểu: `2104015`.
 - Xác nhận lại quality workflow sau bản sửa.
 
 Commit tiêu biểu: `3421cdf`, merge `40c7f1e`, fix `e997d35`.
+
+### 2026-10-12 — Chuẩn hóa môi trường phát triển bằng uv
+
+**Nguyen T. Thuy / Huy**
+
+- Thống nhất Python 3.11 giữa môi trường local và CI.
+- Tạo và commit `uv.lock` để các thành viên sử dụng cùng phiên bản dependency.
+- Chuyển hướng dẫn cài đặt, chạy notebook và quality gates sang `uv sync --frozen` và `uv run`.
+- Chuyển GitHub Actions từ cài package bằng pip sang `astral-sh/setup-uv` và lockfile.
+
+Commit tiêu biểu: `446e283`.
 
 ## Công việc đang ở nhánh riêng, chưa thuộc `dev`
 
