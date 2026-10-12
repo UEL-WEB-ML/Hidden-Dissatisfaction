@@ -12,10 +12,11 @@ require_observed_review_for_primary_outcome = true
 [validation]
 strategy = "rolling_origin"
 time_column = "order_delivered_customer_date"
-# Exact boundaries must be selected after plotting monthly cohort and label counts.
-train_end = ""
-validation_end = ""
-test_end = ""
+# Initial fixed boundaries for the reproducible baseline. Revisit only through a committed
+# config change after validating monthly counts from the rebuilt order-level dataset.
+validation_start = "2018-01-01T00:00:00"
+test_start = "2018-04-01T00:00:00"
+test_end = "2018-09-01T00:00:00"
 
 [evaluation]
 primary_metric = "average_precision"
@@ -32,6 +33,6 @@ bootstrap_iterations = 1000
 
 [models]
 baselines = ["prevalence", "logistic_regression", "random_forest"]
-candidates = ["catboost", "lightgbm", "xgboost"]
+candidates = ["hist_gradient_boosting"]
 default_resampling = "none"
 calibration_methods = ["sigmoid", "isotonic"]
