@@ -1,3 +1,7 @@
+Hidden-Dissatisfaction\local-docs
+.ipynb_checkpoints/
+notebooks/dataset/*.csv
+notebooks/dataset/*.parquet
 # Python
 __pycache__/
 *.py[cod]
