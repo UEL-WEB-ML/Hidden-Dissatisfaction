@@ -44,11 +44,12 @@ Cả ba notebook đọc dữ liệu qua đường dẫn tương đối `dataset/
 
 ## 2. Cài môi trường
 
-Cần Python 3.13 và [uv](https://docs.astral.sh/uv/).
+Cần Python 3.11 và [uv](https://docs.astral.sh/uv/). `uv.lock` là nguồn phiên bản dependency
+thống nhất cho toàn nhóm.
 
 ```bash
-uv venv
-uv pip install pandas numpy matplotlib scikit-learn scipy pyarrow jupyter
+uv python install 3.11
+uv sync --frozen --extra ml --extra notebook --extra dev
 ```
 
 ## 3. Chạy notebook
@@ -56,10 +57,8 @@ uv pip install pandas numpy matplotlib scikit-learn scipy pyarrow jupyter
 Chạy theo thứ tự dưới đây. Mở bằng Jupyter hoặc VS Code rồi *Run All*, hoặc chạy bằng dòng lệnh từ thư mục gốc của repo:
 
 ```bash
-.venv/Scripts/python.exe -m jupyter nbconvert --to notebook --execute --inplace notebooks/02_modelling_dataset.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/02_modelling_dataset.ipynb
 ```
-
-Trên macOS/Linux thay `.venv/Scripts/python.exe` bằng `.venv/bin/python`.
 
 | Thứ tự | Notebook | Nội dung | Kết quả |
 |---|---|---|---|
@@ -137,13 +136,12 @@ The domain does not import pandas, scikit-learn, web frameworks, or storage SDKs
 
 ## Setup
 
-Python 3.11 or newer is required.
+Python 3.11 and [uv](https://docs.astral.sh/uv/) are required. The committed lockfile is the
+authoritative dependency resolution for local development and CI.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate             # Windows: .venv\Scripts\activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[ml,notebook,dev]"
+uv python install 3.11
+uv sync --frozen --extra ml --extra notebook --extra dev
 ```
 
 Place the nine Olist CSV files in `data/raw/olist/`. Raw data is intentionally excluded from Git.
@@ -151,10 +149,10 @@ Place the nine Olist CSV files in `data/raw/olist/`. Raw data is intentionally e
 ## Quality gates
 
 ```bash
-ruff check .
-black --check .
-mypy src tests
-pytest --cov=hidden_dissatisfaction --cov-report=term-missing
+uv run ruff check .
+uv run black --check .
+uv run mypy src tests
+uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
 ```
 
 Run the initial vertical slice:
