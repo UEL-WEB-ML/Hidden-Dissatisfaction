@@ -1,6 +1,6 @@
 // =========================================================
 // mock-server.js — BACKEND GIẢ chạy ngay trong trình duyệt
-// Trả lời đúng các endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md v0.2 (đường dẫn, JSON, mã lỗi HTTP),
+// Trả lời đúng các endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md v0.3 (đường dẫn, JSON, mã lỗi HTTP),
 // để frontend làm trước khi backend thật xong. Frontend chỉ gọi qua js/api.js, không gọi file này trực tiếp.
 // Luật nghiệp vụ (BRD v4.0 mục 6) nằm ở đây, đúng chỗ của nó ở bản thật: backend kiểm tra, frontend chỉ hiển thị.
 // Khi có backend thật: bỏ mock-data.js + mock-server.js khỏi các trang, api.js tự chuyển sang gọi fetch.
@@ -455,6 +455,16 @@ var MockServer = (function () {
 
   // Minh chứng: tối đa 3 tệp, mỗi tệp ≤ 5 MB, chỉ ảnh hoặc PDF. Bản thật upload lên kho tệp, ở đây chỉ lưu tên.
   var EVIDENCE_TYPES = ["image/png", "image/jpeg", "application/pdf"];
+  // POST /files: backend giả không lưu tệp, chỉ kiểm tra loại + dung lượng rồi trả file_id (backend thật lưu tệp, trả url xem lại)
+  var fileSeq = 0;
+  function uploadFile(f) {
+    if (!f.file_name) return fail(422, "VALIDATION_ERROR", M("No file was sent.", "Chưa gửi tệp nào."), { field: "file" });
+    if (EVIDENCE_TYPES.indexOf(f.file_type) == -1) return fail(422, "EVIDENCE_INVALID", M(f.file_name + ": only PNG, JPG or PDF.", f.file_name + ": chỉ nhận PNG, JPG hoặc PDF."), { field: "file" });
+    if (f.file_size > 5 * 1024 * 1024) return fail(422, "EVIDENCE_INVALID", M(f.file_name + " is larger than 5 MB.", f.file_name + " lớn hơn 5 MB."), { field: "file" });
+    fileSeq++;
+    return { status: 201, body: { file_id: "file-" + Date.now().toString(36) + "-" + fileSeq, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size, url: null } };
+  }
+
   function addContact(id, body, me) {
     var c = findCase(id), cf = cfg();
     if (!c) return notFound(id);
@@ -848,6 +858,8 @@ var MockServer = (function () {
     if (method == "GET" && path == "/config") {
       var out = cfg();
       out.server_time = db.now;
+      // Mức thường gặp để so sánh ở Chi tiết đơn: trung vị của 80.039 đơn giao đúng hạn được 3-5 sao (đo trên Olist 19/09)
+      out.typical_order = { handover_days: 1.0, delivery_days: 9.0, order_value: 84.9, freight: 16.9 };
       return ok(out);
     }
     if (method == "GET" && path == "/parameters") return paramsList(me);
@@ -862,6 +874,7 @@ var MockServer = (function () {
     if (method == "GET" && path == "/orders/filter-options") return filterOptions();
     if (method == "GET" && path == "/dashboard") return dashboard(query, me);
     if (method == "GET" && path == "/audit-events") return auditEvents(query, me);
+    if (method == "POST" && path == "/files") return uploadFile(body);
     var m = path.match(/^\/orders\/([0-9a-f]{32})(\/[a-z-]+)?$/);
     if (m) {
       var id = m[1], action = m[2] || "";

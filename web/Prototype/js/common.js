@@ -156,11 +156,21 @@ function roleLabel(role) { return role == "MANAGER" ? L("Manager", "Quản lý")
 
 // ---------- Thời gian ----------
 var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function parseTime(s) {            // "2018-06-04 14:00" hoặc "2018-06-04"
-  var p = s.split(/[- :T]/);
-  return new Date(+p[0], +p[1] - 1, +p[2], +(p[3] || 0), +(p[4] || 0));
+// Nhận cả dạng gọn của contract ("2018-06-04 14:00", "2018-06-04") lẫn ISO 8601 có múi giờ
+// ("2018-06-04T14:00:00Z", "2018-06-04T14:00:00+07:00"): backend trả dạng nào cũng hiển thị đúng (API_CONTRACT mục 7 điểm 1).
+// Dạng có múi giờ được đổi sang giờ của máy người xem.
+function parseTime(s) {
+  s = String(s);
+  if (/[zZ]$|[+-]\d\d:?\d\d$/.test(s)) return new Date(s);
+  var p = s.split(/[- :T.]/);
+  return new Date(+p[0], +p[1] - 1, +p[2], +(p[3] || 0), +(p[4] || 0), +(p[5] || 0));
 }
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
+// Giá trị cho ô <input type="datetime-local"> / <input type="date"> từ thời gian API trả về (dạng nào cũng được)
+function inputTime(s) { return fmtTime(parseTime(s)).replace(" ", "T"); }
+function inputDate(s) { return fmtDate(parseTime(s)); }
+// Giá trị ô datetime-local ("2018-06-04T14:00") -> dạng gửi lên API theo contract ("2018-06-04 14:00")
+function apiTime(v) { return v ? v.replace("T", " ") : v; }
 function fmtTime(d) {
   return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
 }
@@ -568,7 +578,7 @@ function renderFooter() {
   tools.className = "wf-tools";
   tools.lang = "vi";
   tools.innerHTML = '<b>Công cụ demo prototype, không có trong sản phẩm.</b> '
-    + "Đang dùng backend giả (js/mock-server.js) theo API_CONTRACT_olist_hidden_dissatisfaction.md v0.2. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
+    + "Đang dùng backend giả (js/mock-server.js) theo API_CONTRACT_olist_hidden_dissatisfaction.md v0.3. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
     + '<label>Đăng nhập lại với: <select onchange="switchUser(this.value)">' + opts + "</select></label>"
     + ' · <label>Giả lập mạng: <select onchange="setSim(this.value)">' + simOpts + "</select></label>"
     + ' · <a href="#" onclick="resetData(); return false;">Đặt lại dữ liệu mẫu</a>'
@@ -615,6 +625,8 @@ function togglePresent() {
   if (on) toast("Chế độ trình bày đã bật. Nhấn phím ` (cạnh số 1) để tắt.");
 }
 (function initPrototypeTools() {
+  // Nối backend thật (USE_MOCK = false): luôn ở chế độ sản phẩm, không hiện ghi chú, nút công cụ, tài khoản thử
+  if (!API_CONFIG.USE_MOCK) { document.body.classList.add("present"); return; }
   var on = false;
   try { on = localStorage.getItem("wf-present") == "1"; } catch (e) { }
   var q = new URLSearchParams(location.search).get("present");

@@ -39,7 +39,8 @@
       (mã cuộc gọi, tiêu đề email). Prototype chỉ lưu tên tệp, bản thật upload lên kho tệp. Đang để KHÔNG bắt buộc: chờ BA chốt có bắt buộc không.</div>
   </div>
 
-  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
   <script src="../js/mock-data.js"></script>
   <script src="../js/mock-server.js"></script>
   <script src="../js/api.js"></script>
@@ -123,7 +124,7 @@
           + '<div class="actions"><button class="btn sm" onclick="skip(\'UNREACHABLE\')">' + L("Skip: unreachable", "Bỏ qua: không liên lạc được") + '</button> <button class="btn sm" onclick="complete()">' + L("Complete", "Hoàn tất") + "</button></div></div>";
       } else {
         var last = cyc[n - 1];
-        var early = last && last.next_contact_date && NOW.substring(0, 10) < last.next_contact_date;
+        var early = last && last.next_contact_date && inputDate(NOW) < inputDate(last.next_contact_date);
         var methods = "", results = "";
         for (var m in CONTACT_METHOD_LABEL) methods += '<option value="' + m + '">' + CONTACT_METHOD_LABEL[m] + "</option>";
         for (var r in CONTACT_RESULT_LABEL) results += '<option value="' + r + '">' + CONTACT_RESULT_LABEL[r] + "</option>";
@@ -132,7 +133,7 @@
           + (early ? '<p class="tiny warn-text">' + L("Before the planned date (" + viTime(last.next_contact_date) + "). The default gap is " + config.retry_gap_days + " business day(s).",
             "Sớm hơn ngày đã hẹn (" + viTime(last.next_contact_date) + "). Khoảng cách mặc định là " + config.retry_gap_days + " ngày làm việc.") + "</p>" : "")
           + '<div class="grid2">'
-          + '<div class="form-row"><label for="c-at">' + L("Time", "Thời điểm") + ' *</label><input id="c-at" type="datetime-local" value="' + NOW.replace(" ", "T") + '" max="' + NOW.replace(" ", "T") + '"></div>'
+          + '<div class="form-row"><label for="c-at">' + L("Time", "Thời điểm") + ' *</label><input id="c-at" type="datetime-local" value="' + inputTime(NOW) + '" max="' + inputTime(NOW) + '"></div>'
           + '<div class="form-row"><label for="c-method">' + L("Method", "Phương thức") + ' *</label><select id="c-method">' + methods + "</select></div>"
           + '<div class="form-row"><label for="c-result">' + L("Result", "Kết quả") + ' *</label><select id="c-result"><option value="">' + L("-- Choose --", "-- Chọn --") + "</option>" + results + "</select></div>"
           + '<div class="form-row"><label for="c-next">' + L("Next contact", "Hẹn liên lạc tiếp") + '</label><input id="c-next" type="date" value="' + nextBusinessDay(NOW, config.retry_gap_days) + '"></div>'
@@ -168,7 +169,7 @@
         if (files.length >= 3) { err = L("At most 3 files.", "Tối đa 3 tệp."); break; }
         if (EVIDENCE_TYPES.indexOf(f.type) == -1) { err = L(f.name + ": only PNG, JPG or PDF.", f.name + ": chỉ nhận PNG, JPG hoặc PDF."); continue; }
         if (f.size > 5 * 1024 * 1024) { err = L(f.name + " is larger than 5 MB.", f.name + " lớn hơn 5 MB."); continue; }
-        files.push({ file_name: f.name, file_type: f.type, file_size: f.size });
+        files.push({ file_name: f.name, file_type: f.type, file_size: f.size, raw: f });   // raw: tệp thật để upload lúc lưu
       }
       el("c-error").innerHTML = err;
       renderFiles();
@@ -186,7 +187,10 @@
     function evidenceHtml(c) {
       if (!c.evidence.length && !c.evidence_ref) return '<div class="tiny muted">' + L("No evidence attached", "Không kèm minh chứng") + "</div>";
       var h = '<div class="ev-files">';
-      for (var i = 0; i < c.evidence.length; i++) h += '<span class="file-chip">' + icon("clip") + c.evidence[i].file_name + ' <span class="tiny">' + fileSize(c.evidence[i].file_size) + "</span></span>";
+      for (var i = 0; i < c.evidence.length; i++) {
+        var ev = c.evidence[i], name = ev.url ? '<a href="' + ev.url + '" target="_blank" rel="noopener">' + ev.file_name + "</a>" : ev.file_name;
+        h += '<span class="file-chip">' + icon("clip") + name + ' <span class="tiny">' + fileSize(ev.file_size) + "</span></span>";
+      }
       if (c.evidence_ref) h += '<span class="tiny">' + L("Ref: ", "Mã: ") + c.evidence_ref + "</span>";
       return h + "</div>";
     }
@@ -210,19 +214,37 @@
       el("hist").innerHTML = html;
     }
 
+    // Upload từng tệp minh chứng (POST /files) rồi mới ghi lần liên lạc, gửi kèm file_id.
+    // Tệp đã upload ở lần bấm trước (lỗi ở bước ghi) thì không upload lại.
+    async function uploadEvidence(btn) {
+      var out = [];
+      for (var i = 0; i < files.length; i++) {
+        if (!files[i].file_id) {
+          btn.textContent = L("Uploading file " + (i + 1) + "/" + files.length + "…", "Đang tải tệp " + (i + 1) + "/" + files.length + "…");
+          var up = await api.uploadFile(files[i].raw);
+          files[i].file_id = up.file_id;
+        }
+        out.push({ file_id: files[i].file_id, file_name: files[i].file_name, file_type: files[i].file_type, file_size: files[i].file_size });
+      }
+      return out;
+    }
+
     // POST /orders/{id}/contacts. 422 MAX_CONTACTS_REACHED khi đã đủ lượt, 422 EVIDENCE_INVALID khi tệp sai
     async function saveContact() {
-      var btn = el("c-save");
+      var btn = el("c-save"), label = btn.textContent;
       btn.disabled = true;
       try {
-        var r = await api.addContact(o.order_id, { contacted_at: el("c-at").value.replace("T", " "), method: el("c-method").value,
+        var evidence = await uploadEvidence(btn);
+        btn.textContent = label;
+        var r = await api.addContact(o.order_id, { contacted_at: apiTime(el("c-at").value), method: el("c-method").value,
           result: el("c-result").value, note: el("c-note").value.trim(), next_contact_date: el("c-next").value,
-          evidence: files, evidence_ref: el("c-ref").value.trim() });
+          evidence: evidence, evidence_ref: el("c-ref").value.trim() });
         toast(L("Saved contact attempt " + r.order.contact_count + "/" + r.order.max_contact + ".", "Đã lưu lần liên lạc " + r.order.contact_count + "/" + r.order.max_contact + "."));
         files = [];
         refresh();
       } catch (e) {
         el("c-error").innerHTML = e.message;
+        btn.textContent = label;
         btn.disabled = false;
       }
     }

@@ -35,7 +35,8 @@
       trong danh sách được sửa: SLA nhận đơn, ngưỡng cảnh báo capacity, "sắp hạn", quá lâu không cập nhật, escalation, xem xét khi mở lại. Chờ BA chốt có cho sửa không.</div>
   </div>
 
-  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
   <script src="../js/mock-data.js"></script>
   <script src="../js/mock-server.js"></script>
   <script src="../js/api.js"></script>
@@ -101,13 +102,13 @@
       openModal(L("Change: ", "Đổi: ") + lab[0], '<p class="tiny">' + lab[1] + "</p>"
         + "<p>" + L("In effect now: ", "Đang hiệu lực: ") + "<b>" + paramValueText(key, it.unit, it.value) + "</b> (v" + it.version + ")</p>"
         + '<div class="form-row"><label for="pm-val">' + L("New value", "Giá trị mới") + " *</label>" + input + "</div>"
-        + '<div class="form-row"><label for="pm-eff">' + L("Takes effect at", "Có hiệu lực lúc") + ' *</label><input id="pm-eff" type="datetime-local" value="' + P.server_time.replace(" ", "T") + '" min="' + P.server_time.replace(" ", "T") + '"></div>'
+        + '<div class="form-row"><label for="pm-eff">' + L("Takes effect at", "Có hiệu lực lúc") + ' *</label><input id="pm-eff" type="datetime-local" value="' + inputTime(P.server_time) + '" min="' + inputTime(P.server_time) + '"></div>'
         + '<div class="form-row"><label for="pm-reason">' + L("Reason", "Lý do") + ' *</label><textarea id="pm-reason" rows="2"></textarea></div>'
         + '<p class="tiny">' + L("Open cases use the new value from that moment. Closed cases keep the values they were handled with.", "Case đang mở dùng giá trị mới từ thời điểm đó. Case đã đóng giữ giá trị đã dùng khi xử lý.") + "</p>",
         L("Save new version", "Lưu phiên bản mới"), async function () {
           if (!el("pm-reason").value.trim()) return { ok: false, msg: L("Enter a reason: every parameter change is audited.", "Nhập lý do: mọi thay đổi tham số đều được ghi lại.") };
           try {
-            var r = await api.changeParameter(key, el("pm-val").value, el("pm-eff").value.replace("T", " "), el("pm-reason").value.trim());
+            var r = await api.changeParameter(key, el("pm-val").value, apiTime(el("pm-eff").value), el("pm-reason").value.trim());
             toast(r.status == "SCHEDULED" ? L(lab[0] + ": v" + r.version + " scheduled for " + viTime(r.effective_at) + ".", lab[0] + ": v" + r.version + " lên lịch từ " + viTime(r.effective_at) + ".")
               : L(lab[0] + ": v" + r.version + " is now in effect.", lab[0] + ": v" + r.version + " đã có hiệu lực."));
             await load(); render();
