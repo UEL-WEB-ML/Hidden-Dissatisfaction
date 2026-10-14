@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Detail · Hidden Dissatisfaction</title>
+  <title data-vi="Chi tiết đơn · Hidden Dissatisfaction">Order Detail · Hidden Dissatisfaction</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -14,140 +14,157 @@
   <nav class="topbar" id="topbar"></nav>
 
   <div class="page" id="content">
-    <p><a href="index.html">← Back to Risk Queue</a></p>
-    <h1>Order Detail</h1>
-    <p class="sub" id="d-head"></p>
+    <!-- Feedback 14/10: ngoài bấm từ Risk Queue, còn tìm đơn ngay tại đây hoặc chuyển đơn trước/sau -->
+    <div class="o-nav">
+      <a class="o-back" href="index.html" data-vi="← Về Risk Queue">← Back to Risk Queue</a>
+      <div class="o-pick">
+        <div class="op-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="op-q" type="text" role="combobox" autocomplete="off" spellcheck="false"
+            aria-autocomplete="list" aria-expanded="false" aria-controls="op-list"
+            placeholder="Find another order by ID" data-vi-ph="Tìm đơn khác theo mã đơn">
+          <ul id="op-list" class="op-list" role="listbox" hidden></ul>
+        </div>
+        <div class="op-step">
+          <a class="btn sm" id="op-prev" aria-disabled="true"><span aria-hidden="true">‹</span> <span data-vi="Đơn trước">Previous</span></a>
+          <span class="op-pos" id="op-pos"></span>
+          <a class="btn sm" id="op-next" aria-disabled="true"><span data-vi="Đơn sau">Next</span> <span aria-hidden="true">›</span></a>
+        </div>
+      </div>
+    </div>
+    <!-- Đầu trang: đơn nào, rủi ro bao nhiêu, còn bao lâu -->
+    <header class="o-head" id="d-head"><div class="o-left"><p class="eyebrow" data-vi="Chi tiết đơn">Order detail</p><h1 class="o-id">…</h1></div></header>
 
-    <div class="note" lang="vi">F04. Mở từ Risk Queue, mã đơn truyền qua địa chỉ trang (order.html?id=...).
-      Mở thẳng không có mã thì hiện đơn Pending có ưu tiên cao nhất.</div>
+    <div class="note" lang="vi">F04. Mở từ Risk Queue (order.html?id=...), hoặc từ mục "Chi tiết đơn" trên thanh điều hướng (feedback 13/10):
+      mở đơn xem gần nhất, chưa xem đơn nào thì mở đơn nên làm trước. Mở kèm &amp;item=... (tìm theo mã sản phẩm) thì tô sáng sản phẩm đó.
+      <br>Feedback 14/10: thêm ô tìm đơn ở đầu trang (gõ vài ký tự đầu của mã đơn, gọi GET /orders?q=) và nút Đơn trước / Đơn sau
+      theo đúng thứ tự Risk Queue mặc định (đơn đang mở, sắp theo ưu tiên). Đơn đã đóng không nằm trong queue nên 2 nút bị tắt.
+      <br>Feedback 13/10: màn này giờ chỉ gồm thông tin đơn, output ML, nhận xét của nhân viên và quản lý, bước tiếp theo + lịch sử trạng thái.
+      Ghi lần liên lạc và minh chứng chuyển sang trang "Liên lạc khách" (attempt.html).</div>
 
     <!-- Tóm tắt tình trạng xử lý + việc tiếp theo -->
     <div id="d-summary"></div>
-    <div class="note" lang="vi">Câu đầu tiên trả lời "đơn này đang ở đâu và tôi cần làm gì tiếp", thay đổi theo vai và trạng thái.
-      Nền đỏ chỉ khi đơn đã quá hạn SLA.</div>
 
     <!-- CỘT THAO TÁC: đứng trước trong HTML nên trên điện thoại hiện ngay dưới phần tóm tắt -->
     <div class="col-work">
-      <!-- F04-S04, F04-S06, F04-S05, F07: xử lý + liên lạc trong cùng một khối -->
       <div class="box work-box">
-        <h2>Handling</h2>
+        <h2 data-vi="Xử lý">Handling</h2>
         <div class="keynums" id="d-keynums"></div>
         <div class="actions" id="d-actions"></div>
-
-        <h3 class="sec">Contact attempts <span class="counter" id="d-retry"></span></h3>
-        <div id="d-contact-form"></div>
-        <ul class="timeline" id="d-contacts"></ul>
-
-        <h3 class="sec">Case status</h3>
+        <h3 class="sec" data-vi="Thông tin case">Case status</h3>
         <table class="kv compact">
-          <tr><th>Status</th><td id="d-status"></td></tr>
-          <tr><th>Outcome</th><td id="d-outcome"></td></tr>
-          <tr><th>Assignee</th><td id="d-assignee"></td></tr>
+          <tr><th data-vi="Trạng thái">Status</th><td id="d-status"></td></tr>
+          <tr><th data-vi="Kết quả">Outcome</th><td id="d-outcome"></td></tr>
+          <tr><th data-vi="Người phụ trách">Assignee</th><td id="d-assignee"></td></tr>
           <tr><th>SLA</th><td id="d-sla"></td></tr>
-          <tr><th>Aging</th><td id="d-aging"></td></tr>
-          <tr><th>Queued at</th><td id="d-queued"></td></tr>
-          <tr><th>Last update</th><td id="d-updated"></td></tr>
-          <tr><th>Times reopened</th><td id="d-reopen"></td></tr>
+          <tr><th data-vi="Chu kỳ hiện tại">Current cycle</th><td id="d-cycle"></td></tr>
+          <tr><th data-vi="Vào queue lần đầu">First queued</th><td id="d-first"></td></tr>
+          <tr><th data-vi="Cập nhật gần nhất">Last update</th><td id="d-updated"></td></tr>
+          <tr><th data-vi="Bộ tham số áp dụng">Parameter set</th><td id="d-params"></td></tr>
         </table>
-        <div class="note" lang="vi">Đầu khối có dải 3 số liệu để xử lý: SLA còn/quá bao lâu, số lần liên lạc x/3 (kèm ngày hẹn), thời gian nằm queue.
-          Review 05/10: gom "Xử lý" và "Liên lạc" thành một cột thao tác. Thứ tự theo việc của Specialist:
-          nút trạng thái → ghi lần liên lạc → lịch sử liên lạc → thông tin case.
-          Nút đậm đổi theo bước: chưa liên lạc được khách (và còn lượt) thì "Save attempt" là nút đậm, "Complete" là nút viền;
-          đã liên lạc được hoặc hết lượt thì "Complete" là nút đậm. Khối model chuyển sang cột bên kia.
-          <br>F04-S04, F04-S06, F05, F06, F08. Nút hiện theo vai và trạng thái (BRD 6.4):
-          <br>• Pending: Specialist "Claim" (khoá khi đủ 5), Manager "Assign".
-          <br>• In progress (người phụ trách hoặc Manager): "Complete" (bắt buộc outcome), "Skip" (bắt buộc lý do); Manager thêm "Reassign".
-          <br>• Completed/Skipped: chỉ Manager "Reopen" (bắt buộc lý do, về Pending).
-          <br>F07: mỗi lần liên lạc lưu thời điểm, phương thức, kết quả, ghi chú, ngày liên lạc tiếp; bộ đếm x/3; ngày tiếp theo tự đề xuất
-          1 ngày làm việc sau. Sau lần thứ 3 khoá form, hướng dẫn Skip (xem đơn 2b4d6f8a với tài khoản nhanvien2).
-          Chỉ người đang phụ trách mới thấy form.</div>
+        <div class="note" lang="vi">F04-S05, F04-S07, F05, F06, F08. Nút hiện theo vai và trạng thái (BRD 6.4):
+          <br>• Chờ nhận: Specialist "Nhận" chỉ với LOW/MEDIUM (HIGH hiện "Chờ Manager giao"); Manager "Giao đơn".
+          <br>• Đang xử lý (người phụ trách hoặc Manager): "Hoàn tất" (bắt buộc kết quả), "Bỏ qua" (bắt buộc lý do), và nút sang trang Liên lạc khách; Manager thêm "Chuyển người".
+          <br>• Hoàn tất/Bỏ qua: Manager có nút đậm "Mở lại case" ngay tại đây (feedback 13/10). Mở lại = chu kỳ mới: reset bộ đếm liên lạc và SLA,
+          giữ lịch sử liên lạc và mốc vào queue đầu tiên (BRD 6.8).
+          <br>Bộ tham số: case đang mở dùng bộ đang hiệu lực; case đã đóng giữ bộ lúc đóng (BRD 6.9).</div>
+      </div>
+
+      <!-- Feedback 13/10: bước tiếp theo + danh sách trạng thái -->
+      <div class="box">
+        <h2 data-vi="Bước tiếp theo">Next step</h2>
+        <div id="d-next"></div>
+        <h3 class="sec" data-vi="Lịch sử trạng thái">Status history</h3>
+        <ol class="status-list" id="d-history"></ol>
+        <div class="note" lang="vi">Feedback 13/10. "Bước tiếp theo" lấy từ quyết định gần nhất của Manager (trang Quyết định); chưa có quyết định thì
+          hệ thống gợi ý theo trạng thái và số lần liên lạc. Lịch sử trạng thái ai cũng xem được (khác Audit chỉ Manager xem):
+          nhận, giao, chuyển người, hoàn tất, bỏ qua, mở lại, quyết định. Mỗi chu kỳ có một vạch ngăn.</div>
+      </div>
+
+      <!-- Feedback 13/10: nhận xét của nhân viên và quản lý -->
+      <div class="box" id="d-comments-box">
+        <h2><span data-vi="Nhận xét">Comments</span> <span class="counter" id="d-comment-count"></span></h2>
+        <ul class="comments" id="d-comments"></ul>
+        <div id="d-comment-form"></div>
+        <div class="note" lang="vi">Feedback 13/10, chưa có trong FRD (chờ BA bổ sung). Nhận xét nội bộ về case, khác "ghi chú lần liên lạc" (ghi lời khách)
+          và "ghi chú model" (gửi nhóm ML). Người đang phụ trách và Manager được viết; ai xem đơn cũng đọc được. Có nhãn vai để phân biệt
+          nhận xét của nhân viên và của quản lý. Không sửa/xoá (vào Audit).</div>
       </div>
 
       <div class="box" id="d-script-box">
-        <h2>Talking points</h2>
+        <h2 data-vi="Gợi ý khi gọi khách">Talking points</h2>
         <ul class="script">
-          <li>Ask whether the customer has received and tried the product, and whether it matches the description.</li>
-          <li>Don't say "our system predicts you are unhappy"; ask openly about their experience.</li>
-          <li>Write what the customer says in the Note field of the contact attempt.</li>
+          <li data-vi="Hỏi khách đã nhận và dùng thử sản phẩm chưa, có đúng mô tả không.">Ask whether the customer has received and tried the product, and whether it matches the description.</li>
+          <li data-vi="Không nói &quot;hệ thống dự đoán anh/chị không hài lòng&quot;; hỏi mở về trải nghiệm.">Don't say "our system predicts you are unhappy"; ask openly about their experience.</li>
+          <li data-vi="Hỏi riêng về sản phẩm có rủi ro cao nhất trong đơn.">Ask specifically about the highest-risk product in the order.</li>
         </ul>
-        <div class="note" lang="vi">Chỉ hiện khi đề xuất là Contact customer (HIGH). Kịch bản do nhóm CSKH duyệt.</div>
       </div>
     </div>
 
-    <!-- CỘT THÔNG TIN: kết quả model và bối cảnh đơn -->
+    <!-- CỘT THÔNG TIN: output ML và bối cảnh đơn -->
     <div class="col-main">
-      <!-- F04-S02: Risk output -->
+      <!-- F04-S02: output tổng hợp của đơn -->
       <div class="box">
-        <h2>Model result</h2>
+        <h2><span data-vi="Kết quả model của đơn">Order risk result</span> <span class="agg-tag" data-vi="Tổng hợp từ sản phẩm">Aggregated from products</span></h2>
         <p><span id="d-badge"></span> &nbsp; Risk score: <b id="d-score" class="big"></b></p>
         <div class="bar"><div id="d-bar"></div></div>
         <div class="scale"><span>0</span><span id="d-cut-m"></span><span id="d-cut-h"></span><span>1</span></div>
         <table class="kv">
-          <tr><th>Suggestion (for reference)</th><td id="d-action"></td></tr>
-          <tr><th>Model version</th><td id="d-model"></td></tr>
-          <tr><th>Predicted at</th><td id="d-predicted"></td></tr>
-          <tr><th>Threshold version</th><td id="d-threshold"></td></tr>
+          <tr><th data-vi="Cách tổng hợp">Aggregation rule</th><td id="d-agg"></td></tr>
+          <tr><th data-vi="Đề xuất (tham khảo)">Suggestion (for reference)</th><td id="d-action"></td></tr>
+          <tr><th data-vi="Phiên bản model">Model version</th><td id="d-model"></td></tr>
+          <tr><th data-vi="Thời điểm dự báo">Predicted at</th><td id="d-predicted"></td></tr>
+          <tr><th data-vi="Phiên bản ngưỡng">Threshold version</th><td id="d-threshold"></td></tr>
         </table>
-        <p class="disclaimer">The risk score is produced by a model to prioritise reviews. It is <b>not a conclusion</b> that the customer is unhappy.
-          The suggestion never contacts the customer automatically.</p>
+        <p class="disclaimer" data-vi="Risk score do model tạo ra để ưu tiên kiểm tra, <b>không phải kết luận</b> khách không hài lòng. Điểm của đơn tổng hợp từ điểm từng sản phẩm bên dưới. Đề xuất không bao giờ tự liên hệ khách.">
+          The risk score is produced by a model to prioritise reviews. It is <b>not a conclusion</b> that the customer is unhappy.
+          The order score is aggregated from the product scores below. The suggestion never contacts the customer automatically.</p>
         <div id="d-model-note"></div>
-        <div class="note" lang="vi">F04-S02, F08-S04. Không có ô nào sửa score/level, kể cả Manager. Manager chỉ có nút
-          "Add model review note"; ghi chú vào Audit History, score gốc giữ nguyên.</div>
+        <div class="note" lang="vi">F04-S02, F08-S04 (FRD v2.0). Nêu rõ đây là kết quả tổng hợp, kèm aggregation rule + version (max-v1 = lấy điểm sản phẩm cao nhất).
+          Không có ô nào sửa score/level, kể cả Manager; Manager chỉ có "Thêm ghi chú model".</div>
       </div>
 
-      <!-- F04-S03: Explanation -->
+      <!-- F04-S03, F04-S04: output từng sản phẩm -->
       <div class="box">
-        <h2>Factors related to the risk score</h2>
-        <div id="d-factors"></div>
-        <div class="note" lang="vi">F04-S03. Lấy nguyên văn từ output của model, Web chỉ hiển thị. Gọi là "yếu tố liên quan",
-          không gọi là "lý do"/"nguyên nhân". Thiếu explanation thì hiện trạng thái rõ (xem đơn d8e9f0a1).</div>
+        <h2><span data-vi="Sản phẩm trong đơn">Products in this order</span> <span class="counter" id="d-item-count"></span></h2>
+        <div id="d-items"></div>
+        <div id="d-item-factors"></div>
+        <div class="note" lang="vi">F04-S03, F04-S04. Mỗi sản phẩm: mã sản phẩm (mã đơn + số thứ tự), ngành hàng, thuộc tính có trước mốc dự báo
+          (giá, cân nặng, số ảnh), score, mức, đề xuất, nguồn dữ liệu. Xếp theo score giảm dần; bấm một dòng để xem yếu tố liên quan của sản phẩm đó.
+          Sản phẩm có dữ liệu giả lập gắn nhãn "Dữ liệu giả lập" (synthetic_data_flag, BRD 4.1). Thiếu giải thích thì hiện trạng thái rõ (xem sản phẩm -3 của đơn a3f9c1e2).</div>
       </div>
 
-      <!-- F04-S01: context -->
       <div class="box">
-        <h2>Compared with satisfied orders</h2>
+        <h2 data-vi="So với đơn khách hài lòng">Compared with satisfied orders</h2>
         <table class="compare" id="d-compare"></table>
-        <p class="legend"><span class="cbar this" style="display:inline-block;width:1.5em"></span> this order &nbsp;
-          <span class="cbar" style="display:inline-block;width:1.5em"></span> median of 80,039 on-time orders rated 3–5 stars</p>
-        <div class="note" lang="vi">Mốc so sánh đo trên Olist (19/09). Thanh màu hổ phách + ▲ = đơn này vượt 1,5 lần mức bình thường
-          (không dùng đỏ để đỏ chỉ còn nghĩa quá hạn). Chỉ dùng dữ liệu có trước mốc dự báo.</div>
+        <p class="legend"><span class="cbar this" style="display:inline-block;width:1.5em"></span> <span data-vi="đơn này">this order</span> &nbsp;
+          <span class="cbar" style="display:inline-block;width:1.5em"></span> <span data-vi="trung vị của 80.039 đơn đúng hạn được 3–5 sao">median of 80,039 on-time orders rated 3–5 stars</span></p>
       </div>
 
       <div class="box">
-        <h2>Order timeline</h2>
+        <h2 data-vi="Dòng thời gian đơn">Order timeline</h2>
         <ul class="timeline" id="d-timeline"></ul>
         <div class="note" lang="vi">F04-S01. Không hiển thị field phát sinh sau mốc dự báo (review score, nội dung review, ngày review).</div>
       </div>
 
       <div class="box">
-        <h2>Order info</h2>
+        <h2 data-vi="Thông tin đơn">Order info</h2>
         <table class="kv">
-          <tr><th>Order ID</th><td id="d-id"></td></tr>
-          <tr><th>Customer</th><td id="d-customer"></td></tr>
+          <tr><th data-vi="Mã đơn">Order ID</th><td id="d-id"></td></tr>
+          <tr><th data-vi="Khách hàng">Customer</th><td id="d-customer"></td></tr>
           <tr><th>Seller</th><td class="id" id="d-seller"></td></tr>
-          <tr><th>Category</th><td id="d-category"></td></tr>
-          <tr><th>Order value</th><td id="d-value"></td></tr>
-          <tr><th>Shipping fee</th><td id="d-freight"></td></tr>
+          <tr><th data-vi="Ngành hàng">Category</th><td id="d-category"></td></tr>
+          <tr><th data-vi="Giá trị đơn">Order value</th><td id="d-value"></td></tr>
+          <tr><th data-vi="Phí ship">Shipping fee</th><td id="d-freight"></td></tr>
+          <tr><th data-vi="Đơn khác của seller đang mở">Seller's other open orders</th><td id="d-seller-open"></td></tr>
         </table>
-      </div>
-
-      <div class="box">
-        <h2>Seller history</h2>
-        <table class="kv">
-          <tr><th>Previous orders</th><td>[count]</td></tr>
-          <tr><th>Share rated ≤ 2 stars</th><td>[rate]</td></tr>
-          <tr><th>Avg. handover time</th><td>[days]</td></tr>
-          <tr><th>Other orders in queue</th><td id="d-seller-open"></td></tr>
-        </table>
-        <div class="note" lang="vi">Chỉ tính trên đơn có review TRƯỚC mốc dự báo của đơn này (tránh leakage). Chưa có số thật.</div>
       </div>
 
       <!-- F09: Audit của đơn này (Manager) -->
       <div class="box manager-box">
-        <h2>Audit history for this order</h2>
+        <h2 data-vi="Lịch sử thao tác của đơn">Audit history for this order</h2>
         <div id="d-audit"></div>
-        <div class="note" lang="vi">F09. Chỉ Manager (và người được cấp quyền) thấy. Chỉ đọc, không có nút sửa/xoá.
-          Xem toàn bộ ở màn Audit History.</div>
+        <div class="note" lang="vi">F09. Chỉ Manager thấy. Chỉ đọc, không có nút sửa/xoá. Xem toàn bộ ở màn Lịch sử thao tác.</div>
       </div>
     </div>
     <div class="clear"></div>
@@ -164,25 +181,26 @@
 
     function el(id) { return document.getElementById(id); }
 
-    // Lấy mã đơn trên địa chỉ trang, không có thì lấy đơn Pending ưu tiên cao nhất
-    var id = new URLSearchParams(location.search).get("id");
-    var D = null, o = null, contacts = [];   // D: phản hồi GET /orders/{id}
-    var mine = false, canWork = false;
+    var params = new URLSearchParams(location.search);
+    var id = params.get("id"), focusItem = params.get("item");
+    var D = null, o = null, cycleContacts = [];   // D: phản hồi GET /orders/{id}
+    var mine = false, canWork = false, selItem = null;
 
     // ---------- Tóm tắt ----------
     function renderSummary() {
       var box = el("d-summary"), html, cls;
-      var n = contacts.length;
+      var n = cycleContacts.length, max = o.max_contact;
       var over = slaState(o).code == "over";
       if (o.status == "PENDING") {
-        html = "<b>Waiting to be claimed.</b> " + (over ? "Past the " + config.sla_hours[o.risk_level] + "-hour SLA for " + o.risk_level + "." : "SLA: " + slaState(o).text + ".");
+        html = "<b>" + (o.self_claim_allowed ? L("Waiting to be claimed.", "Đang chờ nhận.") : L("Waiting for a manager to assign (HIGH).", "Đang chờ Manager giao (HIGH).")) + "</b> "
+          + (over ? L("Past the " + config.sla_hours[o.risk_level] + "-hour SLA for " + o.risk_level + ".", "Đã quá SLA " + config.sla_hours[o.risk_level] + " giờ của mức " + o.risk_level + ".") : "SLA: " + slaState(o).text + ".");
       } else if (o.status == "IN_PROGRESS") {
-        var last = contacts[n - 1];
-        html = "<b>" + (mine ? "You are handling this order." : o.assignee_name + " is handling this order.") + "</b> "
-          + "Contacted " + n + "/" + config.max_contact + " times"
-          + (last && last.next_contact_date ? ", next contact planned for " + viTime(last.next_contact_date) : "") + ".";
-        if (n >= config.max_contact) html += " No contact attempts left: complete or skip.";
-        if (over) html += " SLA overdue.";
+        var last = cycleContacts[n - 1];
+        html = "<b>" + (mine ? L("You are handling this order.", "Bạn đang xử lý đơn này.") : L(o.assignee_name + " is handling this order.", o.assignee_name + " đang xử lý đơn này.")) + "</b> "
+          + L("Contacted " + n + "/" + max + " times", "Đã liên lạc " + n + "/" + max + " lần")
+          + (last && last.next_contact_date ? L(", next contact planned for ", ", hẹn liên lạc tiếp ") + viTime(last.next_contact_date) : "") + ".";
+        if (n >= max) html += L(" No contact attempts left: complete or skip.", " Hết lượt liên lạc: hoàn tất hoặc bỏ qua.");
+        if (over) html += L(" SLA overdue.", " Quá hạn SLA.");
       }
       if (isClosed(o)) {
         cls = "alert ok";
@@ -194,16 +212,23 @@
       box.innerHTML = '<span class="icon">' + (cls == "alert ok" ? "✓" : (over ? "!" : "i")) + "</span>" + html;
     }
 
-    // ---------- Kết quả model ----------
+    // ---------- Output tổng hợp của đơn ----------
     function renderRisk() {
-      el("d-head").innerHTML = '<span class="id id-full">' + o.order_id + '</span>' + copyBtn(o.order_id) + ' · ' + badge(o.risk_level) + " · " + statusBadge(o.status);
+      el("d-head").innerHTML = '<div class="o-left"><p class="eyebrow">' + L("Order detail", "Chi tiết đơn") + "</p>"
+        + '<h1 class="o-id"><span title="' + o.order_id + '">' + o.order_id.substring(0, 8) + '</span><span class="o-id-rest">' + o.order_id.substring(8) + "</span>" + copyBtn(o.order_id) + "</h1>"
+        + '<p class="o-meta">' + catLabel(o.category) + " · " + o.customer_city + " (" + o.customer_state + ")" + " · " + statusBadge(o.status)
+        + (o.cycle_no > 1 ? ' <span class="cycle-tag">' + L("Cycle ", "Chu kỳ ") + o.cycle_no + "</span>" : "") + "</p></div>"
+        + '<div class="o-right"><div class="o-score ' + o.risk_level + '"><span class="o-score-n">' + o.risk_score.toFixed(2) + "</span>" + badge(o.risk_level) + "</div>"
+        + '<div class="o-sla">' + (isClosed(o) ? '<span class="muted">' + L("Closed", "Đã đóng") + "</span>" : slaBadge(o)) + "</div></div>";
       el("d-badge").innerHTML = badge(o.risk_level);
       el("d-score").innerHTML = o.risk_score.toFixed(2);
       el("d-bar").style.width = (o.risk_score * 100) + "%";
       el("d-bar").className = o.risk_level;
       el("d-cut-m").innerHTML = "MEDIUM ≥ " + config.medium_from;
       el("d-cut-h").innerHTML = "HIGH ≥ " + config.high_from;
-      el("d-action").innerHTML = ACTION_LABEL[o.risk_level];
+      el("d-agg").innerHTML = "<code>" + o.aggregation_rule + "</code> · " + L("highest product score of " + o.items_count + (o.items_count == 1 ? " product" : " products"),
+        "điểm sản phẩm cao nhất trong " + o.items_count + " sản phẩm");
+      el("d-action").innerHTML = ACTION_LABEL[o.suggested_action];
       el("d-model").innerHTML = o.model_version;
       el("d-predicted").innerHTML = viTime(o.predicted_at);
       el("d-threshold").innerHTML = o.threshold_version + " (HIGH ≥ " + config.high_from + ", MEDIUM ≥ " + config.medium_from + ")";
@@ -212,137 +237,166 @@
       var html = "";
       for (var j = 0; j < D.model_notes.length; j++) {
         var mn = D.model_notes[j];
-        html += '<div class="model-note"><b>Flagged for model review</b> · ' + mn.actor_name + ", " + viTime(mn.created_at) + "<br>" + mn.note + "</div>";
+        html += '<div class="model-note"><b>' + L("Flagged for model review", "Đã đánh dấu cần xem lại model") + "</b> · " + mn.actor_name + ", " + viTime(mn.created_at) + "<br>" + mn.note + "</div>";
       }
-      if (isManager()) html += '<button class="btn sm" onclick="modelNote()">Add model review note</button>';
+      if (isManager()) html += '<button class="btn sm" onclick="modelNote()">' + L("Add model review note", "Thêm ghi chú model") + "</button>";
       el("d-model-note").innerHTML = html;
+    }
 
-      var f = o.top_factors;
+    // ---------- Output từng sản phẩm (F04-S03, F04-S04) ----------
+    function renderItems() {
+      var items = o.items, rows = "";
+      el("d-item-count").innerHTML = items.length;
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i], on = selItem == it.product_item_id;
+        rows += '<tr class="click item-row' + (on ? " sel" : "") + '" tabindex="0" onclick="selectItem(\'' + it.product_item_id + '\')" onkeydown="if(event.key==\'Enter\')selectItem(\'' + it.product_item_id + '\')" aria-selected="' + on + '">'
+          + '<td><span class="id">' + shortItemId(it.product_item_id) + "</span>" + copyBtn(it.product_item_id) + "</td>"
+          + "<td>" + catLabel(it.category) + (it.synthetic_data_flag ? " " + synthTag() : "")
+          + '<div class="tiny">' + money(it.price) + " · " + (it.weight_g / 1000).toFixed(1).replace(".", LANG == "vi" ? "," : ".") + " kg · " + L(it.photos + (it.photos == 1 ? " photo" : " photos"), it.photos + " ảnh") + "</div></td>"
+          + '<td class="num"><b class="score">' + it.risk_score.toFixed(2) + '</b><span class="mini"><div style="width:' + (it.risk_score * 100) + '%"></div></span></td>'
+          + "<td>" + badge(it.risk_level) + "</td>"
+          + '<td class="tiny">' + ACTION_LABEL[it.suggested_action] + "</td></tr>";
+      }
+      el("d-items").innerHTML = '<table class="small items"><thead><tr><th>' + L("Product ID", "Mã sản phẩm") + "</th><th>" + L("Product", "Sản phẩm") + "</th><th>Score</th><th>"
+        + L("Level", "Mức") + "</th><th>" + L("Suggestion", "Đề xuất") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
+
+      var it2 = null;
+      for (var k = 0; k < items.length; k++) if (items[k].product_item_id == selItem) it2 = items[k];
+      if (!it2) { el("d-item-factors").innerHTML = ""; return; }
+      var f = it2.top_factors, body;
       if (f.length == 0) {
-        el("d-factors").innerHTML = '<p class="empty">No explanation for this order yet (the model did not return one).<br>The risk score can still be used for ranking.</p>';
+        body = '<p class="empty">' + L("No explanation for this product yet (the model did not return one). Its score can still be used for ranking.",
+          "Chưa có giải thích cho sản phẩm này (model chưa trả). Vẫn dùng score để xếp hạng được.") + "</p>";
       } else {
         var li = "";
-        for (var k = 0; k < f.length; k++) li += "<li>" + f[k] + "</li>";
-        el("d-factors").innerHTML = "<ol>" + li + '</ol><p class="disclaimer">These factors are associated with a high score; they do not prove a cause.</p>';
+        for (var m = 0; m < f.length; m++) li += "<li>" + f[m] + "</li>";
+        body = "<ol>" + li + '</ol><p class="disclaimer">' + L("These factors are associated with a high score; they do not prove a cause.", "Các yếu tố này đi kèm điểm cao, không chứng minh nguyên nhân.") + "</p>";
       }
+      el("d-item-factors").innerHTML = '<div class="factor-panel"><h3>' + L("Factors related to the score of ", "Yếu tố liên quan tới score của ") + '<span class="id">' + shortItemId(it2.product_item_id) + "</span></h3>"
+        + '<p class="tiny">' + it2.model_version + " · " + L("predicted ", "dự báo ") + viTime(it2.predicted_at) + " · " + L("source: ", "nguồn: ") + "<code>" + it2.data_source + "</code></p>" + body + "</div>";
     }
+    function selectItem(pid) { selItem = pid; renderItems(); }
 
     // ---------- Trạng thái và hành động ----------
     function renderStatus() {
       el("d-status").innerHTML = statusBadge(o.status);
-      el("d-outcome").innerHTML = outcomeText(o) || '<span class="muted">None yet</span>';
-      el("d-assignee").innerHTML = o.assignee_id ? o.assignee_name + (mine ? " (you)" : "") : '<span class="muted">Unassigned</span>';
-      el("d-queued").innerHTML = viTime(o.queued_at);
-      el("d-aging").innerHTML = durationText(agingHours(o)) + escBadge(o);
-      el("d-sla").innerHTML = slaBadge(o) + (isClosed(o) ? "" : '<div class="tiny">Due ' + viTime(slaDue(o)) + " (" + config.sla_hours[o.risk_level] + " h for " + o.risk_level + ")</div>");
-      el("d-updated").innerHTML = viTime(o.updated_at) + (isStale(o) ? ' <span class="sla soon">No update for ≥ 1 day</span>' : "");
-      el("d-reopen").innerHTML = o.reopen_count;
+      el("d-outcome").innerHTML = outcomeText(o) || '<span class="muted">' + L("None yet", "Chưa có") + "</span>";
+      el("d-assignee").innerHTML = o.assignee_id ? o.assignee_name + (mine ? L(" (you)", " (bạn)") : "") : '<span class="muted">' + L("Unassigned", "Chưa ai nhận") + "</span>";
+      el("d-sla").innerHTML = slaBadge(o) + (isClosed(o) ? "" : '<div class="tiny">' + L("Due ", "Hạn ") + viTime(slaDue(o)) + " (" + config.sla_hours[o.risk_level] + L(" h for ", " giờ cho ") + o.risk_level + ")</div>");
+      el("d-cycle").innerHTML = o.cycle_no + " · " + L("started ", "bắt đầu ") + viTime(o.queued_at) + '<div class="tiny">' + L("Reopened " + o.reopen_count + " times", "Đã mở lại " + o.reopen_count + " lần") + "</div>";
+      el("d-first").innerHTML = viTime(o.original_queued_at) + '<div class="tiny">' + L("Total aging ", "Tổng thời gian ") + durationText(o.total_aging_hours) + "</div>";
+      el("d-updated").innerHTML = viTime(o.updated_at) + (isStale(o) ? ' <span class="sla soon">' + L("No update for ≥ ", "≥ ") + durationText(config.stale_hours) + L("", " không cập nhật") + "</span>" : "");
+      el("d-params").innerHTML = "<code>" + o.parameter_version + "</code>" + (isClosed(o) ? '<div class="tiny">' + L("Kept from when the case closed", "Giữ theo lúc đóng case") + "</div>" : "");
 
       // Số liệu để xử lý: hiện to ở đầu cột thao tác
       var kn = "";
       if (!isClosed(o)) {
-        var st = slaState(o), lastC = contacts[contacts.length - 1];
+        var st = slaState(o), lastC = cycleContacts[cycleContacts.length - 1];
         kn = '<div class="kn"><div class="kn-label">SLA</div><div class="kn-num sla-num ' + st.code + '">' + st.text + "</div>"
-            + '<div class="kn-sub">Due ' + viTime(slaDue(o)) + "</div></div>"
-          + '<div class="kn"><div class="kn-label">Contact attempts</div><div class="kn-num">' + contacts.length + '<span class="kn-of">/' + config.max_contact + "</span></div>"
-            + '<div class="kn-sub">' + (lastC && lastC.next_contact_date ? "Next: " + viTime(lastC.next_contact_date) : (contacts.length ? "No follow-up set" : "None yet")) + "</div></div>"
-          + '<div class="kn"><div class="kn-label">In queue</div><div class="kn-num">' + durationText(agingHours(o)) + "</div>"
-            + '<div class="kn-sub">' + (isEscalated(o) ? "Escalated" : "Escalates at " + config.aging_days + " d") + "</div></div>";
+            + '<div class="kn-sub">' + L("Due ", "Hạn ") + viTime(slaDue(o)) + "</div></div>"
+          + '<div class="kn"><div class="kn-label">' + L("Contact attempts", "Lần liên lạc") + '</div><div class="kn-num">' + cycleContacts.length + '<span class="kn-of">/' + o.max_contact + "</span></div>"
+            + '<div class="kn-sub">' + (lastC && lastC.next_contact_date ? L("Next: ", "Hẹn: ") + viTime(lastC.next_contact_date) : (cycleContacts.length ? L("No follow-up set", "Chưa hẹn") : L("None yet", "Chưa có"))) + "</div></div>"
+          + '<div class="kn"><div class="kn-label">' + L("In queue", "Trong queue") + '</div><div class="kn-num">' + durationText(agingHours(o)) + "</div>"
+            + '<div class="kn-sub">' + (isEscalated(o) ? "Escalated" : L("Escalates at " + config.aging_days + " d", "Escalation sau " + config.aging_days + " ngày")) + "</div></div>";
       }
       el("d-keynums").innerHTML = kn;
       el("d-keynums").style.display = kn ? "" : "none";
 
-      var b = "";
+      var b = "", att = "attempt.html?id=" + o.order_id;
       if (o.status == "PENDING") {
-        if (isManager()) b += '<button class="btn primary" onclick="openAssign(o, refresh)">Assign</button>';
+        if (isManager()) b += '<button class="btn primary" onclick="openAssign(o, refresh)">' + L("Assign", "Giao đơn") + "</button>";
+        else if (!o.self_claim_allowed) b += '<p class="lock-note"><span class="lock-tag">' + L("Manager assigns", "Chờ Manager giao") + "</span> "
+          + L("HIGH-risk orders reach specialists only through a manager assignment.", "Đơn HIGH chỉ tới tay nhân viên qua bước Manager giao.") + "</p>";
         else {
           var full = ME.active_count >= config.capacity;
-          b += '<button class="btn primary" onclick="claim()"' + (full ? " disabled" : "") + ">Claim</button>";
-          b += '<p class="tiny">You hold ' + ME.active_count + "/" + config.capacity + " orders"
-            + (full ? ". <b>Limit reached: complete or skip an order to claim more.</b>" : ", " + ME.slots_left + " slots left.") + "</p>";
+          b += '<button class="btn primary" onclick="claim()"' + (full ? " disabled" : "") + ">" + L("Claim", "Nhận") + "</button>";
+          b += '<p class="tiny">' + L("You hold " + ME.active_count + "/" + config.capacity + " orders", "Bạn đang giữ " + ME.active_count + "/" + config.capacity + " đơn")
+            + (full ? ". <b>" + L("Limit reached: complete or skip an order to claim more.", "Đã đủ: hoàn tất hoặc bỏ qua một đơn để nhận thêm.") + "</b>" : L(", " + ME.slots_left + " slots left.", ", còn " + ME.slots_left + " slot.")) + "</p>";
         }
       } else if (canWork) {
-        // Nút chính theo bước: còn phải liên lạc thì "Save attempt" là nút đậm (trong form), Complete là nút viền
-        b += '<button class="btn' + (needContact() ? "" : " primary") + '" onclick="complete()">Complete</button> '
-          + '<button class="btn" onclick="skip()">Skip</button> ';
-        if (needContact()) b += '<p class="tiny">Next step: log a contact attempt below.</p>';
-        if (isManager()) b += '<button class="btn" onclick="openAssign(o, refresh)">Reassign</button>';
+        if (mine) b += '<a class="btn' + (needContact() ? " primary" : "") + '" href="' + att + '">' + icon("phone") + " " + L("Log contact attempt", "Ghi lần liên lạc") + "</a> ";
+        b += '<button class="btn' + (needContact() ? "" : " primary") + '" onclick="complete()">' + L("Complete", "Hoàn tất") + "</button> "
+          + '<button class="btn" onclick="skip()">' + L("Skip", "Bỏ qua") + "</button> ";
+        if (isManager()) b += '<button class="btn" onclick="openAssign(o, refresh)">' + L("Reassign", "Chuyển người") + "</button> "
+          + '<a class="btn" href="' + att + '">' + L("View attempts", "Xem lần liên lạc") + "</a>";
+        if (needContact()) b += '<p class="tiny">' + L("Next step: contact the customer and log the attempt.", "Bước tiếp: liên lạc khách rồi ghi lại.") + "</p>";
       } else if (o.status == "IN_PROGRESS") {
-        b += '<p class="muted">' + o.assignee_name + " is handling this order. You can view it only; ask a manager to reassign it.</p>";
+        b += '<p class="muted">' + L(o.assignee_name + " is handling this order. You can view it only; ask a manager to reassign it.", o.assignee_name + " đang xử lý đơn này. Bạn chỉ xem được; nhờ Manager chuyển người nếu cần.") + "</p>";
       } else if (isManager()) {
-        b += '<button class="btn primary" onclick="reopen()">Reopen</button>';
+        b += '<button class="btn primary" onclick="reopen()">' + L("Reopen case", "Mở lại case") + "</button> "
+          + '<a class="btn" href="decision.html?id=' + o.order_id + '">' + L("Write decision", "Ghi quyết định") + "</a>"
+          + '<p class="tiny">' + L("Reopening starts cycle " + (o.cycle_no + 1) + ": the contact counter and SLA reset, history is kept.", "Mở lại sẽ bắt đầu chu kỳ " + (o.cycle_no + 1) + ": reset bộ đếm liên lạc và SLA, lịch sử giữ nguyên.") + "</p>";
       } else {
-        b += '<p class="muted">This order is closed. Only a manager can reopen it.</p>';
+        b += '<p class="muted">' + L("This order is closed. Only a manager can reopen it.", "Đơn đã đóng. Chỉ Manager được mở lại.") + "</p>";
       }
       el("d-actions").innerHTML = b;
     }
 
-    // Người phụ trách chưa liên lạc được khách và vẫn còn lượt → bước tiếp theo là ghi lần liên lạc
+    // Người phụ trách chưa liên lạc được khách và vẫn còn lượt → bước tiếp theo là liên lạc
     function needContact() {
       if (!(o.status == "IN_PROGRESS" && mine)) return false;
-      if (contacts.length >= config.max_contact) return false;
-      for (var i = 0; i < contacts.length; i++) if (contacts[i].result == "REACHED") return false;
+      if (cycleContacts.length >= o.max_contact) return false;
+      for (var i = 0; i < cycleContacts.length; i++) if (cycleContacts[i].result == "REACHED") return false;
       return true;
     }
 
-    // ---------- Liên lạc ----------
-    function renderContacts() {
-      var n = contacts.length;
-      el("d-retry").innerHTML = n + "/" + config.max_contact;
-      el("d-retry").className = "counter" + (n >= config.max_contact ? " full" : "");
-      var html = "";
-      for (var i = n - 1; i >= 0; i--) {   // mới nhất lên đầu, ngay dưới form
-        var c = contacts[i];
-        html += "<li" + (c.result == "REACHED" ? ' class="ok"' : "") + "><b>Attempt " + (i + 1) + " · " + viTime(c.contacted_at) + "</b>"
-          + CONTACT_METHOD_LABEL[c.method] + " · " + CONTACT_RESULT_LABEL[c.result] + " · " + c.created_by_name
-          + (c.note ? '<div class="tiny">' + c.note + "</div>" : "")
-          + (c.next_contact_date ? '<div class="tiny">Next contact: ' + viTime(c.next_contact_date) + "</div>" : "") + "</li>";
+    // ---------- Bước tiếp theo + lịch sử trạng thái ----------
+    function suggestedNext() {
+      if (o.status == "PENDING") return o.self_claim_allowed ? L("A specialist claims the order.", "Nhân viên nhận đơn.") : L("A manager assigns the order to a specialist.", "Manager giao đơn cho một nhân viên.");
+      if (o.status == "IN_PROGRESS") {
+        if (cycleContacts.length >= o.max_contact) return L("Out of attempts: complete or skip, then the manager decides.", "Hết lượt liên lạc: hoàn tất hoặc bỏ qua, rồi Manager ra quyết định.");
+        return needContact() || cycleContacts.length == 0 ? L("Contact the customer and log the attempt with evidence.", "Liên lạc khách và ghi lại kèm minh chứng.") : L("Complete the case with an outcome.", "Hoàn tất case với kết quả.");
       }
-      el("d-contacts").innerHTML = html || '<li class="empty">No contact attempts yet.</li>';
+      return L("The manager reviews the case and writes a decision.", "Manager xem lại case và ghi quyết định.");
+    }
+    function renderNext() {
+      var ns = D.next_step, html;
+      if (ns) {
+        html = '<div class="next-card"><div class="nc-head"><span class="dec-tag">' + DECISION_LABEL[ns.decision] + "</span>"
+          + (ns.due_date ? ' <span class="tiny">' + L("Due ", "Hạn ") + viTime(ns.due_date) + "</span>" : "") + "</div>"
+          + "<p>" + ns.next_step + "</p>"
+          + '<div class="tiny">' + L("Decided by ", "Quyết định bởi ") + ns.decided_by + ", " + viTime(ns.decided_at) + "</div></div>";
+      } else {
+        html = '<div class="next-card auto"><div class="nc-head"><span class="tiny">' + L("Suggested by the workflow", "Gợi ý theo quy trình") + "</span></div><p>" + suggestedNext() + "</p></div>";
+      }
+      if (isManager()) html += '<a class="btn sm" href="decision.html?id=' + o.order_id + '">' + (ns ? L("Update decision", "Cập nhật quyết định") : L("Write decision", "Ghi quyết định")) + "</a>";
+      el("d-next").innerHTML = html;
 
-      // Form chỉ cho người đang phụ trách
-      var form = "";
-      if (o.status == "IN_PROGRESS" && mine) {
-        if (n >= config.max_contact) {
-          form = '<div class="alert warn"><span class="icon">!</span><b>All ' + config.max_contact + ' contact attempts used.</b><br>'
-            + "Attempt " + (n + 1) + " is not allowed. If the customer is still unreachable, skip with the reason \"" + SKIP_LABEL.UNREACHABLE + "\", "
-            + 'or ask a manager if you need an exception. <br><button class="btn sm" onclick="skip(\'UNREACHABLE\')">Skip: unreachable</button></div>';
-        } else {
-          var last = contacts[n - 1];
-          var early = last && last.next_contact_date && NOW.substring(0, 10) < last.next_contact_date;
-          var methods = "", results = "";
-          for (var m in CONTACT_METHOD_LABEL) methods += '<option value="' + m + '">' + CONTACT_METHOD_LABEL[m] + "</option>";
-          for (var r in CONTACT_RESULT_LABEL) results += '<option value="' + r + '">' + CONTACT_RESULT_LABEL[r] + "</option>";
-          form = '<form class="contact-form" onsubmit="saveContact(); return false;">'
-            + "<h3>Log attempt " + (n + 1) + " of " + config.max_contact + "</h3>"
-            + (early ? '<p class="tiny warn-text">Before the planned date (' + viTime(last.next_contact_date) + "). The default gap is " + config.retry_gap_days + " business day.</p>" : "")
-            + '<div class="grid2">'
-            + '<div class="form-row"><label for="c-at">Time *</label><input id="c-at" type="datetime-local" value="' + NOW.replace(" ", "T") + '" max="' + NOW.replace(" ", "T") + '"></div>'
-            + '<div class="form-row"><label for="c-method">Method *</label><select id="c-method">' + methods + "</select></div>"
-            + '<div class="form-row"><label for="c-result">Result *</label><select id="c-result"><option value="">-- Choose --</option>' + results + "</select></div>"
-            + '<div class="form-row"><label for="c-next">Next contact</label><input id="c-next" type="date" value="' + nextBusinessDay(NOW, config.retry_gap_days) + '"></div>'
-            + "</div>"
-            + '<div class="form-row"><label for="c-note">Note</label><textarea id="c-note" rows="2" placeholder="e.g. Box was dented, product still works"></textarea></div>'
-            + '<p class="form-error" id="c-error" role="alert"></p>'
-            + '<button class="btn' + (needContact() ? " primary" : "") + '" type="submit" id="c-save">Save attempt</button></form>';
-        }
+      // Lịch sử trạng thái, có vạch ngăn chu kỳ
+      var h = D.status_history, li = '<li class="cyc">' + L("Cycle 1 · entered queue ", "Chu kỳ 1 · vào queue ") + viTime(o.original_queued_at) + "</li>", cyc = 1;
+      for (var i = 0; i < h.length; i++) {
+        var e = h[i];
+        if (e.event_type == "REOPEN") { cyc++; }
+        var val = e.event_type == "DECISION" ? DECISION_LABEL[e.new_value] : humanValue(e.new_value);
+        li += '<li class="' + (e.event_type == "REOPEN" ? "reopen" : "") + '"><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> " + val
+          + '<div class="tiny">' + e.actor_name + " · " + viTime(e.created_at) + "</div></li>";
+        if (e.event_type == "REOPEN") li += '<li class="cyc">' + L("Cycle ", "Chu kỳ ") + cyc + "</li>";
       }
-      el("d-contact-form").innerHTML = form;
+      el("d-history").innerHTML = li;
     }
 
-    // POST /orders/{id}/contacts. 422 MAX_CONTACTS_REACHED khi đã đủ lượt
-    async function saveContact() {
-      var btn = el("c-save");
-      btn.disabled = true;
-      try {
-        var r = await api.addContact(o.order_id, { contacted_at: el("c-at").value.replace("T", " "), method: el("c-method").value,
-          result: el("c-result").value, note: el("c-note").value.trim(), next_contact_date: el("c-next").value });
-        toast("Saved contact attempt " + r.order.contact_count + "/" + config.max_contact + ".");
-        refresh();
-      } catch (e) {
-        el("c-error").innerHTML = e.message;
-        btn.disabled = false;
+    // ---------- Nhận xét ----------
+    function renderComments() {
+      var cs = D.comments, html = "";
+      el("d-comment-count").innerHTML = cs.length;
+      for (var i = 0; i < cs.length; i++) {
+        var c = cs[i];
+        html += '<li class="' + (c.author_role == "MANAGER" ? "mgr" : "") + '"><div class="cm-head"><b>' + c.author_name + '</b> <span class="role-tag ' + c.author_role + '">' + roleLabel(c.author_role) + "</span>"
+          + ' <span class="tiny">' + viTime(c.created_at) + "</span></div><div>" + c.text + "</div></li>";
       }
+      el("d-comments").innerHTML = html || '<li class="empty">' + L("No comments yet.", "Chưa có nhận xét.") + "</li>";
+      var can = isManager() || mine;
+      el("d-comment-form").innerHTML = can
+        ? '<form class="comment-form" onsubmit="saveComment(); return false;"><label for="cm-text" class="sr">' + L("Add a comment", "Thêm nhận xét") + "</label>"
+          + '<textarea id="cm-text" rows="2" maxlength="1000" placeholder="' + (isManager() ? L("e.g. Agree with the plan; ask about the colour", "vd: Đồng ý hướng xử lý; hỏi thêm về màu sắc") : L("e.g. Customer sounds unsure about the colour", "vd: Khách có vẻ chưa ưng màu sắc")) + '"></textarea>'
+          + '<p class="form-error" id="cm-error" role="alert"></p><button class="btn sm" type="submit" id="cm-save">' + L("Add comment", "Thêm nhận xét") + "</button></form>"
+        : '<p class="tiny muted">' + L("Only the assignee or a manager can comment.", "Chỉ người phụ trách hoặc Manager được nhận xét.") + "</p>";
+    }
+    async function saveComment() {
+      var btn = el("cm-save");
+      btn.disabled = true;
+      try { await api.addComment(o.order_id, el("cm-text").value.trim()); toast(L("Comment added.", "Đã thêm nhận xét.")); refresh(); }
+      catch (e) { el("cm-error").innerHTML = e.message; btn.disabled = false; }
     }
 
     // ---------- Audit của đơn (Manager; backend chỉ trả audit_events cho Manager) ----------
@@ -355,8 +409,9 @@
         html += "<tr><td>" + viTime(e.created_at) + "</td><td>" + e.actor_name + '</td><td><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span></td>"
           + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + humanValue(e.new_value) + "</td><td>" + (e.reason ? humanValue(e.reason) : '<span class="muted">—</span>') + "</td></tr>";
       }
-      el("d-audit").innerHTML = html ? '<table class="small"><thead><tr><th>Time</th><th>By</th><th>Type</th><th>Old → new</th><th>Reason</th></tr></thead><tbody>' + html + "</tbody></table>"
-        : '<p class="empty">No actions yet.</p>';
+      el("d-audit").innerHTML = html ? '<table class="small"><thead><tr><th>' + L("Time", "Thời gian") + "</th><th>" + L("By", "Người làm") + "</th><th>" + L("Type", "Loại") + "</th><th>"
+        + L("Old → new", "Cũ → mới") + "</th><th>" + L("Reason", "Lý do") + "</th></tr></thead><tbody>" + html + "</tbody></table>"
+        : '<p class="empty">' + L("No actions yet.", "Chưa có thao tác.") + "</p>";
     }
 
     // ---------- Context đơn hàng ----------
@@ -364,45 +419,46 @@
       var handover = daysBetween(o.approved_at, o.carrier_at);
       var delivery = daysBetween(o.purchase_at, o.delivered_at);
       var early = daysBetween(o.delivered_at, o.estimated_at);
+      var D_ = L(" d", " ngày");
 
       function compareRow(label, mine, typical, unit) {
         var max = Math.max(mine, typical) * 1.1;
         var bad = mine > typical * 1.5;
-        return "<tr><td class='label'>" + label + (bad ? " <span class='flag' title='Over 1.5× the typical value'>▲</span>" : "") + "</td><td>"
+        return "<tr><td class='label'>" + label + (bad ? " <span class='flag' title='" + L("Over 1.5× the typical value", "Hơn 1,5 lần mức thường gặp") + "'>▲</span>" : "") + "</td><td>"
           + "<div class='cbar this" + (bad ? " bad" : "") + "' style='width:" + (mine / max * 100) + "%'></div>"
           + "<div class='cbar' style='width:" + (typical / max * 100) + "%'></div></td>"
           + "<td class='val'>" + mine + unit + "<br><span class='legend'>" + typical + unit + "</span></td></tr>";
       }
       el("d-compare").innerHTML =
-          compareRow("Seller handover to carrier", handover, normal.handover, " d")
-        + compareRow("Total delivery time", delivery, normal.delivery, " d")
-        + compareRow("Order value", o.order_value, normal.value, " R$")
-        + compareRow("Shipping fee", o.freight, normal.freight, " R$");
+          compareRow(L("Seller handover to carrier", "Seller giao cho đơn vị vận chuyển"), handover, normal.handover, D_)
+        + compareRow(L("Total delivery time", "Tổng thời gian giao"), delivery, normal.delivery, D_)
+        + compareRow(L("Order value", "Giá trị đơn"), o.order_value, normal.value, " R$")
+        + compareRow(L("Shipping fee", "Phí ship"), o.freight, normal.freight, " R$");
 
       el("d-timeline").innerHTML =
-          "<li><b>Ordered</b>" + viTime(o.purchase_at) + "</li>"
-        + "<li><b>Payment approved</b>" + viTime(o.approved_at) + "</li>"
-        + "<li" + (handover > 2 ? " class='slow'" : "") + "><b>Handed to carrier</b>" + viTime(o.carrier_at) + " (after " + handover + " d)</li>"
-        + "<li><b>Delivered</b>" + viTime(o.delivered_at) + "</li>"
-        + "<li><b>Estimated date</b>" + viTime(o.estimated_at) + " → " + early + " d early</li>"
-        + "<li><b>Entered Risk Queue</b>" + viTime(o.queued_at) + "</li>";
+          "<li><b>" + L("Ordered", "Đặt hàng") + "</b>" + viTime(o.purchase_at) + "</li>"
+        + "<li><b>" + L("Payment approved", "Duyệt thanh toán") + "</b>" + viTime(o.approved_at) + "</li>"
+        + "<li" + (handover > 2 ? " class='slow'" : "") + "><b>" + L("Handed to carrier", "Giao cho vận chuyển") + "</b>" + viTime(o.carrier_at) + L(" (after " + handover + " d)", " (sau " + handover + " ngày)") + "</li>"
+        + "<li><b>" + L("Delivered", "Đã giao") + "</b>" + viTime(o.delivered_at) + "</li>"
+        + "<li><b>" + L("Estimated date", "Ngày dự kiến") + "</b>" + viTime(o.estimated_at) + " → " + L(early + " d early", "sớm " + early + " ngày") + "</li>"
+        + "<li><b>" + L("Entered Risk Queue", "Vào Risk Queue") + "</b>" + viTime(o.original_queued_at) + "</li>";
 
-      el("d-id").innerHTML = '<span class="id id-full">' + o.order_id + '</span>' + copyBtn(o.order_id) + '';
+      el("d-id").innerHTML = '<span class="id id-full">' + o.order_id + '</span>' + copyBtn(o.order_id);
       el("d-customer").innerHTML = o.customer_city + " (" + o.customer_state + ")";
       el("d-seller").innerHTML = '<a href="index.html?seller=' + o.seller_id + '&status=">' + shortId(o.seller_id) + "</a>";
       el("d-category").innerHTML = catLabel(o.category);
-      el("d-value").innerHTML = "R$ " + o.order_value.toFixed(2);
-      el("d-freight").innerHTML = "R$ " + o.freight.toFixed(2);
-      el("d-seller-open").innerHTML = D.seller_open_count + ' open · <a href="index.html?seller=' + o.seller_id + '">view</a>';
+      el("d-value").innerHTML = money(o.order_value);
+      el("d-freight").innerHTML = money(o.freight);
+      el("d-seller-open").innerHTML = D.seller_open_count + ' · <a href="index.html?seller=' + o.seller_id + '">' + L("view", "xem") + "</a>";
     }
 
     // ---------- Thao tác (API_CONTRACT 4.5) ----------
     async function claim() {
       try {
         var r = await api.claim(o.order_id);
-        var n = r.me.active_count, msg = "Claimed order " + shortId(o.order_id) + ". You now hold " + n + "/" + config.capacity + ".";
-        if (n >= config.capacity) msg += " Limit reached: complete or skip an order before claiming another.";
-        else if (n >= config.capacity_warn) msg += " Almost at the limit: " + r.me.slots_left + " slot left.";
+        var n = r.me.active_count, msg = L("Claimed order " + shortId(o.order_id) + ". You now hold " + n + "/" + config.capacity + ".", "Đã nhận đơn " + shortId(o.order_id) + ". Bạn đang giữ " + n + "/" + config.capacity + ".");
+        if (n >= config.capacity) msg += L(" Limit reached.", " Đã đủ giới hạn.");
+        else if (n >= config.capacity_warn) msg += L(" Almost at the limit: " + r.me.slots_left + " slot left.", " Sắp đủ: còn " + r.me.slots_left + " slot.");
         toast(msg, n >= config.capacity_warn ? "warn" : "ok");
       } catch (e) {
         toast(e.message, "error");
@@ -417,94 +473,170 @@
     }
 
     function complete() {
-      var n = contacts.length;
+      var n = cycleContacts.length, max = o.max_contact;
       var radios = "";
       for (var k in OUTCOME_LABEL) {
-        var lock = k == "UNREACHABLE" && n < config.max_contact;
+        var lock = k == "UNREACHABLE" && n < max;
         radios += '<label class="radio' + (lock ? " disabled" : "") + '"><input type="radio" name="oc" value="' + k + '"' + (lock ? " disabled" : "") + "> "
-          + OUTCOME_LABEL[k] + (lock ? ' <span class="tiny">(needs ' + config.max_contact + " attempts, currently " + n + ")</span>" : "") + "</label>";
+          + OUTCOME_LABEL[k] + (lock ? ' <span class="tiny">' + L("(needs " + max + " attempts, currently " + n + ")", "(cần " + max + " lần, hiện " + n + ")") + "</span>" : "") + "</label>";
       }
-      openModal("Complete order", '<fieldset><legend>Outcome *</legend>' + radios + "</fieldset>"
-        + '<div class="form-row"><label for="oc-note">Note</label><textarea id="oc-note" rows="2"></textarea></div>'
-        + '<p class="tiny">Completing releases the assignee\'s slot.</p>', "Complete", function () {
+      openModal(L("Complete order", "Hoàn tất đơn"), '<fieldset><legend>' + L("Outcome", "Kết quả") + ' *</legend>' + radios + "</fieldset>"
+        + '<div class="form-row"><label for="oc-note">' + L("Note", "Ghi chú") + '</label><textarea id="oc-note" rows="2"></textarea></div>'
+        + '<p class="tiny">' + L("Completing releases the assignee's slot. The manager then writes a decision.", "Hoàn tất sẽ trả slot cho người phụ trách. Sau đó Manager ghi quyết định.") + "</p>", L("Complete", "Hoàn tất"), function () {
         var pick = document.querySelector('input[name="oc"]:checked');
-        if (!pick) return { ok: false, msg: "Choose an outcome before completing." };
-        return submit(api.complete(o.order_id, pick.value, el("oc-note").value.trim()), "Completed order " + shortId(o.order_id) + ". Slot released.");
+        if (!pick) return { ok: false, msg: L("Choose an outcome before completing.", "Chọn kết quả trước khi hoàn tất.") };
+        return submit(api.complete(o.order_id, pick.value, el("oc-note").value.trim()), L("Completed order " + shortId(o.order_id) + ". Slot released.", "Đã hoàn tất đơn " + shortId(o.order_id) + ". Đã trả slot."));
       });
     }
 
     function skip(preset) {
-      var opts = '<option value="">-- Choose a reason --</option>';
+      var opts = '<option value="">' + L("-- Choose a reason --", "-- Chọn lý do --") + "</option>";
       for (var k in SKIP_LABEL) opts += '<option value="' + k + '"' + (k == preset ? " selected" : "") + ">" + SKIP_LABEL[k] + "</option>";
-      openModal("Skip order", '<div class="form-row"><label for="sk-reason">Reason *</label><select id="sk-reason">' + opts + "</select></div>"
-        + '<div class="form-row"><label for="sk-note">Note (required for "Other")</label><textarea id="sk-note" rows="2"></textarea></div>'
-        + '<p class="tiny">The order becomes Skipped and the slot is released. Only a manager can reopen it.</p>', "Skip", function () {
-        if (!el("sk-reason").value) return { ok: false, msg: "Choose a skip reason." };
-        return submit(api.skip(o.order_id, el("sk-reason").value, el("sk-note").value.trim()), "Skipped order " + shortId(o.order_id) + ". Slot released.");
+      openModal(L("Skip order", "Bỏ qua đơn"), '<div class="form-row"><label for="sk-reason">' + L("Reason", "Lý do") + ' *</label><select id="sk-reason">' + opts + "</select></div>"
+        + '<div class="form-row"><label for="sk-note">' + L("Note (required for \"Other\")", "Ghi chú (bắt buộc khi chọn \"Khác\")") + '</label><textarea id="sk-note" rows="2"></textarea></div>'
+        + '<p class="tiny">' + L("The order becomes Skipped and the slot is released. Only a manager can reopen it.", "Đơn chuyển sang Bỏ qua và trả slot. Chỉ Manager được mở lại.") + "</p>", L("Skip", "Bỏ qua"), function () {
+        if (!el("sk-reason").value) return { ok: false, msg: L("Choose a skip reason.", "Chọn lý do bỏ qua.") };
+        return submit(api.skip(o.order_id, el("sk-reason").value, el("sk-note").value.trim()), L("Skipped order " + shortId(o.order_id) + ". Slot released.", "Đã bỏ qua đơn " + shortId(o.order_id) + ". Đã trả slot."));
       });
     }
 
     function reopen() {
       var closedDays = hoursBetween(o.updated_at, NOW) / 24;
       var needReview = closedDays > config.reopen_review_days || o.reopen_count >= config.reopen_review_times;
-      var warn = needReview ? '<div class="alert warn"><span class="icon">!</span><b>Manager review required.</b><br>'
-        + "Closed " + Math.floor(closedDays) + " days ago and reopened " + o.reopen_count + " times (limit: over " + config.reopen_review_days + " days or " + config.reopen_review_times + " times).</div>"
-        + '<label class="check"><input type="checkbox" id="ro-ok"> I have reviewed this and confirm it should be reopened</label>' : "";
-      openModal("Reopen order", "<p>Current status: " + statusBadge(o.status) + " · " + outcomeText(o) + "</p>"
-        + "<p>After reopening: <b>Pending</b>, no assignee, back in the Risk Queue.</p>" + warn
-        + '<div class="form-row"><label for="ro-reason">Override reason *</label><textarea id="ro-reason" rows="2"></textarea></div>', "Reopen", function () {
+      var warn = needReview ? '<div class="alert warn"><span class="icon">!</span><b>' + L("Manager review required.", "Cần xác nhận đã xem xét.") + "</b><br>"
+        + L("Closed " + Math.floor(closedDays) + " days ago and reopened " + o.reopen_count + " times (limit: over " + config.reopen_review_days + " days or " + config.reopen_review_times + " times).",
+          "Đã đóng " + Math.floor(closedDays) + " ngày và mở lại " + o.reopen_count + " lần (giới hạn: quá " + config.reopen_review_days + " ngày hoặc từ " + config.reopen_review_times + " lần).") + "</div>"
+        + '<label class="check"><input type="checkbox" id="ro-ok"> ' + L("I have reviewed this and confirm it should be reopened", "Tôi đã xem xét và xác nhận cần mở lại") + "</label>" : "";
+      openModal(L("Reopen case", "Mở lại case"), "<p>" + L("Current status: ", "Trạng thái hiện tại: ") + statusBadge(o.status) + " · " + outcomeText(o) + "</p>"
+        + "<p>" + L("After reopening: <b>Pending</b>, no assignee, back in the Risk Queue as <b>cycle " + (o.cycle_no + 1) + "</b>. The contact counter and SLA start over; past attempts and the first queue time are kept.",
+          "Sau khi mở lại: <b>Chờ nhận</b>, chưa ai phụ trách, quay lại Risk Queue ở <b>chu kỳ " + (o.cycle_no + 1) + "</b>. Bộ đếm liên lạc và SLA tính lại từ đầu; lịch sử liên lạc và mốc vào queue đầu tiên giữ nguyên.") + "</p>" + warn
+        + '<div class="form-row"><label for="ro-reason">' + L("Override reason", "Lý do mở lại") + ' *</label><textarea id="ro-reason" rows="2"></textarea></div>', L("Reopen", "Mở lại"), function () {
         var confirmed = needReview ? el("ro-ok").checked : false;
-        return submit(api.reopen(o.order_id, el("ro-reason").value.trim(), confirmed), "Reopened order " + shortId(o.order_id) + "; it is back to Pending.");
+        return submit(api.reopen(o.order_id, el("ro-reason").value.trim(), confirmed), L("Reopened order " + shortId(o.order_id) + "; cycle " + (o.cycle_no + 1) + " started.", "Đã mở lại đơn " + shortId(o.order_id) + "; bắt đầu chu kỳ " + (o.cycle_no + 1) + "."));
       });
     }
 
     function modelNote() {
-      openModal("Model review note", "<p>Score <b>" + o.risk_score.toFixed(2) + "</b> and level " + badge(o.risk_level) + " stay unchanged and cannot be edited.</p>"
-        + '<div class="form-row"><label for="mn-note">Why should the model be reviewed? *</label><textarea id="mn-note" rows="3"></textarea></div>', "Save note", function () {
-        return submit(api.addModelNote(o.order_id, el("mn-note").value.trim()), "Model review note saved. The original risk score is unchanged.");
+      openModal(L("Model review note", "Ghi chú model"), "<p>" + L("Score <b>" + o.risk_score.toFixed(2) + "</b> and level " + badge(o.risk_level) + " stay unchanged and cannot be edited.",
+        "Score <b>" + o.risk_score.toFixed(2) + "</b> và mức " + badge(o.risk_level) + " giữ nguyên, không sửa được.") + "</p>"
+        + '<div class="form-row"><label for="mn-note">' + L("Why should the model be reviewed?", "Vì sao cần xem lại model?") + ' *</label><textarea id="mn-note" rows="3"></textarea></div>', L("Save note", "Lưu ghi chú"), function () {
+        return submit(api.addModelNote(o.order_id, el("mn-note").value.trim()), L("Model review note saved. The original risk score is unchanged.", "Đã lưu ghi chú model. Risk score gốc giữ nguyên."));
       });
     }
 
     // ---------- Nạp dữ liệu ----------
-    // Không có ?id= thì lấy đơn Pending ưu tiên cao nhất (GET /orders?status=PENDING&limit=1)
+    // Không có ?id=: Specialist mở đơn mình đang giữ gấp nhất, Manager (hoặc chưa giữ đơn nào) mở đơn Chờ nhận ưu tiên cao nhất
     async function resolveId() {
       if (id) return id;
-      var r = await api.listOrders({ status: "PENDING", limit: 1 });
+      var r = { items: [] };
+      if (!isManager()) r = await api.listOrders({ assignee: "me", status: "IN_PROGRESS", sort: "sla", limit: 1 });
+      if (r.items.length == 0) r = await api.listOrders({ status: "PENDING", limit: 1 });
       if (r.items.length == 0) r = await api.listOrders({ status: "", limit: 1 });
       return r.items.length ? r.items[0].order_id : null;
     }
 
     async function load() {
       var r = await Promise.all([api.getOrder(id), reloadMe()]);
-      D = r[0]; o = D.order; contacts = D.contacts;
+      D = r[0]; o = D.order;
+      cycleContacts = D.contacts.filter(function (c) { return c.cycle_no == o.cycle_no; });
       mine = o.assignee_id == ME.user_id;
       canWork = o.status == "IN_PROGRESS" && (mine || isManager());
+      if (!selItem) selItem = focusItem || o.items[0].product_item_id;
+    }
+
+    // ---------- Chọn đơn: ô tìm + đơn trước/sau (feedback 14/10) ----------
+    function orderHref(oid) { return "order.html?id=" + oid; }
+
+    async function renderStep() {
+      var r = await api.listOrders({ status: "OPEN", limit: 100 });   // cùng thứ tự Risk Queue mặc định
+      var ids = r.items.map(function (x) { return x.order_id; });
+      var i = ids.indexOf(o.order_id);
+      function setBtn(b, oid) {
+        if (oid) { b.href = orderHref(oid); b.removeAttribute("aria-disabled"); b.title = oid; }
+        else { b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.removeAttribute("title"); }
+      }
+      setBtn(el("op-prev"), i > 0 ? ids[i - 1] : null);
+      setBtn(el("op-next"), i >= 0 && i < ids.length - 1 ? ids[i + 1] : null);
+      el("op-pos").textContent = i >= 0 ? (i + 1) + " / " + r.total : L("Not in open queue", "Không ở queue đang mở");
+    }
+
+    function initSearch() {
+      var input = el("op-q"), list = el("op-list"), opts = [], active = -1, reqNo = 0, timer = null;
+      function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); active = -1; }
+      function show(html) { list.innerHTML = html; list.hidden = false; input.setAttribute("aria-expanded", "true"); }
+      function mark(n) {
+        var lis = list.querySelectorAll("[role=option]");
+        if (!lis.length) return;
+        active = (n + lis.length) % lis.length;
+        for (var k = 0; k < lis.length; k++) lis[k].setAttribute("aria-selected", k == active ? "true" : "false");
+        input.setAttribute("aria-activedescendant", lis[active].id);
+        lis[active].scrollIntoView({ block: "nearest" });
+      }
+      async function search() {
+        var q = input.value.trim().toLowerCase();
+        if (!q) { close(); return; }
+        if (!/^[0-9a-f]{1,32}$/.test(q)) {
+          opts = []; show('<li class="op-msg">' + L("An order ID only contains 0-9 and a-f.", "Mã đơn chỉ gồm 0-9 và a-f.") + "</li>"); return;
+        }
+        var mine = ++reqNo, r;
+        try { r = await api.listOrders({ q: q, status: "", limit: 8 }); }
+        catch (e) { if (mine == reqNo) show('<li class="op-msg">' + e.message + "</li>"); return; }
+        if (mine != reqNo) return;   // gõ nhanh: chỉ lấy kết quả lần gọi cuối
+        opts = r.items;
+        if (!opts.length) { show('<li class="op-msg">' + L("No order starts with ", "Không có đơn nào bắt đầu bằng ") + "<b>" + q + "</b></li>"); return; }
+        show(opts.map(function (x, k) {
+          return '<li role="option" id="op-' + k + '" aria-selected="false" data-id="' + x.order_id + '"'
+            + (x.order_id == o.order_id ? ' class="cur"' : "") + ">"
+            + '<span class="op-id"><b>' + x.order_id.substring(0, q.length) + "</b>" + x.order_id.substring(q.length, 12) + "…</span>"
+            + badge(x.risk_level) + statusBadge(x.status) + "</li>";
+        }).join("")
+          + (r.total > opts.length ? '<li class="op-msg">' + L("+" + (r.total - opts.length) + " more, keep typing", "còn " + (r.total - opts.length) + " đơn nữa, gõ thêm để lọc") + "</li>" : ""));
+      }
+      input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(search, 200); });
+      input.addEventListener("keydown", function (e) {
+        if (e.key == "ArrowDown") { e.preventDefault(); if (list.hidden) search(); else mark(active + 1); }
+        else if (e.key == "ArrowUp") { e.preventDefault(); mark(active - 1); }
+        else if (e.key == "Escape") { close(); }
+        else if (e.key == "Enter") {
+          e.preventDefault();
+          var pick = active >= 0 ? opts[active] : (opts.length == 1 ? opts[0] : null);
+          if (pick) location.href = orderHref(pick.order_id);
+        }
+      });
+      list.addEventListener("mousedown", function (e) {   // mousedown: chạy trước khi ô nhập mất focus
+        var li = e.target.closest("[role=option]");
+        if (li) { e.preventDefault(); location.href = orderHref(li.getAttribute("data-id")); }
+      });
+      input.addEventListener("blur", function () { setTimeout(close, 100); });
     }
 
     function render() {
+      rememberOrder(o.order_id);
       renderTopbar("detail");
       renderContext();
-      renderSummary(); renderRisk(); renderStatus(); renderContacts(); renderAudit();
+      renderSummary(); renderRisk(); renderItems(); renderStatus(); renderNext(); renderComments(); renderAudit();
     }
 
     async function refresh() {
       try { await load(); render(); }
-      catch (e) { toast("Couldn't reload this order: " + e.message, "error"); }
+      catch (e) { toast(L("Couldn't reload this order: ", "Không tải lại được đơn: ") + e.message, "error"); }
     }
 
     el("d-summary").innerHTML = skeletonHtml(2);   // hiện khung xám ngay, trong lúc chờ nạp dữ liệu
     boot("detail").then(async function () {
       try {
         id = await resolveId();
-        if (!id) { el("content").innerHTML = '<div class="box empty">There are no orders in the Risk Queue yet.</div>'; return; }
+        if (!id) { el("content").innerHTML = '<div class="box empty">' + L("There are no orders in the Risk Queue yet.", "Risk Queue chưa có đơn nào.") + "</div>"; return; }
         await load();
       } catch (e) {
         el("content").innerHTML = e.code == "ORDER_NOT_FOUND"
-          ? '<div class="alert"><span class="icon">!</span><b>Order not found.</b><br>' + e.message + ' <a href="index.html">Back to Risk Queue</a></div>'
-          : errorHtml("this order");
+          ? '<div class="alert"><span class="icon">!</span><b>' + L("Order not found.", "Không tìm thấy đơn.") + "</b><br>" + e.message + ' <a href="index.html">' + L("Back to Risk Queue", "Về Risk Queue") + "</a></div>"
+          : errorHtml(L("this order", "đơn này"));
         return;
       }
       render();
+      initSearch();
+      renderStep().catch(function () { el("op-pos").textContent = ""; });
     }).catch(function () { });
   </script>
 </body>
