@@ -35,7 +35,8 @@
       tạo audit event DECISION, hiện ở mục "Bước tiếp theo" của Order Detail. Muốn xử lý lại với khách thì dùng "Mở lại case" (chu kỳ mới).</div>
   </div>
 
-  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
   <script src="../js/mock-data.js"></script>
   <script src="../js/mock-server.js"></script>
   <script src="../js/api.js"></script>
@@ -125,7 +126,7 @@
       var form = '<div class="box"><h2>' + L("Decision", "Quyết định") + "</h2>"
         + '<form onsubmit="save(); return false;"><fieldset class="dec-opts"><legend class="sr">' + L("Decision", "Quyết định") + "</legend>" + opts + "</fieldset>"
         + '<div class="form-row"><label for="dc-next">' + L("Next step", "Bước tiếp theo") + ' *</label><textarea id="dc-next" rows="2" placeholder="' + L("e.g. Send packaging photos to the seller and ask for better padding", "vd: Gửi ảnh đóng gói cho seller, yêu cầu chèn lót kỹ hơn") + '"></textarea></div>'
-        + '<div class="grid2"><div class="form-row"><label for="dc-due">' + L("Due date", "Hạn") + '</label><input id="dc-due" type="date" min="' + NOW.substring(0, 10) + '"></div>'
+        + '<div class="grid2"><div class="form-row"><label for="dc-due">' + L("Due date", "Hạn") + '</label><input id="dc-due" type="date" min="' + inputDate(NOW) + '"></div>'
         + '<div class="form-row"><label for="dc-note">' + L("Note", "Ghi chú") + '</label><input id="dc-note" type="text"></div></div>'
         + '<p class="form-error" id="dc-error" role="alert"></p>'
         + '<div class="actions"><button class="btn primary" type="submit" id="dc-save">' + L("Save decision", "Lưu quyết định") + "</button> "

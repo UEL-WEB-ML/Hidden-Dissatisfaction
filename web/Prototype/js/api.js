@@ -1,15 +1,14 @@
 // =========================================================
 // api.js — NƠI DUY NHẤT frontend lấy và ghi dữ liệu
-// Mỗi hàm ứng với một endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md (v0.2). Các trang chỉ gọi api.xxx(), không đọc dữ liệu ở đâu khác.
+// Mỗi hàm ứng với một endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md (v0.3). Các trang chỉ gọi api.xxx(), không đọc dữ liệu ở đâu khác.
 //
-// Đang dùng backend giả (mock-server.js) nếu trang có nạp file đó.
-// Khi backend thật chạy: bỏ 2 dòng <script> mock-data.js, mock-server.js trong các trang
-// và sửa BASE_URL bên dưới. Không phải sửa trang nào khác.
+// Dùng backend giả hay backend thật, địa chỉ API, cách đăng nhập: đặt trong js/config.js (xem BACKEND.md).
 // =========================================================
 
 var API_CONFIG = {
-  BASE_URL: "http://localhost:8000/api/v1",
-  USE_MOCK: typeof MockServer != "undefined"
+  BASE_URL: (typeof HD_CONFIG != "undefined" && HD_CONFIG.BASE_URL) || "http://localhost:8000/api/v1",
+  USE_MOCK: (typeof HD_CONFIG == "undefined" || HD_CONFIG.USE_MOCK !== false) && typeof MockServer != "undefined",
+  AUTH: (typeof HD_CONFIG != "undefined" && HD_CONFIG.AUTH) || "bearer"
 };
 
 var TOKEN_KEY = "hd-token";
@@ -39,14 +38,16 @@ async function request(method, path, opts) {
   for (var k in (opts.query || {})) if (opts.query[k] != null && opts.query[k] !== "") query[k] = String(opts.query[k]);
   var res;
   if (API_CONFIG.USE_MOCK) {
-    res = await MockServer.handle(method, path, query, opts.body, getToken(), currentLang());
+    res = await MockServer.handle(method, path, query, opts.form ? opts.mockBody : opts.body, getToken(), currentLang());
   } else {
     var headers = { "Accept": "application/json", "Accept-Language": currentLang() };
-    if (opts.body) headers["Content-Type"] = "application/json";
-    if (getToken()) headers["Authorization"] = "Bearer " + getToken();
+    if (opts.body) headers["Content-Type"] = "application/json";   // FormData: để trình duyệt tự đặt multipart boundary
+    if (API_CONFIG.AUTH == "bearer" && getToken()) headers["Authorization"] = "Bearer " + getToken();
     try {
       var r = await fetch(API_CONFIG.BASE_URL + path + queryString(query), {
-        method: method, headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined
+        method: method, headers: headers,
+        body: opts.form || (opts.body ? JSON.stringify(opts.body) : undefined),
+        credentials: API_CONFIG.AUTH == "cookie" ? "include" : "same-origin"
       });
       res = { status: r.status, body: r.status == 204 ? null : await r.json().catch(function () { return null; }) };
     } catch (e) {
@@ -71,7 +72,7 @@ var api = {
   // 4.1 Xác thực
   login: async function (username, password) {
     var r = await request("POST", "/auth/login", { body: { username: username, password: password } });
-    setToken(r.token);
+    setToken(API_CONFIG.AUTH == "cookie" ? null : r.token);   // kiểu cookie: backend tự giữ phiên, không có token
     return r.user;
   },
   logout: async function () {
@@ -103,6 +104,12 @@ var api = {
     return request("POST", "/orders/" + id + "/assign", { body: { assignee_id: assigneeId, reason: reason, override_capacity: !!overrideCapacity } });
   },
   addContact: function (id, contact) { return request("POST", "/orders/" + id + "/contacts", { body: contact }); },
+  // Upload 1 tệp minh chứng (multipart, field "file") trước khi ghi lần liên lạc; trả { file_id, file_name, file_type, file_size, url }
+  uploadFile: function (file) {
+    var form = new FormData();
+    form.append("file", file);
+    return request("POST", "/files", { form: form, mockBody: { file_name: file.name, file_type: file.type, file_size: file.size } });
+  },
   complete: function (id, outcome, note) { return request("POST", "/orders/" + id + "/complete", { body: { outcome: outcome, note: note } }); },
   skip: function (id, reason, note) { return request("POST", "/orders/" + id + "/skip", { body: { reason: reason, note: note } }); },
   reopen: function (id, reason, reviewConfirmed) {

@@ -4,14 +4,14 @@
 >
 > Thư mục này là **prototype** bằng code (HTML, CSS, JavaScript), phát triển từ wireframe Figma đó, bấm thử được như sản phẩm thật.
 > Khi sửa một màn thì cập nhật cả hai bản cho khớp nhau.
-> **13/10/2026:** bản code đã chỉnh theo BRD v4.0, FRD v2.0, API contract v0.2 và feedback giao diện 13/10. **Bản Figma chưa cập nhật theo đợt này.**
+> **13/10/2026:** bản code đã chỉnh theo BRD v4.0, FRD v2.0, API contract v0.2 và feedback giao diện 13/10. **14/10:** lên contract v0.3, thêm `js/config.js` + `BACKEND.md` để backend nối vào. **Bản Figma chưa cập nhật theo đợt này.**
 
 Prototype cho đồ án môn Phát triển Web Kinh doanh: hệ thống nhận diện và ưu tiên đơn hàng Olist
 giao đúng hạn nhưng có nguy cơ bị đánh giá 1–2 sao (bất mãn ẩn).
 
 **Đây là bản phác thảo để thống nhất bố cục và hành vi, chưa phải sản phẩm.** Dữ liệu trong `js/mock-data.js`
-là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng API contract v0.2 (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`),
-hiện đang chạy trên backend giả `js/mock-server.js`; khi backend thật xong thì chỉ đổi phần này (xem "Cấu trúc code").
+là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng API contract v0.3 (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`),
+hiện đang chạy trên backend giả `js/mock-server.js`; khi backend thật xong thì chỉ sửa `js/config.js` (xem `BACKEND.md`).
 
 ## Cách xem
 
@@ -51,17 +51,20 @@ Mở `html/login.html` bằng trình duyệt, không cần cài gì. Góc trên 
 
 | File | Vai trò |
 |---|---|
+| `js/config.js` | **Cấu hình duy nhất khi nối backend thật**: `BASE_URL`, `USE_MOCK`, `AUTH` (xem `BACKEND.md`) |
 | `css/style.css` | Giao diện dùng chung |
 | `js/api.js` | **Nơi duy nhất lấy và ghi dữ liệu.** Mỗi hàm ứng với một endpoint trong API contract |
 | `js/common.js` | Ngôn ngữ (`L()`, `data-vi`), nạp người dùng + cấu hình (`boot()`), nhãn giao diện, định dạng, hộp thoại, thanh điều hướng + menu avatar |
 | `js/mock-server.js` | Backend giả: trả lời đúng contract (JSON, mã lỗi 401/403/404/409/422), chứa luật nghiệp vụ BRD mục 6 |
 | `js/mock-data.js` | Dữ liệu giả cho backend giả |
+| `html/api-check.html` | Trang cho người làm backend tự so JSON của API thật với contract (không có trong menu) |
+| `tools/mock-backend.js` | Backend giả chạy qua HTTP thật: `node tools/mock-backend.js` (cổng 8000) |
 
 Luật nghiệp vụ (HIGH chỉ Manager giao, capacity, số lần liên lạc theo chu kỳ, chuyển trạng thái, bắt buộc lý do, tham số có phiên bản) và các số tính theo thời gian
 (SLA, aging, escalation, số liệu Dashboard) nằm ở backend. Frontend chỉ hiển thị và báo lỗi backend trả về.
 
-**Khi backend thật chạy:** bỏ 2 dòng `<script>` nạp `mock-data.js`, `mock-server.js` trong 9 file `html/*.html` và sửa `BASE_URL`
-trong `js/api.js`. (Bản 05/10 đã thử qua một server HTTP thật; bản 13/10 mới chạy trên backend giả.)
+**Khi backend thật chạy:** chỉ sửa `js/config.js` (`USE_MOCK: false`, `BASE_URL`, `AUTH`), không sửa trang nào. Hướng dẫn đầy đủ: **`BACKEND.md`**.
+(14/10: đã chạy thử toàn bộ qua HTTP thật bằng `tools/mock-backend.js`, gồm đăng nhập, upload minh chứng, và `api-check.html` 15/15 khớp.)
 
 ### Song ngữ
 

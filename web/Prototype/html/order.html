@@ -170,14 +170,20 @@
     <div class="clear"></div>
   </div>
 
-  <!-- Backend giả: bỏ 2 dòng này khi có backend thật (xem js/api.js) -->
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
   <script src="../js/mock-data.js"></script>
   <script src="../js/mock-server.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
-    // Trung vị của 80.039 đơn giao đúng hạn được 3–5 sao (đo trên Olist 19/09)
-    var normal = { handover: 1.0, value: 84.9, freight: 16.9, delivery: 9.0 };
+    // Mức thường gặp để so sánh: lấy từ GET /config (typical_order). Backend chưa trả thì dùng số đo trên Olist 19/09
+    // (trung vị của 80.039 đơn giao đúng hạn được 3-5 sao).
+    function typical() {
+      var t = (config && config.typical_order) || {};
+      return { handover: t.handover_days != null ? t.handover_days : 1.0, delivery: t.delivery_days != null ? t.delivery_days : 9.0,
+        value: t.order_value != null ? t.order_value : 84.9, freight: t.freight != null ? t.freight : 16.9 };
+    }
 
     function el(id) { return document.getElementById(id); }
 
@@ -419,7 +425,7 @@
       var handover = daysBetween(o.approved_at, o.carrier_at);
       var delivery = daysBetween(o.purchase_at, o.delivered_at);
       var early = daysBetween(o.delivered_at, o.estimated_at);
-      var D_ = L(" d", " ngày");
+      var D_ = L(" d", " ngày"), normal = typical();
 
       function compareRow(label, mine, typical, unit) {
         var max = Math.max(mine, typical) * 1.1;
