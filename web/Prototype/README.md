@@ -4,32 +4,31 @@
 >
 > Thư mục này là **prototype** bằng code (HTML, CSS, JavaScript), phát triển từ wireframe Figma đó, bấm thử được như sản phẩm thật.
 > Khi sửa một màn thì cập nhật cả hai bản cho khớp nhau.
-> **05/10/2026:** bản code đã chỉnh theo BRD v3.0 và FRD v1.0, bản Figma đã cập nhật.
+> **13/10/2026:** bản code đã chỉnh theo BRD v4.0, FRD v2.0, API contract v0.2 và feedback giao diện 13/10. **Bản Figma chưa cập nhật theo đợt này.**
 
 Prototype cho đồ án môn Phát triển Web Kinh doanh: hệ thống nhận diện và ưu tiên đơn hàng Olist
 giao đúng hạn nhưng có nguy cơ bị đánh giá 1–2 sao (bất mãn ẩn).
 
 **Đây là bản phác thảo để thống nhất bố cục và hành vi, chưa phải sản phẩm.** Dữ liệu trong `js/mock-data.js`
-là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng `../API_CONTRACT_olist_hidden_dissatisfaction.md`,
+là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng API contract v0.2 (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`),
 hiện đang chạy trên backend giả `js/mock-server.js`; khi backend thật xong thì chỉ đổi phần này (xem "Cấu trúc code").
 
 ## Cách xem
 
-Mở `html/login.html` bằng trình duyệt, không cần cài gì. Mật khẩu đều là `123456`:
+Mở `html/login.html` bằng trình duyệt, không cần cài gì. Góc trên thẻ đăng nhập có nút **VI | EN** để chọn ngôn ngữ. Mật khẩu đều là `123456`:
 
 | Tên đăng nhập | Người | Vai | Vào màn | Dùng để thử |
 |---|---|---|---|---|
-| `nhanvien` | Trần Thị B | Specialist | Risk Queue | Đang giữ 3/5 đơn: nhận thêm để thấy cảnh báo ở đơn thứ 4, khoá ở đơn thứ 5 |
-| `nhanvien2` | Lê Văn C | Specialist | Risk Queue | Đã đủ 5/5; đơn `2b4d6f8a` đã liên lạc đủ 3 lần |
-| `quanly` | Phạm Văn D | Manager | Dashboard | Assign, reassign, override capacity, mở lại, ghi chú model, Audit History |
+| `nhanvien` | Trần Thị B | Specialist | Risk Queue | Đang giữ 3/5: đơn HIGH chỉ hiện "Chờ Manager giao"; nhận thêm đơn MEDIUM/LOW để thấy cảnh báo, khoá khi đủ |
+| `nhanvien2` | Lê Văn C | Specialist | Risk Queue | Đã đủ 5/5; đơn `2b4d6f8a` đã liên lạc đủ 3 lần (form bị khoá) |
+| `nhanvien3` | Nguyễn Văn A | Specialist | Risk Queue | Tài khoản đã lưu ngôn ngữ tiếng Việt: đăng nhập là tự chuyển sang tiếng Việt |
+| `quanly` | Phạm Văn D | Manager | Dashboard | Giao/chuyển người, mở lại case (chu kỳ mới), quyết định, đổi tham số, Audit History |
 
-- Góc dưới trái có hai nút vàng: **"Ghi chú: bật/tắt"** và **"Chế độ trình bày"** (ẩn mọi phần chỉ dành cho nhóm; tắt bằng phím `` ` `` hoặc `?present=0`).
-- Cuối mỗi trang có khung vàng **"Công cụ demo"**: ô "Đăng nhập lại với" để đổi tài khoản nhanh, ô "Giả lập mạng"
-  (chậm 2,5 giây hoặc máy chủ trả lỗi 500, để xem khung đang tải và khối lỗi) và nút "Đặt lại dữ liệu mẫu".
-  Khung này **không thuộc sản phẩm**, chỉ hiện khi đang dùng backend giả, và ẩn cùng nút "Ẩn/hiện ghi chú".
-- Thanh điều hướng theo vai: Specialist chỉ có Risk Queue (tab "Tất cả / Đơn của tôi" nằm trong màn);
-  Manager có Dashboard, Risk Queue, Audit History. Mục "Order Detail" chỉ hiện khi đang xem một đơn.
-- Thao tác (nhận đơn, hoàn tất, bỏ qua…) được backend giả lưu tạm trong trình duyệt (localStorage) nên chuyển màn không mất.
+- Góc dưới phải có hai nút vàng: **"Ghi chú: bật/tắt"** và **"Chế độ trình bày"** (ẩn mọi phần chỉ dành cho nhóm; tắt bằng phím `` ` `` hoặc `?present=0`).
+- Cuối mỗi trang có khung vàng **"Công cụ demo"**: đổi tài khoản nhanh, giả lập mạng chậm/lỗi 500, "Đặt lại dữ liệu mẫu". Khung này **không thuộc sản phẩm**.
+- Thanh điều hướng (cột dọc bên trái, trên điện thoại thành thanh ngang) theo vai: Specialist có Risk Queue, Chi tiết đơn, Liên lạc khách; Manager có Tổng quan, Risk Queue, Chi tiết đơn, Quyết định, Lịch sử thao tác, Cài đặt.
+  Bấm avatar ở cuối thanh điều hướng để mở menu: Hồ sơ, Ngôn ngữ, Cài đặt tham số (Manager), Đăng xuất.
+- Thao tác được backend giả lưu tạm trong trình duyệt (localStorage) nên chuyển màn không mất.
 - Giờ máy chủ giả bắt đầu ở **04/06/2018 14:00** (mỗi thao tác cộng 1 phút) để SLA và aging luôn ra cùng một kết quả.
 - Thu nhỏ cửa sổ để xem bố cục máy tính bảng (768px) và điện thoại (375px).
 - Ô màu vàng là ghi chú cho BA/Frontend (có mã function FRD), không thuộc giao diện thật.
@@ -38,11 +37,15 @@ Mở `html/login.html` bằng trình duyệt, không cần cài gì. Mật khẩ
 
 | File | Màn hình | Người dùng | Function FRD |
 |---|---|---|---|
-| `html/login.html` | Đăng nhập (tài khoản tạo sẵn) | Cả hai | – |
-| `html/overview.html` | Risk Overview Dashboard | Manager | F01 |
-| `html/index.html` | Risk Queue: summary banner, tìm và lọc, nhận xử lý, assign | Specialist, Manager | F02, F03, F05 |
-| `html/order.html` | Order Detail: kết quả model, yếu tố liên quan, xử lý, liên lạc/retry, audit của đơn | Specialist, Manager | F04, F05, F06, F07, F08 |
-| `html/audit.html` | Audit History (chỉ đọc) | Manager | F09 |
+| `html/login.html` | Đăng nhập + chọn ngôn ngữ | Cả hai | F11 |
+| `html/overview.html` | Risk Overview Dashboard: theo đơn / theo sản phẩm, biểu đồ số case vào queue theo ngày | Manager | F01 |
+| `html/index.html` | Risk Queue: banner (ô "Đang giữ" là biểu đồ vòng), cột sản phẩm cần kiểm tra, tìm theo mã đơn hoặc mã sản phẩm | Specialist, Manager | F02, F03, F05 |
+| `html/order.html` | Chi tiết đơn: ô tìm đơn + nút đơn trước/sau ở đầu trang, output tổng hợp + từng sản phẩm, nhận xét, bước tiếp theo, lịch sử trạng thái, mở lại case | Specialist, Manager | F04, F05, F06, F08 |
+| `html/attempt.html` | Liên lạc khách: chọn đơn mình giữ, ghi lần liên lạc kèm minh chứng, lịch sử theo chu kỳ | Specialist (Manager chỉ xem) | F07 |
+| `html/decision.html` | Quyết định: case cần quyết định, tóm tắt đơn + ML + việc nhân viên đã làm, form quyết định | Manager | *(feedback 13/10, chưa có mã)* |
+| `html/settings.html` | Cài đặt tham số: giá trị đang hiệu lực, đổi có thời điểm hiệu lực + lý do, lịch sử phiên bản | Manager | F10 |
+| `html/profile.html` | Hồ sơ: thông tin tài khoản, ngôn ngữ | Cả hai | F11 *(trang hồ sơ: feedback 13/10)* |
+| `html/audit.html` | Audit History (chỉ đọc), thêm cột "Đổi tham số" | Manager | F09 |
 
 ## Cấu trúc code
 
@@ -50,62 +53,67 @@ Mở `html/login.html` bằng trình duyệt, không cần cài gì. Mật khẩ
 |---|---|
 | `css/style.css` | Giao diện dùng chung |
 | `js/api.js` | **Nơi duy nhất lấy và ghi dữ liệu.** Mỗi hàm ứng với một endpoint trong API contract |
-| `js/common.js` | Nạp người dùng + cấu hình (`boot()`), nhãn giao diện, định dạng, hộp thoại, thanh điều hướng |
+| `js/common.js` | Ngôn ngữ (`L()`, `data-vi`), nạp người dùng + cấu hình (`boot()`), nhãn giao diện, định dạng, hộp thoại, thanh điều hướng + menu avatar |
 | `js/mock-server.js` | Backend giả: trả lời đúng contract (JSON, mã lỗi 401/403/404/409/422), chứa luật nghiệp vụ BRD mục 6 |
 | `js/mock-data.js` | Dữ liệu giả cho backend giả |
 
-Luật nghiệp vụ (capacity 5 đơn, tối đa 3 lần liên lạc, chuyển trạng thái, bắt buộc lý do) và các số tính theo thời gian
+Luật nghiệp vụ (HIGH chỉ Manager giao, capacity, số lần liên lạc theo chu kỳ, chuyển trạng thái, bắt buộc lý do, tham số có phiên bản) và các số tính theo thời gian
 (SLA, aging, escalation, số liệu Dashboard) nằm ở backend. Frontend chỉ hiển thị và báo lỗi backend trả về.
 
-**Khi backend thật chạy:** bỏ 2 dòng `<script>` nạp `mock-data.js`, `mock-server.js` trong 5 file `html/*.html` và sửa `BASE_URL`
-trong `js/api.js`. Đã thử: chạy các trang qua một server HTTP thật theo contract, mọi màn và mã lỗi vẫn hoạt động.
+**Khi backend thật chạy:** bỏ 2 dòng `<script>` nạp `mock-data.js`, `mock-server.js` trong 9 file `html/*.html` và sửa `BASE_URL`
+trong `js/api.js`. (Bản 05/10 đã thử qua một server HTTP thật; bản 13/10 mới chạy trên backend giả.)
 
-### Bảng thuật ngữ giao diện (đề xuất, nhóm chốt)
+### Song ngữ
 
-| Mã BRD | Nhãn giao diện | | Thao tác | Nhãn giao diện |
-|---|---|---|---|---|
-| PENDING | Pending | | Nhận xử lý | Claim |
-| IN_PROGRESS | In progress | | Giao đơn | Assign |
-| COMPLETED | Completed | | Chuyển người | Reassign |
-| SKIPPED | Skipped | | Hoàn tất / Bỏ qua | Complete / Skip |
-| SLA quá hạn | Overdue | | Mở lại | Reopen |
-| Escalation | Escalated | | Vượt capacity | Override capacity |
+Mọi chữ trên giao diện có hai bản Việt/Anh. Chữ viết sẵn trong HTML có thuộc tính `data-vi="..."`; chữ do JavaScript tạo dùng `L("English", "Tiếng Việt")`
+(`js/common.js`). Ngôn ngữ lưu trên máy và lưu theo tài khoản (`PATCH /me`). Mã trạng thái, score, ID, giá trị tham số, văn bản model sinh (`top_factors`)
+và văn bản người dùng nhập giữ nguyên. Ô ghi chú vàng để tiếng Việt vì chỉ dành cho nhóm.
 
-Nếu nhóm chọn giao diện tiếng Việt thì chỉ cần đổi các bảng nhãn trong `js/common.js` và chữ trên các trang theo cột tiếng Việt ở trên
-(Giao đơn, Chuyển người…); không đổi luật nghiệp vụ.
+## Thay đổi so với bản 05/10
 
-## Thay đổi so với bản 01/10
+- **BRD v4.0 / FRD v2.0:** output ML theo từng sản phẩm, điểm đơn là điểm tổng hợp (`max-v1`), nhãn "Dữ liệu giả lập"; Specialist không tự nhận đơn HIGH;
+  mở lại case tạo chu kỳ mới (reset bộ đếm liên lạc và SLA, giữ lịch sử); mọi con số vận hành lấy từ Parameter Configuration; Dashboard có chế độ xem
+  theo sản phẩm, lọc theo mã sản phẩm, biểu đồ xu hướng; song ngữ Việt/Anh.
+- **Feedback giao diện 13/10:**
+  - Login: chọn ngôn ngữ.
+  - Nhân viên: menu ở avatar (hồ sơ, ngôn ngữ, đăng xuất); "Chi tiết đơn" luôn có trên thanh điều hướng; tách phần liên lạc ra trang "Liên lạc khách"
+    (chọn đơn được giao, ô minh chứng); Chi tiết đơn còn thông tin đơn, output ML, nhận xét của nhân viên và quản lý, bước tiếp theo + lịch sử trạng thái;
+    ô "Đang giữ" ở Risk Queue thành biểu đồ vòng.
+  - Quản lý: trang Cài đặt tham số; Chi tiết đơn có nút đậm "Mở lại case"; trang Quyết định.
 
-- Trạng thái theo BRD 6.4: **Chờ nhận (PENDING) → Đang xử lý (IN_PROGRESS) → Hoàn tất (COMPLETED) / Bỏ qua (SKIPPED)**.
-  Hoàn tất bắt buộc outcome, bỏ qua bắt buộc lý do, chỉ Manager được mở lại (bắt buộc lý do).
-- Mức rủi ro viết theo BRD: HIGH / MEDIUM / LOW; có threshold version và model version.
-- Bỏ màn **Action Tracking**: ghi nhận liên lạc chuyển vào Order Detail (F07), truy vết chuyển sang màn **Audit History** (F09).
-- Risk Queue: summary banner (HIGH chờ nhận, đơn nên bắt đầu, đơn đang giữ/5), cột aging + SLA + assignee,
-  sắp xếp score → SLA → aging, tải thêm, chip filter, tìm Order ID có kiểm tra định dạng, mô phỏng hai người cùng nhận một đơn.
-- Capacity 5 đơn: cảnh báo từ đơn thứ 4, khoá khi đủ 5; Manager override phải tích xác nhận và ghi lý do.
-- Liên lạc tối đa 3 lần, cách nhau 1 ngày làm việc; hết lượt thì khoá form và hướng dẫn bỏ qua.
-- SLA: HIGH 4 giờ, MEDIUM 1 ngày, LOW 2 ngày; escalation khi nằm queue ≥ 2 ngày; cảnh báo khi đang xử lý ≥ 1 ngày không cập nhật.
-- Dashboard: bộ lọc có Áp dụng/Đặt lại, 6 thẻ chỉ số, tỷ lệ hoàn tất/bỏ qua/không liên lạc được, phân bố theo score band,
-  seller/ngành hàng, workload và slot còn lại, danh sách cần can thiệp, phân công/override gần đây; bấm vào số liệu để mở Queue đã lọc sẵn.
-- Không có chỗ nào sửa risk score; Manager chỉ có "Ghi chú model review".
+- **Góp ý giảng viên 13/10 (Overview của Manager):** mỗi con số phải trả lời "rồi Manager làm gì" và cho thấy hệ thống giúp chăm sóc khách tốt hơn.
+  - Đầu trang là khối **"Hôm nay cần làm"**: liệt kê việc theo mức ảnh hưởng tới khách (giao đơn HIGH, chuyển bớt việc cho người quá tải,
+    nhắc đơn lâu không cập nhật, ra quyết định, seller dồn rủi ro), mỗi việc có lý do và nút đi thẳng tới chỗ xử lý.
+  - Khối **"Chất lượng chăm sóc khách hàng"**: tỷ lệ khách được chủ động liên hệ, liên hệ lần đầu trong hạn SLA, thời gian tới lần liên hệ đầu,
+    vấn đề phát hiện trước khi khách đánh giá.
+  - 5 thẻ số ngang nhau gộp thành thanh **"Tiến độ xử lý"**. Biểu đồ theo ngày có câu nhận xét. Bảng khoảng score thu vào mục "Xem theo khoảng score".
+  - API: `GET /dashboard` thêm `service` và `actions` (API contract v0.2, mục `GET /dashboard`).
+
+- **Thiết kế lại giao diện 14/10 (chỉ đổi giao diện, logic và API giữ nguyên):**
+  - Bộ màu mới khai báo một chỗ ở đầu `css/style.css` (biến `--ink-*`, `--accent`, `--high/--med/--low`…): thanh điều hướng màu mực, nền giấy ấm,
+    màu nhấn tím. Đỏ / hổ phách / xanh lá vẫn chỉ dành cho mức rủi ro và quá hạn. Không dùng gradient.
+  - Font Be Vietnam Pro (thiết kế cho tiếng Việt) + JetBrains Mono cho mã đơn.
+  - Đăng nhập: bên trái là minh hoạ 3 đơn đều giao đúng hạn, một đơn bị model đánh dấu "dự báo 1–2 sao".
+  - Overview viết lại cho trực quan, ít chữ: khối "đơn HIGH chưa có người nhận" dẫn mắt (kèm ai còn chỗ trống), 3 ô số có biểu đồ nhỏ, việc cần làm một dòng,
+    biểu đồ ngày, vòng phân bố mức + thanh tiến độ, 4 vòng chất lượng chăm sóc, ô capacity từng nhân viên, thanh rủi ro theo seller. Bộ lọc ẩn sau nút "Bộ lọc".
+  - Risk Queue: ô quan trọng nhất của banner nền mực (Manager: HIGH chờ giao; nhân viên: Nên bắt đầu). Bảng vừa khung từ 1280px.
 
 ## Điểm cần nhóm chốt
 
-- **Lệch BRD 3.2:** Manager cần xem "Tổng số risk orders theo thời gian", nhưng FRD F01 bỏ sót và Dashboard chưa có biểu đồ theo thời gian.
-   Cần bổ sung vào FRD trước rồi mới vẽ.
-- **Ngôn ngữ giao diện:** prototype đang để tiếng Anh thống nhất (xem bảng thuật ngữ ở trên); nhóm chốt Anh hay Việt.
-
-1. **Outcome "Không liên lạc được sau khi hết retry" (BRD 6.5) và luật "sau lần 3 chuyển SKIPPED" (BRD 6.6) chồng nhau.**
-   Prototype hiện cho cả hai: hướng dẫn chính là Bỏ qua, còn outcome kia chỉ chọn được khi đã đủ 3 lần.
-2. Mở lại một case thì giữ hay đặt lại bộ đếm liên lạc? Prototype đang giữ nguyên lịch sử và bộ đếm.
-3. SLA tính từ lúc vào queue tới lúc đóng, hay chỉ tới lúc được nhận (first-touch)? Prototype tính tới lúc đóng.
+1. **Outcome "Không liên lạc được sau khi hết retry" (BRD 6.5) và luật "hết lượt thì chuyển SKIPPED" (BRD 6.6 mục 3) vẫn chồng nhau.**
+   Prototype cho cả hai và không tự chuyển SKIPPED.
+2. Trang Quyết định, nhận xét, minh chứng liên lạc, trang hồ sơ **chưa có trong BRD/FRD**: cần BA bổ sung (danh mục quyết định, minh chứng bắt buộc hay không, ai được nhận xét).
+3. Tham số BRD 6.7 có nhưng F10-S02 chưa liệt kê (SLA nhận đơn, ngưỡng cảnh báo capacity, "sắp hạn", quá lâu không cập nhật, escalation, xem xét khi mở lại): có cho Manager sửa không.
 4. Danh mục lý do bỏ qua cần Product Owner duyệt.
-5. Prototype tính SLA theo giờ đồng hồ; bản thật cần business calendar (giờ làm việc, ngày lễ).
+5. Prototype tính SLA theo giờ đồng hồ kể cả khi chọn "Giờ làm việc"; bản thật cần lịch làm việc, ngày lễ.
 
-## Dữ liệu mỗi đơn (đề xuất, chưa chốt với bên ML)
+## Dữ liệu mỗi sản phẩm (đề xuất, chưa chốt với bên ML)
 
 ```
-order_id · risk_score · risk_level · top_factors · suggested_action · model_version · predicted_at · threshold_version
+product_item_id · order_id · product_id · category · price · weight_g · photos
+risk_score · risk_level · top_factors · suggested_action · model_version · predicted_at · synthetic_data_flag · data_source
 ```
+
+Điểm của đơn = tổng hợp từ điểm sản phẩm theo `aggregation_rule` (đề xuất `max-v1`).
 
 Hệ thống chỉ đưa ra gợi ý để ưu tiên kiểm tra. Mọi quyết định xử lý do người dùng đưa ra.

@@ -1,8 +1,10 @@
 // =========================================================
 // mock-data.js
-// DỮ LIỆU GIẢ cho backend giả (mock-server.js), bám theo logical data object của FRD mục 4.1:
-//   Order Risk Case · Review Assignment · Review Status · Review Activity
-//   Review Outcome · Audit Event · User/Role · Threshold Configuration
+// DỮ LIỆU GIẢ cho backend giả (mock-server.js), bám theo logical data object của FRD v2.0 mục 4.1:
+//   Order Risk Case · Product Item Risk Output · Order Risk Aggregation · Review Cycle
+//   Review Assignment · Review Status · Review Activity · Review Outcome · Audit Event
+//   User/Role · Parameter Configuration
+// Thêm theo feedback giao diện 13/10 (chưa có trong FRD, chờ BA bổ sung): Case Comment, Manager Decision, Contact Evidence.
 // Frontend KHÔNG đọc file này trực tiếp; mọi dữ liệu đi qua js/api.js theo API_CONTRACT_olist_hidden_dissatisfaction.md.
 // Khi có backend thật thì bỏ file này cùng mock-server.js.
 // =========================================================
@@ -12,31 +14,47 @@ var MOCK_DB = (function () {
   // Thời điểm "hiện tại" giả lập (thứ Hai 04/06/2018) để tính SLA, aging cho ổn định khi xem prototype
   var now = "2018-06-04 14:00";
 
-  // ---------- Threshold Configuration (BRD 6.3, 6.6, 6.7) ----------
-  // Initial configuration, có version. Bản thật đọc từ backend, đổi phải có owner + lịch sử.
-  var config = {
-    version: "cfg-v1 (effective 2018-05-01, owner: Product Owner)",
-    threshold_version: "thr-v1",
-    high_from: 0.70,          // score >= 0.70 → HIGH
-    medium_from: 0.45,        // 0.45 <= score < 0.70 → MEDIUM, còn lại LOW
-    capacity: 5,              // tối đa 5 active orders / Specialist
-    capacity_warn: 4,         // từ đơn thứ 4 hiện cảnh báo
-    max_contact: 3,           // tối đa 3 lần liên lạc
-    retry_gap_days: 1,        // cách nhau 1 ngày làm việc
-    sla_hours: { HIGH: 4, MEDIUM: 24, LOW: 48 },   // prototype tính theo giờ đồng hồ; bản thật theo business calendar
-    soon_hours: 2,            // còn dưới 2 giờ → "Sắp quá hạn"
-    stale_hours: 24,          // IN_PROGRESS 1 ngày không cập nhật → cảnh báo Manager
-    aging_days: 2,            // nằm queue 2 ngày → escalation queue
-    reopen_review_days: 7,    // mở lại sau 7 ngày ...
-    reopen_review_times: 2    // ... hoặc quá 2 lần → Manager review bắt buộc
-  };
+  // ---------- Ngưỡng HIGH/MEDIUM: thuộc model (threshold version), Manager KHÔNG sửa được (BRD 6.1) ----------
+  var threshold = { threshold_version: "thr-v1", high_from: 0.70, medium_from: 0.45 };
+
+  // ---------- Parameter Configuration (BRD 6.9, FRD F10) ----------
+  // Mỗi dòng là một phiên bản của một tham số. Giá trị đang hiệu lực = phiên bản mới nhất có effective_at <= giờ hiện tại.
+  // Phiên bản có effective_at ở tương lai là "đã lên lịch". Không sửa/xoá dòng cũ, chỉ thêm dòng mới.
+  // brd: true = BRD 6.9/F10-S02 có nêu; false = đề xuất bổ sung (BRD 6.7 có quy tắc nhưng F10-S02 chưa liệt kê).
+  var PARAM_DEFS = [
+    { key: "sla_calendar",        unit: "enum",  brd: true,  value: "CALENDAR" },        // CALENDAR = giờ đồng hồ, BUSINESS_HOURS = giờ làm việc
+    { key: "sla_hours_high",      unit: "hours", brd: true,  value: 4 },
+    { key: "sla_hours_medium",    unit: "hours", brd: true,  value: 24 },
+    { key: "sla_hours_low",       unit: "hours", brd: true,  value: 48 },
+    { key: "first_touch_hours",   unit: "hours", brd: false, value: 2 },
+    { key: "capacity",            unit: "orders", brd: true, value: 5 },
+    { key: "capacity_warn",       unit: "orders", brd: false, value: 4 },
+    { key: "max_contact",         unit: "times", brd: true,  value: 3 },
+    { key: "retry_gap_days",      unit: "days",  brd: true,  value: 1 },
+    { key: "soon_hours",          unit: "hours", brd: false, value: 2 },
+    { key: "stale_hours",         unit: "hours", brd: false, value: 24 },
+    { key: "aging_days",          unit: "days",  brd: false, value: 2 },
+    { key: "reopen_review_days",  unit: "days",  brd: false, value: 7 },
+    { key: "reopen_review_times", unit: "times", brd: false, value: 2 }
+  ];
+  var params = [];
+  for (var p = 0; p < PARAM_DEFS.length; p++) {
+    params.push({ key: PARAM_DEFS[p].key, value: PARAM_DEFS[p].value, version: 1, effective_at: "2018-05-01 00:00",
+      actor: "u4", created_at: "2018-04-30 17:00", reason: "Initial configuration approved by Product Owner" });
+  }
+  // Lịch sử thay đổi: tăng SLA của MEDIUM (đã hiệu lực) và tăng capacity (lên lịch, chưa hiệu lực)
+  params.push({ key: "sla_hours_medium", value: 24, version: 2, effective_at: "2018-05-21 08:00", actor: "u4",
+    created_at: "2018-05-18 16:30", reason: "Keep 24 h after the trial week; explicit version for the audit" });
+  params.push({ key: "capacity", value: 6, version: 2, effective_at: "2018-06-08 08:00", actor: "u4",
+    created_at: "2018-06-04 09:50", reason: "Afternoon shift added from 8 June" });
 
   // ---------- User/Role ----------
+  // preferred_language: ngôn ngữ giao diện lưu theo user (FRD F11-S01)
   var users = [
-    { id: "u1", full_name: "Nguyễn Văn A", role: "SPECIALIST" },
-    { id: "u2", full_name: "Trần Thị B",   role: "SPECIALIST" },
-    { id: "u3", full_name: "Lê Văn C",     role: "SPECIALIST" },
-    { id: "u4", full_name: "Phạm Văn D",   role: "MANAGER" }
+    { id: "u1", full_name: "Nguyễn Văn A", role: "SPECIALIST", username: "nhanvien3", preferred_language: "vi", created_at: "2018-04-20 09:00" },
+    { id: "u2", full_name: "Trần Thị B",   role: "SPECIALIST", username: "nhanvien",  preferred_language: null, created_at: "2018-04-20 09:00" },
+    { id: "u3", full_name: "Lê Văn C",     role: "SPECIALIST", username: "nhanvien2", preferred_language: null, created_at: "2018-04-22 09:00" },
+    { id: "u4", full_name: "Phạm Văn D",   role: "MANAGER",    username: "quanly",    preferred_language: null, created_at: "2018-04-18 09:00" }
   ];
 
   // Tài khoản mẫu: tạo sẵn, không có đăng ký.
@@ -44,6 +62,7 @@ var MOCK_DB = (function () {
   var accounts = [
     { username: "nhanvien",  password: "123456", user_id: "u2" },   // Specialist đang giữ 3/5
     { username: "nhanvien2", password: "123456", user_id: "u3" },   // Specialist đã đủ 5/5
+    { username: "nhanvien3", password: "123456", user_id: "u1" },   // Specialist đã lưu ngôn ngữ tiếng Việt
     { username: "quanly",    password: "123456", user_id: "u4" }    // Manager
   ];
 
@@ -74,13 +93,12 @@ var MOCK_DB = (function () {
       queued_at: "2018-06-04 12:30", status: "PENDING", assignee: null, updated_at: "2018-06-04 12:30" },
 
     // Cùng score với đơn trên nhưng gần quá SLA hơn → đứng trước (tie-breaker BRD 6.2).
-    // _conflict: giả lập có người khác vừa nhận trước (FRD F05-S03).
     { order_id: "7f3e2a1b0c9d4e8f7a6b5c4d3e2f1a0b", risk_score: 0.78, risk_level: "HIGH",
       top_factors: ["Order has items from 2 different sellers", "Category Computers & accessories has a high low-rating rate"],
       seller_id: "da8622b14eb17ae2831f4ac5b9dab84a", category: "computers_accessories", customer_city: "Belo Horizonte", customer_state: "MG",
       order_value: 312.40, freight: 27.90,
       purchase_at: "2018-05-22", approved_at: "2018-05-22", carrier_at: "2018-05-24", delivered_at: "2018-06-03", estimated_at: "2018-06-08",
-      queued_at: "2018-06-04 10:45", status: "PENDING", assignee: null, updated_at: "2018-06-04 10:45", _conflict: true },
+      queued_at: "2018-06-04 10:45", status: "PENDING", assignee: null, updated_at: "2018-06-04 10:45" },
 
     { order_id: "2b4d6f8a0c1e4a3b5d7f9a1c3e5b7d90", risk_score: 0.81, risk_level: "HIGH",
       top_factors: ["Seller took 6 days to hand over to the carrier", "Category Furniture & decor has a high low-rating rate"],
@@ -110,12 +128,13 @@ var MOCK_DB = (function () {
       purchase_at: "2018-05-12", approved_at: "2018-05-12", carrier_at: "2018-05-15", delivered_at: "2018-05-31", estimated_at: "2018-06-05",
       queued_at: "2018-06-02 10:00", status: "IN_PROGRESS", assignee: "u2", updated_at: "2018-06-03 11:00" },
 
+    // _conflict: giả lập có người khác vừa nhận trước (FRD F05-S03). Đơn MEDIUM vì Specialist không tự nhận HIGH (BRD 6.3).
     { order_id: "9b7a6c5d4e3f4a2b9c8d7e6f5a4b3c21", risk_score: 0.66, risk_level: "MEDIUM",
       top_factors: ["Seller took 2 days to hand over to the carrier", "Category Computers & accessories has a high low-rating rate"],
       seller_id: "da8622b14eb17ae2831f4ac5b9dab84a", category: "computers_accessories", customer_city: "Belo Horizonte", customer_state: "MG",
       order_value: 139.90, freight: 19.80,
       purchase_at: "2018-05-20", approved_at: "2018-05-20", carrier_at: "2018-05-22", delivered_at: "2018-06-01", estimated_at: "2018-06-09",
-      queued_at: "2018-06-03 09:00", status: "PENDING", assignee: null, updated_at: "2018-06-03 09:00" },
+      queued_at: "2018-06-03 09:00", status: "PENDING", assignee: null, updated_at: "2018-06-03 09:00", _conflict: true },
 
     { order_id: "0e1f2a3b4c5d4e6f7a8b9c0d1e2f3a4b", risk_score: 0.63, risk_level: "MEDIUM",
       top_factors: ["New seller with fewer than 10 past orders", "Shipping fee higher than 55% of orders"],
@@ -203,17 +222,82 @@ var MOCK_DB = (function () {
       queued_at: "2018-05-30 09:00", status: "COMPLETED", assignee: "u1", outcome: "NO_ISSUE", updated_at: "2018-05-31 11:00" }
   ];
 
-  // Metadata model chung cho cả batch dự báo (FRD F04-S02)
+  // ---------- Product Item Risk Output (BRD 6.1 mục 2–3, FRD F04-S03) ----------
+  // Model chấm từng sản phẩm trong đơn; điểm của đơn = điểm sản phẩm cao nhất (aggregation rule "max-v1").
+  // product_item_id = order_id + "-" + order_item_id (theo bảng order_items của Olist).
+  // Chỉ dùng thuộc tính có trước mốc dự báo: ngành hàng, giá, phí ship, cân nặng, số ảnh.
+  // synthetic: dữ liệu chi tiết sản phẩm giả lập vì dữ liệu gốc thiếu (BRD 4.1), giao diện phải gắn nhãn.
+  var EXTRA_ITEMS = {
+    "a3f9c1e27b8d4e0f9c2b6d1e8f7a5c30": [
+      { category: "office_furniture", price: 289.90, weight_g: 14200, photos: 2, score: 0.91, first: true },
+      { category: "office_furniture", price: 129.00, weight_g: 6100, photos: 4, score: 0.62,
+        factors: ["Heavy item shipped over 1,500 km"] },
+      { category: "housewares", price: 41.00, weight_g: 900, photos: 1, score: 0.33, synthetic: true, factors: [] }
+    ],
+    "5e21b7d09a4c4f8e8b3d2a6c1f0e9d47": [
+      { category: "bed_bath_table", price: 139.00, weight_g: 2300, photos: 3, score: 0.84, first: true },
+      { category: "bed_bath_table", price: 50.00, weight_g: 700, photos: 1, score: 0.58, synthetic: true,
+        factors: ["Product has only 1 photo"] }
+    ],
+    "7f3e2a1b0c9d4e8f7a6b5c4d3e2f1a0b": [
+      { category: "computers_accessories", price: 249.90, weight_g: 1800, photos: 2, score: 0.78, first: true },
+      { category: "telephony", price: 62.50, weight_g: 300, photos: 5, score: 0.49,
+        factors: ["Item ships from a second seller"] }
+    ],
+    "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a": [
+      { category: "housewares", price: 59.50, weight_g: 1200, photos: 2, score: 0.58, first: true },
+      { category: "garden_tools", price: 38.00, weight_g: 2600, photos: 1, score: 0.44,
+        factors: ["Item ships from a second seller"] }
+    ],
+    "6a7b8c9d0e1f4a2b3c4d5e6f7a8b9c0d": [
+      { category: "office_furniture", price: 389.00, weight_g: 15800, photos: 3, score: 0.72, first: true, synthetic: true }
+    ]
+  };
+  function hexShift(id, n) {   // product_id giả nhưng cố định theo đơn
+    var h = "0123456789abcdef", s = id.substring(8) + id.substring(0, 8), out = "";
+    for (var k = 0; k < s.length; k++) out += h.charAt((h.indexOf(s.charAt(k)) + n) % 16);
+    return out;
+  }
+  function levelOf(score) { return score >= threshold.high_from ? "HIGH" : (score >= threshold.medium_from ? "MEDIUM" : "LOW"); }
+
   for (var i = 0; i < cases.length; i++) {
-    cases[i].model_version = "hd-model v0.3 (LightGBM)";
-    cases[i].predicted_at = cases[i].queued_at;
-    if (cases[i].reopen_count == null) cases[i].reopen_count = 0;
+    var c = cases[i];
+    // Metadata model chung cho cả batch dự báo (FRD F04-S02)
+    c.model_version = "hd-model v0.3 (LightGBM)";
+    c.predicted_at = c.queued_at;
+    c.aggregation_rule = "max-v1";
+    if (c.reopen_count == null) c.reopen_count = 0;
+    // Review Cycle (BRD 6.8): queued_at = mốc bắt đầu chu kỳ hiện tại; original_queued_at giữ lần vào queue đầu tiên
+    c.cycle_no = c.reopen_count + 1;
+    c.original_queued_at = c.queued_at;
+
+    var defs = EXTRA_ITEMS[c.order_id] || [{ category: c.category, price: Math.round((c.order_value - 0) * 100) / 100, weight_g: 1500, photos: 2, score: c.risk_score, first: true }];
+    c.items = [];
+    for (var j = 0; j < defs.length; j++) {
+      var d = defs[j];
+      c.items.push({
+        product_item_id: c.order_id + "-" + (j + 1),
+        product_id: hexShift(c.order_id, j + 1),
+        category: d.category, price: d.price, weight_g: d.weight_g, photos: d.photos,
+        risk_score: d.score, risk_level: levelOf(d.score),
+        top_factors: d.first ? c.top_factors : (d.factors || []),
+        suggested_action: { HIGH: "CONTACT", MEDIUM: "MONITOR", LOW: "NO_ACTION" }[levelOf(d.score)],
+        model_version: "hd-item v0.3 (LightGBM)", predicted_at: c.predicted_at,
+        synthetic_data_flag: !!d.synthetic, data_source: d.synthetic ? "synthetic_v1" : "olist_order_items"
+      });
+    }
+  }
+  // Đơn 7a8b9c0d đã mở lại 1 lần: chu kỳ 2 bắt đầu lúc mở lại, lần vào queue đầu tiên vẫn là 25/05
+  for (var r = 0; r < cases.length; r++) {
+    if (cases[r].order_id == "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d") cases[r].queued_at = "2018-06-02 09:00";
   }
 
   // ---------- Review Activity: mỗi lần liên lạc (BRD 6.6) ----------
+  // cycle: chu kỳ xử lý (mặc định 1). evidence: minh chứng đã liên lạc (feedback 13/10, chờ BA đưa vào FRD).
   var contacts = [
     { order_id: "5e21b7d09a4c4f8e8b3d2a6c1f0e9d47", at: "2018-06-04 11:30", user: "u2", method: "PHONE", result: "NO_ANSWER",
-      note: "Called twice, no answer", next_date: "2018-06-05" },
+      note: "Called twice, no answer", next_date: "2018-06-05",
+      evidence: [{ file_name: "call-log-0604-1130.png", file_type: "image/png", file_size: 84210 }], evidence_ref: "Call log #CL-20180604-117" },
 
     { order_id: "2b4d6f8a0c1e4a3b5d7f9a1c3e5b7d90", at: "2018-06-01 10:00", user: "u3", method: "PHONE", result: "NO_ANSWER", note: "", next_date: "2018-06-04" },
     { order_id: "2b4d6f8a0c1e4a3b5d7f9a1c3e5b7d90", at: "2018-06-02 10:30", user: "u3", method: "PHONE", result: "NO_ANSWER", note: "Number unreachable", next_date: "2018-06-03" },
@@ -227,8 +311,11 @@ var MOCK_DB = (function () {
     { order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", at: "2018-06-01 15:00", user: "u1", method: "PHONE", result: "REACHED",
       note: "Customer complained about dented packaging; forwarded to seller", next_date: "" },
 
+    { order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", at: "2018-05-26 10:00", user: "u2", method: "PHONE", result: "REACHED",
+      note: "Customer says the desk is fine", next_date: "", cycle: 1 },
     { order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", at: "2018-06-02 15:30", user: "u2", method: "PHONE", result: "REACHED",
-      note: "Customer is satisfied, only asked about warranty", next_date: "" },
+      note: "Customer is satisfied, only asked about warranty", next_date: "", cycle: 2,
+      evidence: [{ file_name: "email-confirmation.pdf", file_type: "application/pdf", file_size: 120330 }], evidence_ref: "" },
 
     { order_id: "b1c2d3e4f5a64b7c8d9e0f1a2b3c4d5e", at: "2018-05-28 10:00", user: "u1", method: "PHONE", result: "NO_ANSWER", note: "", next_date: "2018-05-29" },
     { order_id: "b1c2d3e4f5a64b7c8d9e0f1a2b3c4d5e", at: "2018-05-29 10:00", user: "u1", method: "MESSAGE", result: "NO_ANSWER", note: "", next_date: "2018-05-30" },
@@ -239,17 +326,17 @@ var MOCK_DB = (function () {
   // type: CLAIM, ASSIGN, REASSIGN, STATUS, CONTACT, SKIP, REOPEN, OVERRIDE, MODEL_NOTE
   var audits = [
     { at: "2018-05-25 10:00", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
-    { at: "2018-05-28 16:00", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · No issue", reason: "" },
+    { at: "2018-05-28 16:00", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · NO_ISSUE", reason: "" },
     { at: "2018-05-28 09:10", actor: "u1", order_id: "b1c2d3e4f5a64b7c8d9e0f1a2b3c4d5e", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Nguyễn Văn A", reason: "" },
     { at: "2018-05-30 10:20", actor: "u1", order_id: "b1c2d3e4f5a64b7c8d9e0f1a2b3c4d5e", type: "SKIP", old_value: "IN_PROGRESS", new_value: "SKIPPED", reason: "Unreachable after 3 attempts" },
     { at: "2018-05-30 09:30", actor: "u1", order_id: "d8e9f0a1b2c34d5e6f7a8b9c0d1e2f3a", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Nguyễn Văn A", reason: "" },
-    { at: "2018-05-31 11:00", actor: "u1", order_id: "d8e9f0a1b2c34d5e6f7a8b9c0d1e2f3a", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · No issue", reason: "" },
+    { at: "2018-05-31 11:00", actor: "u1", order_id: "d8e9f0a1b2c34d5e6f7a8b9c0d1e2f3a", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · NO_ISSUE", reason: "" },
     { at: "2018-06-01 08:20", actor: "u1", order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Nguyễn Văn A", reason: "" },
-    { at: "2018-06-01 15:10", actor: "u1", order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · Issue found", reason: "" },
+    { at: "2018-06-01 15:10", actor: "u1", order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · HAS_ISSUE", reason: "" },
     { at: "2018-06-01 09:40", actor: "u3", order_id: "2b4d6f8a0c1e4a3b5d7f9a1c3e5b7d90", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Lê Văn C", reason: "" },
     { at: "2018-06-02 09:00", actor: "u4", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "REOPEN", old_value: "COMPLETED", new_value: "PENDING", reason: "Customer emailed another complaint after the case was closed" },
     { at: "2018-06-02 09:30", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
-    { at: "2018-06-02 16:00", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · No issue", reason: "" },
+    { at: "2018-06-02 16:00", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · NO_ISSUE", reason: "" },
     { at: "2018-06-02 10:10", actor: "u2", order_id: "4c5d6e7f8a9b4c0d1e2f3a4b5c6d7e8f", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
     { at: "2018-06-03 13:20", actor: "u3", order_id: "0e1f2a3b4c5d4e6f7a8b9c0d1e2f3a4b", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Lê Văn C", reason: "" },
     { at: "2018-06-03 09:20", actor: "u2", order_id: "c4d5e6f7a8b94c0d1e2f3a4b5c6d7e8f", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
@@ -261,9 +348,35 @@ var MOCK_DB = (function () {
     { at: "2018-06-04 09:35", actor: "u4", order_id: "6a7b8c9d0e1f4a2b3c4d5e6f7a8b9c0d", type: "ASSIGN", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Lê Văn C", reason: "" },
     { at: "2018-06-04 10:35", actor: "u2", order_id: "9e0f1a2b3c4d4e5f6a7b8c9d0e1f2a3b", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
     { at: "2018-06-04 11:05", actor: "u2", order_id: "5e21b7d09a4c4f8e8b3d2a6c1f0e9d47", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
-    { at: "2018-06-04 11:30", actor: "u2", order_id: "5e21b7d09a4c4f8e8b3d2a6c1f0e9d47", type: "CONTACT", old_value: "0/3", new_value: "1/3 · No answer", reason: "" },
+    { at: "2018-06-04 11:30", actor: "u2", order_id: "5e21b7d09a4c4f8e8b3d2a6c1f0e9d47", type: "CONTACT", old_value: "0/3", new_value: "1/3 · NO_ANSWER", reason: "" },
     { at: "2018-06-04 12:00", actor: "u4", order_id: "a3f9c1e27b8d4e0f9c2b6d1e8f7a5c30", type: "MODEL_NOTE", old_value: "", new_value: "Flagged for model review", reason: "High score, but this seller has improved handover time over the last 2 weeks" }
   ];
 
-  return { now: now, config: config, users: users, accounts: accounts, cases: cases, contacts: contacts, audits: audits };
+  for (var q = 0; q < contacts.length; q++) {
+    if (contacts[q].cycle == null) contacts[q].cycle = 1;
+    if (contacts[q].evidence == null) contacts[q].evidence = [];
+    if (contacts[q].evidence_ref == null) contacts[q].evidence_ref = "";
+  }
+
+  // ---------- Nhận xét trên case (feedback 13/10: "nhận xét của nhân viên và quản lý") ----------
+  // Khác ghi chú của lần liên lạc (lời khách) và ghi chú model (gửi nhóm ML): đây là đánh giá nội bộ về case.
+  var comments = [
+    { order_id: "6a7b8c9d0e1f4a2b3c4d5e6f7a8b9c0d", at: "2018-06-04 10:05", user: "u3",
+      text: "Customer sounds unsure about the chair colour. Worth checking the seller's photos." },
+    { order_id: "6a7b8c9d0e1f4a2b3c4d5e6f7a8b9c0d", at: "2018-06-04 10:40", user: "u4",
+      text: "Agree. Call back after assembly as planned; if colour is wrong, offer to open a return request." },
+    { order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", at: "2018-06-01 15:05", user: "u1",
+      text: "Packaging dented on arrival. Product works, customer still annoyed." }
+  ];
+
+  // ---------- Quyết định của Manager (feedback 13/10: trang Decision) ----------
+  // decision: NO_FURTHER_ACTION | FOLLOW_UP_CUSTOMER | WORK_WITH_SELLER | REFER_AFTER_SALES
+  var decisions = [
+    { order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", at: "2018-06-01 16:30", actor: "u4", cycle: 1, decision: "WORK_WITH_SELLER",
+      next_step: "Send the packaging photos to seller 955fee92 and ask for better padding on housewares orders.", due_date: "2018-06-06",
+      note: "Second packaging complaint for this seller this month." }
+  ];
+
+  return { now: now, threshold: threshold, param_defs: PARAM_DEFS, params: params, users: users, accounts: accounts,
+    cases: cases, contacts: contacts, audits: audits, comments: comments, decisions: decisions };
 })();
