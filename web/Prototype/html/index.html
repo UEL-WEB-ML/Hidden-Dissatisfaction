@@ -6,7 +6,7 @@
   <title>Risk Queue · Hidden Dissatisfaction</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -15,99 +15,97 @@
 
   <div class="page" id="content">
     <h1>Risk Queue</h1>
-    <p class="sub">Orders delivered on time that may still get a 1–2 star review, in priority order.</p>
+    <p class="sub" data-vi="Đơn giao đúng hạn nhưng vẫn có thể bị đánh giá 1–2 sao, xếp theo thứ tự ưu tiên.">Orders delivered on time that may still get a 1–2 star review, in priority order.</p>
 
     <div class="note" lang="vi">F02. Màn mặc định của Specialist sau khi đăng nhập; Manager dùng chung màn này.
-      Chỉ có đơn đã giao đúng/sớm hạn, đã qua mốc xác nhận giao và chưa có review (mốc dự báo, BRD mục 7).
-      Risk score chỉ để ưu tiên kiểm tra, không phải kết luận nguyên nhân.</div>
+      Chỉ có đơn đã giao đúng/sớm hạn, đã qua mốc xác nhận giao và chưa có review (mốc dự báo).
+      Risk score của đơn là điểm tổng hợp từ các sản phẩm trong đơn (BRD 6.1 mục 3), chỉ để ưu tiên kiểm tra, không phải kết luận nguyên nhân.</div>
 
     <!-- F02-S01: Summary banner -->
     <div id="banner"></div>
-    <div class="note" lang="vi">F02-S01. Specialist: số HIGH đang Pending, đơn nên bắt đầu (đơn Pending đứng đầu thứ tự ưu tiên),
-      số đơn đang giữ/5 và slot còn lại. Từ đơn thứ 4 khung capacity chuyển vàng, đủ 5 thì xám đậm và khoá Claim.
-      Banner tính lại ngay sau claim, complete, skip, reassign. Manager thấy banner điều phối: bấm từng ô để lọc.
-      Nút đậm (primary) duy nhất của màn là "Claim" trong ô "Start with"; nút trong bảng đều là nút viền.</div>
+    <div class="note" lang="vi">F02-S01. Specialist: số HIGH đang chờ Manager giao, đơn nên bắt đầu (đơn Chờ nhận đứng đầu thứ tự ưu tiên
+      mà nhân viên được tự nhận, tức LOW/MEDIUM), và ô "Đang giữ".
+      Feedback 13/10: ô "Đang giữ" đổi thành biểu đồ vòng (phần đã giữ / capacity); từ ngưỡng cảnh báo vòng chuyển vàng, đủ capacity thì xám đậm và khoá Claim.
+      Capacity, ngưỡng cảnh báo lấy từ Parameter Configuration đang hiệu lực (GET /config), không ghi cứng.
+      Manager thấy banner điều phối 5 ô, thêm ô "Cần quyết định" dẫn sang trang Decisions.</div>
 
     <!-- F03: Search and Filter. 4 ô hay dùng luôn hiện, phần còn lại nằm trong "More filters" -->
     <div class="box filters" id="filters">
       <div class="f-row compact">
-        <label class="f-search">Order ID
-          <input id="f-q" type="search" placeholder="e.g. a3f9c1e2" autocomplete="off" oninput="onSearch()" aria-describedby="q-msg">
+        <label class="f-search"><span data-vi="Mã đơn hoặc mã sản phẩm">Order or product ID</span>
+          <input id="f-q" type="search" placeholder="e.g. a3f9c1e2" data-vi-ph="vd: a3f9c1e2" autocomplete="off" oninput="onSearch()" aria-describedby="q-msg">
           <span class="f-msg" id="q-msg" aria-live="polite"></span>
         </label>
         <button class="btn f-toggle" type="button" id="f-toggle" aria-expanded="false" aria-controls="f-rest" onclick="toggleFilters()">Filters</button>
         <div class="f-rest" id="f-rest">
-        <label>Risk level
+        <label><span data-vi="Mức rủi ro">Risk level</span>
           <select id="f-level" onchange="applyFilters()">
-            <option value="">All</option>
+            <option value="" data-vi="Tất cả">All</option>
             <option value="HIGH">HIGH</option>
             <option value="MEDIUM">MEDIUM</option>
             <option value="LOW">LOW</option>
           </select>
         </label>
-        <label>Status
+        <label><span data-vi="Trạng thái">Status</span>
           <select id="f-status" onchange="applyFilters()">
-            <option value="OPEN">Open (default)</option>
-            <option value="">All</option>
-            <option value="PENDING">Pending</option>
-            <option value="IN_PROGRESS">In progress</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="SKIPPED">Skipped</option>
+            <option value="OPEN" data-vi="Đang mở (mặc định)">Open (default)</option>
+            <option value="" data-vi="Tất cả">All</option>
+            <option value="PENDING" data-vi="Chờ nhận">Pending</option>
+            <option value="IN_PROGRESS" data-vi="Đang xử lý">In progress</option>
+            <option value="COMPLETED" data-vi="Hoàn tất">Completed</option>
+            <option value="SKIPPED" data-vi="Bỏ qua">Skipped</option>
           </select>
         </label>
         <label>SLA
           <select id="f-sla" onchange="applyFilters()">
-            <option value="">All</option>
-            <option value="over">Overdue</option>
-            <option value="soon">Due soon</option>
-            <option value="esc">Escalated (≥ 2 days)</option>
-            <option value="stale">No update ≥ 1 day</option>
+            <option value="" data-vi="Tất cả">All</option>
+            <option value="over" data-vi="Quá hạn">Overdue</option>
+            <option value="soon" data-vi="Sắp hạn">Due soon</option>
+            <option value="esc" id="opt-esc">Escalated</option>
+            <option value="stale" id="opt-stale">No update</option>
           </select>
         </label>
         <button class="btn more-btn" type="button" id="more-btn" aria-expanded="false" aria-controls="more-panel" onclick="toggleMore()">More filters</button>
-        <button class="btn" type="button" onclick="resetFilters()">Reset</button>
+        <button class="btn" type="button" onclick="resetFilters()" data-vi="Đặt lại">Reset</button>
         </div>
       </div>
       <div class="more-panel" id="more-panel" hidden>
         <div class="f-row">
-          <label>Score from
+          <label><span data-vi="Score từ">Score from</span>
             <input id="f-smin" type="number" min="0" max="1" step="0.05" placeholder="0" onchange="applyFilters()">
           </label>
-          <label>to
+          <label><span data-vi="đến">to</span>
             <input id="f-smax" type="number" min="0" max="1" step="0.05" placeholder="1" onchange="applyFilters()">
           </label>
-          <label>Queued from
+          <label><span data-vi="Vào queue từ">Queued from</span>
             <input id="f-from" type="date" onchange="applyFilters()">
           </label>
-          <label>to
+          <label><span data-vi="đến">to</span>
             <input id="f-to" type="date" onchange="applyFilters()">
           </label>
-          <label>Assignee
+          <label><span data-vi="Người phụ trách">Assignee</span>
             <select id="f-assignee" onchange="applyFilters()">
-              <option value="">All</option>
-              <option value="me">Me</option>
-              <option value="none">Unassigned</option>
+              <option value="" data-vi="Tất cả">All</option>
+              <option value="me" data-vi="Tôi">Me</option>
+              <option value="none" data-vi="Chưa ai nhận">Unassigned</option>
             </select>
           </label>
           <label>Seller
-            <select id="f-seller" onchange="applyFilters()"><option value="">All</option></select>
+            <select id="f-seller" onchange="applyFilters()"><option value="" data-vi="Tất cả">All</option></select>
           </label>
-          <label>Category
-            <select id="f-category" onchange="applyFilters()"><option value="">All</option></select>
+          <label><span data-vi="Ngành hàng">Category</span>
+            <select id="f-category" onchange="applyFilters()"><option value="" data-vi="Tất cả">All</option></select>
           </label>
-          <label>Outcome
-            <select id="f-outcome" onchange="applyFilters()"><option value="">All</option></select>
+          <label><span data-vi="Kết quả">Outcome</span>
+            <select id="f-outcome" onchange="applyFilters()"><option value="" data-vi="Tất cả">All</option></select>
           </label>
         </div>
       </div>
     </div>
-    <div class="note" lang="vi">F03. Progressive disclosure: luôn hiện 4 ô Specialist dùng hằng ngày (Order ID, mức rủi ro, trạng thái, SLA).
-      Score, ngày vào queue, người phụ trách, seller, ngành hàng, kết quả nằm trong "More filters"; nút hiện số filter đang bật bên trong,
-      và chip bên dưới luôn hiện mọi filter đang dùng nên không bị "giấu" điều kiện.
-      Trên điện thoại chỉ ô Order ID luôn hiện, các ô khác gập sau nút "Filters" (kèm số filter đang bật).
-      Ô sắp xếp ghi gọn "Priority (default)"; rê chuột xem thứ tự: score cao → SLA gần hạn → nằm queue lâu.
-      Lọc chạy ngay khi chọn, các điều kiện kết hợp AND, ghi lên địa chỉ trang (tải lại vẫn giữ, Dashboard drill-down được).
-      Tìm Order ID: chỉ nhận 0-9, a-f; sai định dạng báo ngay dưới ô; gõ đủ 32 ký tự thì có link mở thẳng Order Detail.</div>
+    <div class="note" lang="vi">F03. Progressive disclosure: luôn hiện 4 ô Specialist dùng hằng ngày (mã, mức rủi ro, trạng thái, SLA).
+      Score, ngày vào queue, người phụ trách, seller, ngành hàng, kết quả nằm trong "More filters"; chip bên dưới luôn hiện mọi filter đang dùng.
+      F03-S01 (FRD v2.0): ô tìm nhận cả mã đơn (0-9, a-f) và mã sản phẩm (mã đơn + "-1", "-2"…). Gõ đủ mã sản phẩm thì có link mở Order Detail
+      và tô sáng đúng sản phẩm đó. Lọc chạy ngay khi chọn, các điều kiện kết hợp AND, ghi lên địa chỉ trang.</div>
 
     <!-- F03-S04: chip filter đang áp dụng -->
     <div class="chips" id="chips" aria-live="polite"></div>
@@ -117,11 +115,12 @@
       <div class="tabs-bar" role="tablist" id="queue-tabs"></div>
       <div class="toolbar">
         <span id="count"></span>
-        <label>Sort by
-          <select id="f-sort" onchange="applyFilters()" title="Priority = risk score high → low, then SLA due soonest, then longest in queue">
-            <option value="">Priority (default)</option>
-            <option value="sla">SLA due soonest</option>
-            <option value="aging">Longest in queue</option>
+        <label><span data-vi="Sắp xếp">Sort by</span>
+          <select id="f-sort" onchange="applyFilters()" title="Priority = risk score high → low, then SLA due soonest, then longest in queue"
+            data-vi-title="Ưu tiên = score cao → thấp, rồi SLA gần hạn, rồi nằm queue lâu">
+            <option value="" data-vi="Ưu tiên (mặc định)">Priority (default)</option>
+            <option value="sla" data-vi="SLA gần hạn nhất">SLA due soonest</option>
+            <option value="aging" data-vi="Nằm queue lâu nhất">Longest in queue</option>
           </select>
         </label>
       </div>
@@ -132,15 +131,15 @@
       <table>
         <thead>
           <tr>
-            <th>Order ID</th>
+            <th data-vi="Mã đơn">Order ID</th>
             <th id="th-score"><button type="button" class="th-sort" onclick="setSort('')">Risk score</button></th>
-            <th>Level</th>
-            <th>Category</th>
+            <th data-vi="Mức">Level</th>
+            <th data-vi="Sản phẩm cần kiểm tra">Product to check</th>
             <th id="th-aging"><button type="button" class="th-sort" onclick="setSort('aging')">Aging</button></th>
             <th id="th-sla"><button type="button" class="th-sort" onclick="setSort('sla')">SLA</button></th>
-            <th>Status</th>
-            <th>Assignee</th>
-            <th>Action</th>
+            <th data-vi="Trạng thái">Status</th>
+            <th data-vi="Người phụ trách">Assignee</th>
+            <th data-vi="Thao tác">Action</th>
           </tr>
         </thead>
         <tbody id="queue-body"></tbody>
@@ -153,21 +152,22 @@
     <!-- F02-S05: tải thêm -->
     <div class="load-more" id="load-more"></div>
 
-    <div class="note" lang="vi">F02-S02..S04. Cột theo FRD: Order ID, score, level, ngành hàng (bỏ mã seller: chuỗi 32 ký tự không giúp Specialist, seller vẫn lọc được trong More filters và xem ở Order Detail), aging, SLA, status, assignee, action.
-      Bấm tiêu đề cột Risk score / Aging / SLA để sắp xếp (đồng bộ với ô "Sort by"); cột đang dùng có mũi tên và aria-sort.
-      Order ID rút gọn kèm nút biểu tượng sao chép mã đầy đủ (rê chuột không dùng được trên điện thoại).
-      Màu: mức rủi ro là icon ô vuông + cột sóng (kiểu priority của Linear) kèm chữ; chỉ "Overdue" được tô đỏ đặc.
-      Hành động theo vai và trạng thái: Specialist "Claim" ở đơn Pending (khoá khi đủ 5), "Continue" ở đơn mình đang giữ;
-      Manager "Assign" ở đơn Pending, "Reassign" ở đơn In progress. Đơn đã đóng chỉ có "View"; mở lại làm ở Order Detail.
-      Hai người cùng claim một đơn: chỉ người bấm trước được ghi nhận, người sau nhận thông báo lỗi (đứng yên tới khi tự đóng)
-      và danh sách tải lại (thử "Claim" ở đơn 7f3e2a1b).</div>
-    <div class="note" lang="vi">Tab "My orders" chỉ có với Specialist: lối tắt của filter "Assignee = Me", số cạnh tab là đơn đang giữ/5.</div>
+    <div class="note" lang="vi">F02-S02 (FRD v2.0). Risk score + mức = kết quả tổng hợp của đơn. Cột "Sản phẩm cần kiểm tra" = sản phẩm có score cao nhất trong đơn:
+      ngành hàng, mã sản phẩm, mức rủi ro riêng của sản phẩm, và "+n" nếu đơn còn sản phẩm khác. Sản phẩm có dữ liệu giả lập gắn nhãn xám.
+      Một đơn vẫn chỉ một dòng. Seller không còn cột riêng (32 ký tự không giúp Specialist), vẫn lọc được trong More filters và xem ở Order Detail.
+      <br>F02-S04 (BRD 6.3 mục 1): Specialist chỉ thấy "Claim" ở đơn LOW/MEDIUM; đơn HIGH Chờ nhận hiện nhãn "Chờ Manager giao".
+      Manager "Assign" ở đơn Chờ nhận (mọi mức), "Reassign" ở đơn Đang xử lý. Đơn đã đóng chỉ có "View"; mở lại làm ở Order Detail.
+      Hai người cùng claim một đơn: thử "Claim" ở đơn 9b7a6c5d.</div>
+    <div class="note" lang="vi">Tab "My orders" chỉ có với Specialist: lối tắt của filter "Assignee = Me", số cạnh tab là đơn đang giữ/capacity.</div>
     <div class="note" lang="vi">F02-S05. Mỗi lần tải 8 đơn, giữ nguyên lọc/sắp xếp, không trùng dòng.
-      Đang tải: banner và bảng hiện khung xám. Lỗi: khối thông báo kèm nút "Retry", không hiện bảng rỗng giả.
-      Thử bằng ô "Giả lập trạng thái" trong khung công cụ demo cuối trang.</div>
+      Đang tải: banner và bảng hiện khung xám. Lỗi: khối thông báo kèm nút "Retry", không hiện bảng rỗng giả.</div>
   </div>
 
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
   <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
     var PAGE_SIZE = 8;
@@ -175,24 +175,20 @@
     var FILTERS = ["q", "level", "smin", "smax", "status", "outcome", "seller", "category", "from", "to", "assignee", "sla", "sort"];
     var MORE = ["smin", "smax", "from", "to", "assignee", "seller", "category", "outcome"];   // nằm trong "More filters"
     var DEFAULTS = { status: "OPEN" };
+    var ITEM_ID = /^[0-9a-f]{32}-\d{1,3}$/;
 
     function el(id) { return document.getElementById(id); }
     function val(k) { return el("f-" + k).value; }
 
-    // ---------- Đổ lựa chọn cho các ô lọc ----------
-    function fillOptions() {
-      var sellers = [], cats = [];
-      for (var i = 0; i < cases.length; i++) {
-        if (sellers.indexOf(cases[i].seller_id) == -1) sellers.push(cases[i].seller_id);
-        if (cats.indexOf(cases[i].category) == -1) cats.push(cases[i].category);
-      }
-      cats.sort();
+    // ---------- Đổ lựa chọn cho các ô lọc (GET /orders/filter-options, GET /users) ----------
+    async function fillOptions() {
+      var r = await Promise.all([api.getFilterOptions(), api.listUsers("SPECIALIST")]);
+      var sellers = r[0].sellers, cats = r[0].categories, sp = r[1].items;
       for (var s = 0; s < sellers.length; s++) el("f-seller").innerHTML += '<option value="' + sellers[s] + '">' + shortId(sellers[s]) + "</option>";
       for (var c = 0; c < cats.length; c++) el("f-category").innerHTML += '<option value="' + cats[c] + '">' + catLabel(cats[c]) + "</option>";
-      for (var k in OUTCOME_LABEL) el("f-outcome").innerHTML += '<option value="O:' + k + '">Completed – ' + OUTCOME_LABEL[k] + "</option>";
-      for (var r in SKIP_LABEL) el("f-outcome").innerHTML += '<option value="S:' + r + '">Skipped – ' + SKIP_LABEL[r] + "</option>";
-      var sp = specialists();
-      for (var u = 0; u < sp.length; u++) el("f-assignee").innerHTML += '<option value="' + sp[u].id + '">' + sp[u].name + "</option>";
+      for (var k in OUTCOME_LABEL) el("f-outcome").innerHTML += '<option value="O:' + k + '">' + L("Completed – ", "Hoàn tất – ") + OUTCOME_LABEL[k] + "</option>";
+      for (var q in SKIP_LABEL) el("f-outcome").innerHTML += '<option value="S:' + q + '">' + L("Skipped – ", "Bỏ qua – ") + SKIP_LABEL[q] + "</option>";
+      for (var u = 0; u < sp.length; u++) el("f-assignee").innerHTML += '<option value="' + sp[u].user_id + '">' + sp[u].full_name + "</option>";
     }
 
     // ---------- Bộ lọc ↔ địa chỉ trang ----------
@@ -230,13 +226,13 @@
     }
     function renderMoreBtn() {
       var n = moreCount();
-      el("more-btn").innerHTML = "More filters" + (n ? '<span class="n">' + n + "</span>" : "");
-      // Nút "Filters" (chỉ hiện trên màn hẹp): số filter đang bật, trừ Order ID và trạng thái mặc định
+      el("more-btn").innerHTML = L("More filters", "Lọc thêm") + (n ? '<span class="n">' + n + "</span>" : "");
+      // Nút "Filters" (chỉ hiện trên màn hẹp): số filter đang bật, trừ ô tìm và trạng thái mặc định
       var all = 0;
       for (var i = 0; i < FILTERS.length; i++) if (FILTERS[i] != "q" && FILTERS[i] != "sort" && val(FILTERS[i]) != (DEFAULTS[FILTERS[i]] || "")) all++;
-      el("f-toggle").innerHTML = "Filters" + (all ? '<span class="n">' + all + "</span>" : "");
+      el("f-toggle").innerHTML = L("Filters", "Bộ lọc") + (all ? '<span class="n">' + all + "</span>" : "");
     }
-    // Màn hẹp: bộ lọc gập lại sau nút "Filters", chỉ ô Order ID luôn hiện
+    // Màn hẹp: bộ lọc gập lại sau nút "Filters", chỉ ô tìm luôn hiện
     function toggleFilters() {
       var box = el("filters"), open = !box.classList.contains("open");
       box.classList.toggle("open", open);
@@ -249,9 +245,9 @@
       if (isManager()) { el("queue-tabs").style.display = "none"; return; }
       var mine = val("assignee") == "me";
       el("queue-tabs").innerHTML =
-          '<button type="button" role="tab" aria-selected="' + !mine + '"' + (mine ? "" : ' class="active"') + ' onclick="setTab(false)">All</button>'
-        + '<button type="button" role="tab" aria-selected="' + mine + '"' + (mine ? ' class="active"' : "") + ' onclick="setTab(true)">My orders <span class="tab-count">'
-        + activeCount(me().id) + "/" + config.capacity + "</span></button>";
+          '<button type="button" role="tab" aria-selected="' + !mine + '"' + (mine ? "" : ' class="active"') + ' onclick="setTab(false)">' + L("All", "Tất cả") + "</button>"
+        + '<button type="button" role="tab" aria-selected="' + mine + '"' + (mine ? ' class="active"' : "") + ' onclick="setTab(true)">' + L("My orders", "Đơn của tôi") + ' <span class="tab-count">'
+        + ME.active_count + "/" + config.capacity + "</span></button>";
     }
     function resetFilters() {
       for (var i = 0; i < FILTERS.length; i++) el("f-" + FILTERS[i]).value = DEFAULTS[FILTERS[i]] || "";
@@ -259,7 +255,7 @@
     }
     function clearFilter(k) { el("f-" + k).value = DEFAULTS[k] || ""; applyFilters(); }
 
-    // F03-S01: kiểm tra định dạng Order ID
+    // F03-S01: kiểm tra định dạng mã đơn / mã sản phẩm
     function onSearch() {
       var q = val("q").trim().toLowerCase();
       el("f-q").value = q;
@@ -267,52 +263,20 @@
     }
     function searchError() {
       var q = val("q");
-      if (q != "" && !/^[0-9a-f]*$/.test(q)) return "Invalid format: an order ID only contains digits 0-9 and letters a-f.";
-      if (q.length > 32) return "Invalid format: an order ID is 32 characters long.";
+      if (q == "" || ITEM_ID.test(q)) return "";
+      var head = q.split("-")[0];
+      if (q.indexOf("-") != -1 && (head.length != 32 || !/^[0-9a-f]+$/.test(head))) return L("Invalid format: a product ID is the full 32-character order ID followed by -1, -2…", "Sai định dạng: mã sản phẩm là đủ 32 ký tự mã đơn kèm -1, -2…");
+      if (q.indexOf("-") != -1) return L("Invalid format: add the item number after the dash, e.g. -1.", "Sai định dạng: thêm số thứ tự sản phẩm sau dấu gạch, vd -1.");
+      if (!/^[0-9a-f]*$/.test(q)) return L("Invalid format: an order ID only contains digits 0-9 and letters a-f.", "Sai định dạng: mã đơn chỉ gồm số 0-9 và chữ a-f.");
+      if (q.length > 32) return L("Invalid format: an order ID is 32 characters long.", "Sai định dạng: mã đơn dài 32 ký tự.");
       return "";
     }
 
-    // ---------- Lọc ----------
-    function match(c) {
-      var q = val("q"), level = val("level"), status = val("status"), outcome = val("outcome");
-      var smin = val("smin"), smax = val("smax"), from = val("from"), to = val("to");
-      var assignee = val("assignee"), sla = val("sla");
-      if (q != "" && c.order_id.indexOf(q) != 0) return false;
-      if (level != "" && c.risk_level != level) return false;
-      if (smin != "" && c.risk_score < +smin) return false;
-      if (smax != "" && c.risk_score > +smax) return false;
-      if (status == "OPEN" && isClosed(c)) return false;
-      if (status != "" && status != "OPEN" && c.status != status) return false;
-      if (outcome != "") {
-        var kind = outcome.substring(0, 1), code = outcome.substring(2);
-        if (kind == "O" && !(c.status == "COMPLETED" && c.outcome == code)) return false;
-        if (kind == "S" && !(c.status == "SKIPPED" && c.skip_reason == code)) return false;
-      }
-      if (val("seller") != "" && c.seller_id != val("seller")) return false;
-      if (val("category") != "" && c.category != val("category")) return false;
-      if (from != "" && c.queued_at.substring(0, 10) < from) return false;
-      if (to != "" && c.queued_at.substring(0, 10) > to) return false;
-      if (assignee == "me" && c.assignee != me().id) return false;
-      if (assignee == "none" && c.assignee != null) return false;
-      if (assignee != "" && assignee != "me" && assignee != "none" && c.assignee != assignee) return false;
-      if (sla == "over" && slaState(c).code != "over") return false;
-      if (sla == "soon" && slaState(c).code != "soon") return false;
-      if (sla == "esc" && !isEscalated(c)) return false;
-      if (sla == "stale" && !isStale(c)) return false;
-      return true;
-    }
-
-    function sorted(list) {
-      var sort = val("sort");
-      list.sort(function (a, b) {
-        if (sort == "sla") {
-          var d = (isClosed(a) ? 1 : 0) - (isClosed(b) ? 1 : 0);   // đơn đã đóng không có SLA, để cuối
-          return d != 0 ? d : (parseTime(slaDue(a)) - parseTime(slaDue(b))) || byPriority(a, b);
-        }
-        if (sort == "aging") return (agingHours(b) - agingHours(a)) || byPriority(a, b);
-        return byPriority(a, b);
-      });
-      return list;
+    // ---------- Lọc: gửi lên backend (GET /orders), tên tham số = tên ô lọc ----------
+    function query() {
+      var q = {};
+      for (var i = 0; i < FILTERS.length; i++) q[FILTERS[i]] = val(FILTERS[i]);
+      return q;
     }
 
     // Tiêu đề cột: mũi tên + aria-sort chỉ ở cột đang dùng để sắp xếp
@@ -327,153 +291,186 @@
 
     // ---------- Chip filter (F03-S04) ----------
     function renderChips() {
-      var names = { q: "Order ID", level: "Level", smin: "Score ≥", smax: "Score ≤", status: "Status", outcome: "Outcome",
-        seller: "Seller", category: "Category", from: "From", to: "To", assignee: "Assignee", sla: "SLA", sort: "Sort" };
+      var names = { q: L("ID", "Mã"), level: L("Level", "Mức"), smin: "Score ≥", smax: "Score ≤", status: L("Status", "Trạng thái"), outcome: L("Outcome", "Kết quả"),
+        seller: "Seller", category: L("Category", "Ngành hàng"), from: L("From", "Từ"), to: L("To", "Đến"), assignee: L("Assignee", "Người phụ trách"), sla: "SLA", sort: L("Sort", "Sắp xếp") };
       var html = "";
       for (var i = 0; i < FILTERS.length; i++) {
         var k = FILTERS[i], v = val(k);
         if (v == (DEFAULTS[k] || "")) continue;
         var sel = el("f-" + k);
         var text = sel.tagName == "SELECT" ? sel.options[sel.selectedIndex].text : (k == "seller" ? shortId(v) : v);
-        html += '<span class="chip">' + names[k] + ": <b>" + text + '</b> <button type="button" aria-label="Remove filter ' + names[k]
+        html += '<span class="chip">' + names[k] + ": <b>" + text + '</b> <button type="button" aria-label="' + L("Remove filter ", "Bỏ lọc ") + names[k]
           + '" onclick="clearFilter(\'' + k + '\')">×</button></span>';
       }
-      if (html != "") html += '<a href="#" onclick="resetFilters(); return false;">Clear all</a>';
+      if (html != "") html += '<a href="#" onclick="resetFilters(); return false;">' + L("Clear all", "Xóa hết") + "</a>";
       el("chips").innerHTML = html;
     }
 
     // ---------- Hành động theo vai + trạng thái (F02-S04) ----------
     // Trong bảng chỉ dùng nút viền; nút đậm duy nhất là "Claim" ở banner "Start with".
+    var ORDERS = {};   // đơn đang hiện trên màn, tra theo order_id cho hộp thoại assign
     function actionCell(c) {
       var link = 'order.html?id=' + c.order_id;
       if (isManager()) {
-        if (c.status == "PENDING") return '<button class="btn sm" onclick="openAssign(\'' + c.order_id + '\', refresh)">Assign</button>';
-        if (c.status == "IN_PROGRESS") return '<button class="btn sm" onclick="openAssign(\'' + c.order_id + '\', refresh)">Reassign</button>';
-        return '<a class="btn sm" href="' + link + '">View</a>';
+        if (c.status == "PENDING") return '<button class="btn sm" onclick="assignOrder(\'' + c.order_id + '\')">' + L("Assign", "Giao đơn") + "</button>";
+        if (c.status == "IN_PROGRESS") return '<button class="btn sm" onclick="assignOrder(\'' + c.order_id + '\')">' + L("Reassign", "Chuyển người") + "</button>";
+        return '<a class="btn sm" href="' + link + '">' + L("View", "Xem") + "</a>";
+      }
+      if (c.status == "PENDING" && !c.self_claim_allowed) {
+        // BRD 6.3 mục 1: HIGH chỉ Manager giao
+        return '<span class="lock-tag" title="' + L("HIGH-risk orders are assigned by a manager", "Đơn HIGH do Manager giao") + '">' + L("Manager assigns", "Chờ Manager giao") + "</span>";
       }
       if (c.status == "PENDING") {
-        var full = activeCount(me().id) >= config.capacity;
-        return '<button class="btn sm" onclick="claim(\'' + c.order_id + '\')"' + (full ? ' disabled title="You already hold ' + config.capacity + ' orders"' : "") + ">Claim</button>";
+        var full = ME.active_count >= config.capacity;
+        return '<button class="btn sm" onclick="claim(\'' + c.order_id + '\')"' + (full ? ' disabled title="' + L("You already hold " + config.capacity + " orders", "Bạn đang giữ đủ " + config.capacity + " đơn") + '"' : "") + ">" + L("Claim", "Nhận") + "</button>";
       }
-      if (c.status == "IN_PROGRESS" && c.assignee == me().id) return '<a class="btn sm" href="' + link + '">Continue</a>';
-      return '<a class="btn sm" href="' + link + '">View</a>';
+      if (c.status == "IN_PROGRESS" && c.assignee_id == ME.user_id) return '<a class="btn sm" href="attempt.html?id=' + c.order_id + '">' + L("Continue", "Làm tiếp") + "</a>";
+      return '<a class="btn sm" href="' + link + '">' + L("View", "Xem") + "</a>";
+    }
+    function assignOrder(id) { openAssign(ORDERS[id], refresh); }
+
+    // "Sản phẩm cần kiểm tra": sản phẩm có score cao nhất trong đơn (FRD F02-S02)
+    function productCell(c) {
+      var t = c.top_item, more = c.items_count - 1;
+      return '<div class="prod">' + catLabel(t.category) + (t.synthetic_data_flag ? " " + synthTag() : "") + "</div>"
+        + '<div class="tiny prod-sub"><span class="id">' + shortItemId(t.product_item_id) + "</span> · " + t.risk_level + " " + t.risk_score.toFixed(2)
+        + (more > 0 ? ' · <span class="more-items">' + L("+" + more + " more", "+" + more + " sản phẩm") + "</span>" : "") + "</div>";
     }
 
-    function claim(id) {
-      var r = claimCase(id);
-      toast(r.msg, r.ok ? (r.warn ? "warn" : "ok") : "error");
+    // POST /orders/{id}/claim. 409 = người khác nhận trước, 422 = đã đủ capacity, 403 = đơn HIGH (API_CONTRACT 4.5)
+    async function claim(id) {
+      try {
+        var r = await api.claim(id);
+        var n = r.me.active_count, msg = L("Claimed order " + shortId(id) + ". You now hold " + n + "/" + config.capacity + ".", "Đã nhận đơn " + shortId(id) + ". Bạn đang giữ " + n + "/" + config.capacity + ".");
+        if (n >= config.capacity) msg += L(" Limit reached: complete or skip an order before claiming another.", " Đã đủ: hoàn tất hoặc bỏ qua một đơn rồi mới nhận thêm.");
+        else if (n >= config.capacity_warn) msg += L(" Almost at the limit: " + r.me.slots_left + " slot left.", " Sắp đủ: còn " + r.me.slots_left + " slot.");
+        toast(msg, n >= config.capacity_warn ? "warn" : "ok");
+      } catch (e) {
+        toast(e.code == "ALREADY_CLAIMED" ? e.message + L(" The list has been refreshed.", " Danh sách đã được tải lại.") : e.message, "error");
+      }
       refresh();
     }
 
-    // ---------- Summary banner (F02-S01) ----------
-    function renderBanner() {
-      var sim = simState();
-      if (sim == "loading") {
-        el("banner").innerHTML = '<div class="banner"><div class="b-cell sk-block">' + skeletonHtml(2) + '</div><div class="b-cell wide sk-block">'
-          + skeletonHtml(3) + '</div><div class="b-cell sk-block">' + skeletonHtml(2) + "</div></div>";
-        return;
-      }
-      if (sim == "error") { el("banner").innerHTML = ""; return; }   // lỗi hiện một lần ở vùng danh sách
-
-      var highPending = 0, highOver = 0, first = null, over = 0, esc = 0, stale = 0;
-      var list = cases.slice().sort(byPriority);
-      for (var i = 0; i < list.length; i++) {
-        var c = list[i];
-        if (c.status == "PENDING" && first == null) first = c;   // đơn chờ nhận đứng đầu thứ tự ưu tiên
-        if (c.status == "PENDING" && c.risk_level == "HIGH") { highPending++; if (slaState(c).code == "over") highOver++; }
-        if (slaState(c).code == "over") over++;
-        if (isEscalated(c)) esc++;
-        if (isStale(c)) stale++;
-      }
+    // ---------- Summary banner (F02-S01): GET /orders/summary ----------
+    async function renderBanner() {
+      el("banner").innerHTML = '<div class="banner"><div class="b-cell sk-block">' + skeletonHtml(2) + '</div><div class="b-cell wide sk-block">'
+        + skeletonHtml(3) + '</div><div class="b-cell sk-block">' + skeletonHtml(2) + "</div></div>";
+      var s;
+      try { s = await api.getQueueSummary(); }
+      catch (e) { el("banner").innerHTML = ""; return; }   // lỗi hiện một lần ở vùng danh sách
+      var first = s.first_pending;
+      if (first) ORDERS[first.order_id] = first;
+      var highIcon = '<span class="badge HIGH">' + levelIcon("HIGH") + "</span>";
 
       var html;
       if (isManager()) {
-        html = '<div class="banner kpis">'
-          + kpiCard({ href: "?level=HIGH&status=PENDING", icon: '<span class="badge HIGH">' + levelIcon("HIGH") + "</span>", label: "Pending HIGH", num: highPending,
-              sub: highOver > 0 ? '<b class="hi">' + highOver + " overdue</b>" : "All within SLA", action: "Assign" })
-          + kpiCard({ href: "?sla=over", tone: over ? "danger" : "neutral", icon: "clock", label: "Overdue SLA", num: over,
-              sub: "Past the SLA for their level", action: "View" })
-          + kpiCard({ href: "?sla=esc", tone: "dark", icon: "up", label: "Escalated", num: esc,
-              sub: "In queue ≥ " + config.aging_days + " days", action: "View" })
-          + kpiCard({ href: "?sla=stale", tone: "warn", icon: "hourglass", label: "Stale", num: stale,
-              sub: "In progress, no update ≥ 1 day", action: "View" })
+        html = '<div class="banner kpis five">'
+          + kpiCard({ href: "?level=HIGH&status=PENDING", cls: "lead", icon: highIcon, label: L("Pending HIGH", "HIGH chờ giao"), num: s.high_pending,
+              sub: s.high_pending_overdue > 0 ? '<b class="hi">' + L(s.high_pending_overdue + " overdue", s.high_pending_overdue + " quá hạn") + "</b>" : L("All within SLA", "Đều còn hạn SLA"), action: L("Assign", "Giao đơn") })
+          + kpiCard({ href: "?sla=over", tone: s.overdue ? "danger" : "neutral", icon: "clock", label: L("Overdue SLA", "Quá hạn SLA"), num: s.overdue,
+              sub: L("Past the SLA for their level", "Quá SLA theo mức rủi ro"), action: L("View", "Xem") })
+          + kpiCard({ href: "?sla=esc", tone: "dark", icon: "up", label: "Escalated", num: s.escalated,
+              sub: L("In queue ≥ " + config.aging_days + " days", "Nằm queue ≥ " + config.aging_days + " ngày"), action: L("View", "Xem") })
+          + kpiCard({ href: "?sla=stale", tone: "warn", icon: "hourglass", label: L("Stale", "Lâu không cập nhật"), num: s.stale,
+              sub: L("In progress, no update ≥ " + durationText(config.stale_hours), "Đang xử lý, ≥ " + durationText(config.stale_hours) + " không cập nhật"), action: L("View", "Xem") })
+          + kpiCard({ href: "decision.html", tone: "blue", icon: "gavel", label: L("Needs decision", "Cần quyết định"), num: s.needs_decision,
+              sub: L("Closed or out of attempts", "Đã đóng hoặc hết lượt liên lạc"), action: L("Decide", "Ra quyết định") })
           + "</div>";
       } else {
-        var u = me(), n = activeCount(u.id), left = slotsLeft(u.id);
+        var n = s.me.active_count, left = s.me.slots_left;
         var capCls = n >= config.capacity ? "full" : (n >= config.capacity_warn ? "warn" : "");
-        var capMsg = n >= config.capacity ? "Limit of " + config.capacity + " reached. Complete or skip an order to claim more."
-          : (n >= config.capacity_warn ? "Almost at the limit of " + config.capacity + "." : left + " slots left to claim.");
-        var start = first == null ? '<div class="b-label">No orders are waiting to be claimed.</div>'
+        var capMsg = n >= config.capacity ? L("Limit of " + config.capacity + " reached. Complete or skip an order to claim more.", "Đã đủ " + config.capacity + " đơn. Hoàn tất hoặc bỏ qua một đơn để nhận thêm.")
+          : (n >= config.capacity_warn ? L("Almost at the limit of " + config.capacity + ".", "Sắp đủ giới hạn " + config.capacity + " đơn.") : L(left + " slots left to claim.", "Còn " + left + " slot để nhận."));
+        var start = first == null ? '<div class="b-label">' + L("No LOW or MEDIUM orders are waiting to be claimed.", "Không còn đơn LOW/MEDIUM nào chờ nhận.") + "</div>"
           : '<div class="b-first">' + idLink(first.order_id, "order.html?id=" + first.order_id) + " "
             + badge(first.risk_level) + " <b>" + first.risk_score.toFixed(2) + "</b> · " + slaBadge(first) + "</div>"
-            + '<div class="b-label">' + (first.top_factors[0] || "No explanation yet") + "</div>"
-            + '<div class="b-actions"><button class="btn primary sm" onclick="claim(\'' + first.order_id + '\')"' + (n >= config.capacity ? " disabled" : "") + ">Claim</button> "
-            + '<a class="btn sm" href="order.html?id=' + first.order_id + '">View details</a></div>';
+            + '<div class="b-label">' + catLabel(first.top_item.category) + " · " + (first.top_factors[0] || L("No explanation yet", "Chưa có giải thích")) + "</div>"
+            + '<div class="b-actions"><button class="btn primary sm" onclick="claim(\'' + first.order_id + '\')"' + (n >= config.capacity ? " disabled" : "") + ">" + L("Claim", "Nhận") + "</button> "
+            + '<a class="btn sm" href="order.html?id=' + first.order_id + '">' + L("View details", "Xem chi tiết") + "</a></div>";
+        // Feedback 13/10: ô "Holding" thành biểu đồ vòng (đã giữ / capacity)
+        var holding = '<a class="kpi cap-donut tone-' + (capCls ? "cap-" + capCls : "blue") + '" href="?assignee=me">'
+          + '<div class="kpi-head"><span class="kpi-icon">' + icon("inbox") + '</span><span class="kpi-label">' + L("Holding", "Đang giữ") + "</span></div>"
+          + '<div class="cd-body">' + donut(n, config.capacity, capCls)
+          + '<div class="cd-legend"><div><span class="sw used ' + capCls + '"></span>' + L(n + " in progress", n + " đang xử lý") + "</div>"
+          + '<div><span class="sw free"></span>' + L(left + " free", left + " còn trống") + "</div></div></div>"
+          + '<div class="kpi-sub">' + capMsg + "</div>"
+          + '<div class="kpi-action">' + L("My orders", "Đơn của tôi") + ' <span aria-hidden="true">→</span></div></a>';
         html = '<div class="banner kpis">'
-          + kpiCard({ href: "?level=HIGH&status=PENDING", icon: '<span class="badge HIGH">' + levelIcon("HIGH") + "</span>", label: "Pending HIGH", num: highPending,
-              sub: highOver > 0 ? '<b class="hi">' + highOver + " overdue</b>" : "All within SLA", action: "View" })
-          + '<div class="b-cell wide"><div class="kpi-head"><span class="kpi-icon tone-blue">' + icon("target") + '</span><span class="kpi-label">Start with</span></div>' + start + "</div>"
-          + kpiCard({ href: "?assignee=me", tone: capCls ? "cap-" + capCls : "blue", cls: "cap", icon: "inbox", label: "Holding",
-              num: n + '<span class="kpi-of"> / ' + config.capacity + "</span>",
-              extra: '<div class="progress"><div style="width:' + (n / config.capacity * 100) + '%"></div></div>', sub: capMsg, action: "My orders" })
+          + kpiCard({ href: "?level=HIGH&status=PENDING", icon: highIcon, label: L("Pending HIGH", "HIGH chờ giao"), num: s.high_pending,
+              sub: s.high_pending_overdue > 0 ? '<b class="hi">' + L(s.high_pending_overdue + " overdue", s.high_pending_overdue + " quá hạn") + "</b> · " + L("waiting for a manager", "chờ Manager giao")
+                : L("Waiting for a manager to assign", "Chờ Manager giao"), action: L("View", "Xem") })
+          + '<div class="b-cell wide lead"><div class="kpi-head"><span class="kpi-icon tone-blue">' + icon("target") + '</span><span class="kpi-label">' + L("Start with", "Nên bắt đầu") + "</span></div>" + start + "</div>"
+          + holding
           + "</div>";
       }
       el("banner").innerHTML = html;
     }
 
     // ---------- Bảng + thẻ ----------
-    function render() {
+    var reqNo = 0;
+    function showLoading() {
+      el("count").innerHTML = L("Loading…", "Đang tải…");
+      el("load-more").innerHTML = "";
+      var sk = "";
+      for (var r = 0; r < 5; r++) sk += '<tr aria-hidden="true"><td colspan="9"><div class="sk-line" style="width:' + (96 - r * 7) + '%"></div></td></tr>';
+      el("queue-body").innerHTML = sk;
+      el("queue-cards").innerHTML = '<div class="card">' + skeletonHtml(3) + '</div><div class="card">' + skeletonHtml(3) + "</div>";
+    }
+
+    async function render() {
       renderChips();
       renderTabs();
       renderMoreBtn();
       renderSortHeaders();
-
-      // Giả lập trạng thái tải / lỗi (FRD F02-S05)
-      var sim = simState();
-      if (sim != "normal") {
-        el("count").innerHTML = sim == "loading" ? "Loading…" : "";
-        el("load-more").innerHTML = "";
-        if (sim == "loading") {
-          var sk = "";
-          for (var r = 0; r < 5; r++) sk += '<tr aria-hidden="true"><td colspan="9"><div class="sk-line" style="width:' + (96 - r * 7) + '%"></div></td></tr>';
-          el("queue-body").innerHTML = sk;
-          el("queue-cards").innerHTML = '<div class="card">' + skeletonHtml(3) + '</div><div class="card">' + skeletonHtml(3) + "</div>";
-        } else {
-          el("queue-body").innerHTML = '<tr><td colspan="9">' + errorHtml("the risk queue") + "</td></tr>";
-          el("queue-cards").innerHTML = errorHtml("the risk queue");
-        }
-        return;
-      }
 
       var err = searchError();
       var msg = el("q-msg");
       msg.className = "f-msg" + (err ? " error" : "");
       el("f-q").setAttribute("aria-invalid", err ? "true" : "false");
 
-      var list = [];
-      if (!err) for (var i = 0; i < cases.length; i++) if (match(cases[i])) list.push(cases[i]);
-      sorted(list);
+      var data = { items: [], total: 0 };
+      if (!err) {
+        var mine = ++reqNo;   // gõ nhanh nhiều ký tự: chỉ lấy kết quả của lần gọi cuối
+        if (el("queue-body").children.length == 0 || shown == PAGE_SIZE) showLoading();
+        try {
+          var q = query();
+          q.limit = shown; q.offset = 0;
+          data = await api.listOrders(q);   // GET /orders: backend lọc, sắp xếp, phân trang
+        } catch (e) {
+          if (mine != reqNo) return;
+          el("count").innerHTML = "";
+          el("load-more").innerHTML = "";
+          el("queue-body").innerHTML = '<tr><td colspan="9">' + errorHtml(L("the risk queue", "Risk Queue")) + "</td></tr>";
+          el("queue-cards").innerHTML = errorHtml(L("the risk queue", "Risk Queue"));
+          return;
+        }
+        if (mine != reqNo) return;
+      }
+      var list = data.items;
 
-      // Thông báo cho ô tìm Order ID
-      var q = val("q");
+      // Thông báo cho ô tìm
+      var qid = val("q");
       if (err) msg.innerHTML = err;
-      else if (q != "" && list.length == 0) msg.innerHTML = "No order starting with \"" + q + "\" in the current filters.";
-      else if (q.length == 32 && list.length == 1) msg.innerHTML = '<a href="order.html?id=' + q + '">Open this order →</a>';
+      else if (qid != "" && data.total == 0) msg.innerHTML = ITEM_ID.test(qid) ? L("No product with this ID in the current filters.", "Không có sản phẩm mã này trong bộ lọc hiện tại.")
+        : L("No order starting with \"" + qid + "\" in the current filters.", "Không có đơn nào bắt đầu bằng \"" + qid + "\" trong bộ lọc hiện tại.");
+      else if (ITEM_ID.test(qid) && data.total == 1) msg.innerHTML = '<a href="order.html?id=' + list[0].order_id + "&item=" + qid + '">' + L("Open this product in its order →", "Mở sản phẩm này trong đơn →") + "</a>";
+      else if (qid.length == 32 && data.total == 1) msg.innerHTML = '<a href="order.html?id=' + qid + '">' + L("Open this order →", "Mở đơn này →") + "</a>";
       else msg.innerHTML = "";
 
       var rows = "", cards = "";
-      for (var j = 0; j < list.length && j < shown; j++) {
+      for (var j = 0; j < list.length; j++) {
         var c = list[j];
-        var link = "order.html?id=" + c.order_id;
-        var who = c.assignee ? userName(c.assignee) + (c.assignee == me().id ? " (you)" : "") : '<span class="muted">Unassigned</span>';
+        ORDERS[c.order_id] = c;
+        var link = "order.html?id=" + c.order_id + (c.matched_item_id ? "&item=" + c.matched_item_id : "");
+        var who = c.assignee_id ? c.assignee_name + (c.assignee_id == ME.user_id ? L(" (you)", " (bạn)") : "") : '<span class="muted">' + L("Unassigned", "Chưa ai nhận") + "</span>";
         var aging = durationText(agingHours(c)) + escBadge(c);
         var st = statusBadge(c.status) + (outcomeText(c) ? '<div class="tiny">' + outcomeText(c) + "</div>" : "")
-          + (isStale(c) ? '<div class="tiny warn-text">No update for ≥ 1 day</div>' : "");
+          + (isStale(c) ? '<div class="tiny warn-text">' + L("No update for ≥ ", "≥ ") + durationText(config.stale_hours) + L("", " không cập nhật") + "</div>" : "");
         rows += '<tr class="' + c.risk_level + (isClosed(c) ? " done" : "") + '">'
           + "<td>" + idLink(c.order_id, link) + "</td>"
           + '<td class="num"><b class="score">' + c.risk_score.toFixed(2) + '</b><span class="mini"><div style="width:' + (c.risk_score * 100) + '%"></div></span></td>'
           + "<td>" + badge(c.risk_level) + "</td>"
-          + "<td>" + catLabel(c.category) + "</td>"
+          + "<td>" + productCell(c) + "</td>"
           + '<td class="num">' + aging + "</td>"
           + "<td>" + slaBadge(c) + "</td>"
           + "<td>" + st + "</td>"
@@ -482,33 +479,53 @@
           + "</tr>";
         cards += '<div class="card ' + c.risk_level + '">'
           + '<div class="row c-top">' + badge(c.risk_level) + " <b>" + c.risk_score.toFixed(2) + "</b> " + statusBadge(c.status) + "</div>"
-          + '<div class="row">' + idLink(c.order_id, link) + ' <span class="tiny">' + catLabel(c.category) + "</span></div>"
-          + '<dl class="c-meta"><dt>SLA</dt><dd>' + slaBadge(c) + "</dd><dt>Aging</dt><dd>" + aging + "</dd><dt>Assignee</dt><dd>" + who + "</dd></dl>"
+          + '<div class="row">' + idLink(c.order_id, link) + "</div>"
+          + '<div class="row">' + productCell(c) + "</div>"
+          + '<dl class="c-meta"><dt>SLA</dt><dd>' + slaBadge(c) + "</dd><dt>Aging</dt><dd>" + aging + "</dd><dt>" + L("Assignee", "Phụ trách") + "</dt><dd>" + who + "</dd></dl>"
           + '<div class="row">' + actionCell(c) + "</div>"
           + "</div>";
       }
       if (list.length == 0) {
-        var empty = (err ? "Fix the order ID to search." : "No orders match these filters.") + ' <a href="#" onclick="resetFilters(); return false;">Reset filters</a>';
+        var empty = (err ? L("Fix the ID to search.", "Sửa lại mã để tìm.") : L("No orders match these filters.", "Không có đơn nào khớp bộ lọc.")) + ' <a href="#" onclick="resetFilters(); return false;">' + L("Reset filters", "Đặt lại bộ lọc") + "</a>";
         rows = '<tr><td colspan="9" class="empty">' + empty + "</td></tr>";
         cards = '<div class="card empty">' + empty + "</div>";
       }
       el("queue-body").innerHTML = rows;
       el("queue-cards").innerHTML = cards;
-      el("count").innerHTML = "Showing <b>" + Math.min(shown, list.length) + "</b> of " + list.length;
-      el("load-more").innerHTML = list.length > shown
-        ? '<button class="btn" onclick="shown += PAGE_SIZE; render();">Load more (' + (list.length - shown) + " left)</button>"
-        : (list.length > 0 ? '<span class="muted">End of list.</span>' : "");
+      el("count").innerHTML = L("Showing <b>" + list.length + "</b> of " + data.total, "Đang hiện <b>" + list.length + "</b>/" + data.total);
+      el("load-more").innerHTML = data.total > list.length
+        ? '<button class="btn" onclick="loadMore(this)">' + L("Load more (" + (data.total - list.length) + " left)", "Tải thêm (còn " + (data.total - list.length) + ")") + "</button>"
+        : (list.length > 0 ? '<span class="muted">' + L("End of list.", "Hết danh sách.") + "</span>" : "");
     }
 
-    // Sau mỗi thao tác: tính lại banner, bảng và thanh điều hướng
-    function refresh() { renderBanner(); render(); renderTopbar("queue"); }
+    // F02-S05: tải thêm, giữ lọc/sắp xếp
+    function loadMore(btn) {
+      shown += PAGE_SIZE;
+      btn.disabled = true;
+      btn.innerHTML = L("Loading…", "Đang tải…");
+      render();
+    }
 
-    renderChrome("queue");
-    fillOptions();
-    readUrl();
-    toggleMore(moreCount() > 0);   // drill-down từ Dashboard có filter "ẩn" thì mở sẵn panel
-    renderBanner();
-    render();
+    // Sau mỗi thao tác: nạp lại người dùng (số đơn đang giữ), banner, bảng và thanh điều hướng
+    async function refresh() {
+      try { await reloadMe(); } catch (e) { }
+      renderTopbar("queue");
+      renderBanner();
+      render();
+    }
+
+    showLoading();   // hiện khung xám ngay, trong lúc chờ nạp tài khoản và cấu hình
+    boot("queue").then(async function () {
+      // Nhãn có số lấy từ tham số đang hiệu lực
+      el("opt-esc").innerHTML = L("Escalated (≥ " + config.aging_days + " days)", "Escalation (≥ " + config.aging_days + " ngày)");
+      el("opt-stale").innerHTML = L("No update ≥ " + durationText(config.stale_hours), "≥ " + durationText(config.stale_hours) + " không cập nhật");
+      renderBanner();
+      // Đổ lựa chọn trước rồi mới đọc filter trên địa chỉ trang, không thì ô seller/assignee chưa có option để chọn
+      try { await fillOptions(); } catch (e) { /* ô lọc phụ để trống, bảng vẫn chạy */ }
+      readUrl();
+      toggleMore(moreCount() > 0);   // drill-down từ Dashboard có filter "ẩn" thì mở sẵn panel
+      render();
+    }).catch(function () { });
   </script>
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Audit History · Hidden Dissatisfaction</title>
+  <title data-vi="Lịch sử thao tác · Hidden Dissatisfaction">Audit History · Hidden Dissatisfaction</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -14,27 +14,29 @@
   <nav class="topbar" id="topbar"></nav>
 
   <div class="page" id="content">
-    <h1>Audit History</h1>
-    <p class="sub">Who did what, on which order, when and why.</p>
+    <h1 data-vi="Lịch sử thao tác">Audit History</h1>
+    <p class="sub" data-vi="Ai làm gì, trên đơn nào, lúc nào và vì sao.">Who did what, on which order, when and why.</p>
 
     <div class="note" lang="vi">F09. Dành cho Manager và người được cấp quyền đọc. Thay cho màn "Action Tracking" cũ:
       việc ghi nhận liên lạc giờ nằm trong Order Detail (F07), còn màn này chỉ để truy vết.
-      Mỗi event lưu actor, thời gian, action, giá trị cũ, giá trị mới, lý do (BRD 6.8).</div>
+      Mỗi event lưu actor, thời gian, action, giá trị cũ, giá trị mới, lý do (BRD 6.8).
+      v0.2 thêm 3 loại: Nhận xét, Quyết định (feedback 13/10) và Đổi tham số (F09-S02, BRD 6.9). Đổi tham số không gắn với đơn nào
+      nên ở dạng Board nằm trong cột riêng "Đổi tham số".</div>
 
     <div class="box filters">
       <div class="f-row">
-        <label>Action type
-          <select id="f-type" onchange="render()"><option value="">All</option></select>
+        <label><span data-vi="Loại thao tác">Action type</span>
+          <select id="f-type" onchange="render()"><option value="" data-vi="Tất cả">All</option></select>
         </label>
-        <label>By
-          <select id="f-actor" onchange="render()"><option value="">All</option></select>
+        <label><span data-vi="Người làm">By</span>
+          <select id="f-actor" onchange="render()"><option value="" data-vi="Tất cả">All</option></select>
         </label>
-        <label>Order ID
-          <input id="f-order" type="search" placeholder="e.g. 8c9d0e1f" oninput="render()">
+        <label><span data-vi="Mã đơn">Order ID</span>
+          <input id="f-order" type="search" placeholder="e.g. 8c9d0e1f" data-vi-ph="vd: 8c9d0e1f" oninput="render()">
         </label>
-        <label class="check"><input type="checkbox" id="f-override" onchange="render()"> Overrides only (reassign, reopen, over capacity)</label>
+        <label class="check"><input type="checkbox" id="f-override" onchange="render()"> <span data-vi="Chỉ thao tác vượt quy tắc (chuyển người, mở lại, vượt capacity)">Overrides only (reassign, reopen, over capacity)</span></label>
         <span class="view-switch" role="group" aria-label="View">
-          <button type="button" id="v-board" onclick="setView('board')">Board</button><button type="button" id="v-table" onclick="setView('table')">Table</button>
+          <button type="button" id="v-board" onclick="setView('board')" data-vi="Bảng thẻ">Board</button><button type="button" id="v-table" onclick="setView('table')" data-vi="Bảng">Table</button>
         </span>
       </div>
     </div>
@@ -54,7 +56,7 @@
     <div class="box" id="table-view">
       <table>
         <thead>
-          <tr><th>Time</th><th>By</th><th>Order ID</th><th>Type</th><th>Old → new value</th><th>Reason</th></tr>
+          <tr><th data-vi="Thời gian">Time</th><th data-vi="Người làm">By</th><th data-vi="Mã đơn">Order ID</th><th data-vi="Loại">Type</th><th data-vi="Cũ → mới">Old → new value</th><th data-vi="Lý do">Reason</th></tr>
         </thead>
         <tbody id="log-body"></tbody>
       </table>
@@ -63,32 +65,36 @@
     <div class="note" lang="vi">F09-S03. Chỉ đọc: không có nút sửa, xoá hay xuất lại. Lịch sử không bao giờ bị xoá, kể cả khi đơn được mở lại.</div>
   </div>
 
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
   <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script>
     function el(id) { return document.getElementById(id); }
-    var OVERRIDE_TYPES = ["REASSIGN", "REOPEN", "OVERRIDE"];
     var view = "board";
     try { view = localStorage.getItem("wf-audit-view-3") || "board"; } catch (e) { }
 
     function setView(v) {
       view = v;
       try { localStorage.setItem("wf-audit-view-3", v); } catch (e) { }
-      render();
+      renderView();   // cả hai cách xem đã có dữ liệu, chỉ đổi cái đang hiện
     }
 
     function eventLine(e) {
-      return '<li><div class="ev-head"><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span> "
-        + '<span class="tiny">' + viTime(e.at) + " · " + userName(e.actor) + "</span></div>"
-        + '<div class="ev-val">' + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></div>"
-        + (e.reason ? '<div class="tiny">Reason: ' + e.reason + "</div>" : "") + "</li>";
+      return '<li><div class="ev-head"><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> "
+        + '<span class="tiny">' + viTime(e.created_at) + " · " + e.actor_name + "</span></div>"
+        + '<div class="ev-val">' + changeHtml(e.old_value, e.new_value) + "</div>"
+        + (e.reason ? '<div class="tiny">' + L("Reason: ", "Lý do: ") + humanValue(e.reason) + "</div>" : "") + "</li>";
     }
 
-    // Kanban: gom event đã lọc theo đơn, xếp đơn vào cột theo trạng thái hiện tại
+    // Kanban: gom event đã lọc theo đơn, xếp đơn vào cột theo trạng thái hiện tại (e.order do API trả kèm)
     function renderBoard(list) {
-      var byOrder = {}, orders = [];
+      var byOrder = {}, orders = [], params = "";
       for (var i = 0; i < list.length; i++) {
         var id = list[i].order_id;
+        if (!id) { params += eventLine(list[i]); continue; }   // đổi tham số: không gắn với đơn
         if (!byOrder[id]) { byOrder[id] = []; orders.push(id); }
         byOrder[id].push(list[i]);   // list đã mới nhất lên đầu
       }
@@ -96,67 +102,81 @@
       for (var c = 0; c < cols.length; c++) {
         var cards = "", n = 0;
         for (var j = 0; j < orders.length; j++) {
-          var o = findCase(orders[j]);
+          var ev = byOrder[orders[j]], o = ev[0].order;
           if (!o || o.status != cols[c]) continue;
           n++;
-          var ev = byOrder[orders[j]], all = auditsOf(o.order_id), over = false;
-          for (var k = 0; k < all.length; k++) if (OVERRIDE_TYPES.indexOf(all[k].type) != -1) over = true;
+          var total = o.event_count;
           var first = "", rest = "";
           for (var m = 0; m < ev.length; m++) (m < 3 ? (first += eventLine(ev[m])) : (rest += eventLine(ev[m])));
           cards += '<article class="k-card">'
-            + '<div class="k-top">' + idLink(o.order_id, "order.html?id=" + o.order_id) + " " + badge(o.risk_level)
-            + (over ? ' <span class="ev OVERRIDE">Override</span>' : "") + "</div>"
-            + '<div class="tiny">' + (o.assignee ? userName(o.assignee) : "Unassigned") + " · " + (ev.length == all.length ? all.length + (all.length == 1 ? " action" : " actions") : ev.length + " of " + all.length + " actions match") + "</div>"
+            + '<div class="k-top">' + idLink(orders[j], "order.html?id=" + orders[j]) + " " + badge(o.risk_level)
+            + (o.has_override ? ' <span class="ev OVERRIDE">' + EVENT_LABEL.OVERRIDE + "</span>" : "") + "</div>"
+            + '<div class="tiny">' + (o.assignee_name || L("Unassigned", "Chưa ai nhận")) + " · " + (ev.length == total ? total + L(total == 1 ? " action" : " actions", " thao tác") : L(ev.length + " of " + total + " actions match", ev.length + "/" + total + " thao tác khớp")) + "</div>"
             + '<ul class="k-events">' + first + "</ul>"
-            + (rest ? '<details><summary>Show all ' + ev.length + '</summary><ul class="k-events">' + rest + "</ul></details>" : "")
+            + (rest ? '<details><summary>' + L("Show all " + ev.length, "Xem cả " + ev.length) + '</summary><ul class="k-events">' + rest + "</ul></details>" : "")
             + "</article>";
         }
         html += '<section class="k-col" aria-labelledby="kc-' + cols[c] + '"><h2 id="kc-' + cols[c] + '">' + statusBadge(cols[c])
-          + ' <span class="k-count">' + n + "</span></h2>" + (cards || '<p class="empty">No orders.</p>') + "</section>";
+          + ' <span class="k-count">' + n + "</span></h2>" + (cards || '<p class="empty">' + L("No orders.", "Không có đơn.") + "</p>") + "</section>";
       }
+      if (params) html += '<section class="k-col k-params"><h2><span class="ev PARAMETER_CHANGE">' + EVENT_LABEL.PARAMETER_CHANGE + '</span></h2><article class="k-card"><ul class="k-events">' + params + "</ul>"
+        + '<a class="tiny" href="settings.html">' + L("Open Settings →", "Mở Cài đặt →") + "</a></article></section>";
       el("board").innerHTML = html;
+      el("board").className = "board" + (params ? " has-params" : "");
     }
 
-    function render() {
-      var type = el("f-type").value, actor = el("f-actor").value;
-      var order = el("f-order").value.trim().toLowerCase(), onlyOverride = el("f-override").checked;
-      var ev = auditsOf(null), rows = "", n = 0;
-      for (var i = 0; i < ev.length; i++) {
-        var e = ev[i];
-        if (type && e.type != type) continue;
-        if (actor && e.actor != actor) continue;
-        if (order && e.order_id.indexOf(order) != 0) continue;
-        if (onlyOverride && OVERRIDE_TYPES.indexOf(e.type) == -1) continue;
-        n++;
-        rows += "<tr><td>" + viTime(e.at) + "</td><td>" + userName(e.actor) + "</td>"
-          + "<td>" + idLink(e.order_id, "order.html?id=" + e.order_id) + "</td>"
-          + '<td><span class="ev ' + e.type + '">' + EVENT_LABEL[e.type] + "</span></td>"
-          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></td>"
-          + "<td>" + (e.reason || '<span class="muted">—</span>') + "</td></tr>";
-      }
-      var list = [];
-      for (var x = 0; x < ev.length; x++) {
-        var a = ev[x];
-        if ((!type || a.type == type) && (!actor || a.actor == actor) && (!order || a.order_id.indexOf(order) == 0)
-          && (!onlyOverride || OVERRIDE_TYPES.indexOf(a.type) != -1)) list.push(a);
-      }
+    function renderView() {
       el("v-board").className = view == "board" ? "active" : "";
       el("v-table").className = view == "table" ? "active" : "";
       el("v-board").setAttribute("aria-pressed", view == "board");
       el("v-table").setAttribute("aria-pressed", view == "table");
       el("board").style.display = view == "board" ? "" : "none";
       el("table-view").style.display = view == "table" ? "" : "none";
-      renderBoard(list);
-      el("log-body").innerHTML = rows || '<tr><td colspan="6" class="empty">No actions match these filters.</td></tr>';
-      el("log-count").innerHTML = n + " of " + audits.length + " events";
     }
 
-    renderChrome("audit");
-    if (requireManager()) {
-      for (var k in EVENT_LABEL) el("f-type").innerHTML += '<option value="' + k + '">' + EVENT_LABEL[k] + "</option>";
-      for (var u = 0; u < users.length; u++) el("f-actor").innerHTML += '<option value="' + users[u].id + '">' + users[u].name + "</option>";
-      render();
+    // Lọc ở backend: GET /audit-events?type&actor&order_id&override_only
+    var reqNo = 0;
+    async function render() {
+      renderView();
+      var order = el("f-order").value.trim().toLowerCase();
+      var mine = ++reqNo;   // gõ nhanh nhiều ký tự: chỉ lấy kết quả của lần gọi cuối
+      el("log-count").innerHTML = L("Loading…", "Đang tải…");
+      var data;
+      try {
+        data = await api.listAuditEvents({ event_type: el("f-type").value, actor_id: el("f-actor").value,
+          order_id: order, override_only: el("f-override").checked ? "true" : "" });
+      } catch (e) {
+        if (mine != reqNo) return;
+        el("board").innerHTML = errorHtml(L("the audit history", "lịch sử thao tác"));
+        el("log-body").innerHTML = '<tr><td colspan="6">' + errorHtml(L("the audit history", "lịch sử thao tác")) + "</td></tr>";
+        el("log-count").innerHTML = "";
+        return;
+      }
+      if (mine != reqNo) return;
+      var rows = "";
+      for (var i = 0; i < data.items.length; i++) {
+        var e = data.items[i];
+        rows += "<tr><td>" + viTime(e.created_at) + "</td><td>" + e.actor_name + "</td>"
+          + "<td>" + (e.order_id ? idLink(e.order_id, "order.html?id=" + e.order_id) : '<a href="settings.html">' + L("Settings", "Cài đặt") + "</a>") + "</td>"
+          + '<td><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span></td>"
+          + "<td>" + (e.old_value ? '<span class="old">' + humanValue(e.old_value) + "</span> → " : "") + "<b>" + humanValue(e.new_value) + "</b></td>"
+          + "<td>" + (e.reason ? humanValue(e.reason) : '<span class="muted">—</span>') + "</td></tr>";
+      }
+      renderBoard(data.items);
+      el("log-body").innerHTML = rows || '<tr><td colspan="6" class="empty">' + L("No actions match these filters.", "Không có thao tác nào khớp bộ lọc.") + "</td></tr>";
+      el("log-count").innerHTML = L(data.total + " of " + data.all_total + " events", data.total + "/" + data.all_total + " sự kiện");
     }
+
+    el("board").innerHTML = skeletonHtml(4);   // hiện khung xám ngay
+    boot("audit").then(async function () {
+      if (!requireManager()) return;
+      for (var k in EVENT_LABEL) el("f-type").innerHTML += '<option value="' + k + '">' + EVENT_LABEL[k] + "</option>";
+      try {
+        var users = (await api.listUsers()).items;
+        for (var u = 0; u < users.length; u++) el("f-actor").innerHTML += '<option value="' + users[u].user_id + '">' + users[u].full_name + "</option>";
+      } catch (e) { /* ô lọc người thao tác để trống, bảng vẫn tải */ }
+      render();
+    }).catch(function () { });
   </script>
 </body>
 </html>
