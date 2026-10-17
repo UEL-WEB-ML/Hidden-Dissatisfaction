@@ -1,0 +1,10 @@
+# Olist raw runtime data and acquisition manifest
+data/raw/olist/*.csv
+data/raw/olist/manifest.json
+
+# dbt local artifacts; profiles.yml is intentionally tracked
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml
+__pycache__/

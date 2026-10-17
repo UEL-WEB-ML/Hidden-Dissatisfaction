@@ -1,0 +1,12 @@
+name: hidden_dissatisfaction
+version: '1.0'
+config-version: 2
+profile: hidden_dissatisfaction
+model-paths: [models]
+models:
+  hidden_dissatisfaction:
+    +materialized: table
+    +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold

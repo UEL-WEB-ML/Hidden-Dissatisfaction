@@ -1,0 +1,1 @@
+with ranked as (select *, row_number() over (partition by source_run_id, order_id order by answer_at desc nulls last, creation_at desc nulls last, source_row_number desc) rn from {{ ref('order_reviews') }}) select * from ranked where rn=1
