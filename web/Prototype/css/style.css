@@ -865,7 +865,7 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 .q-flag svg { width: 14px; height: 14px; }
 
 /* Vòng phân bố mức rủi ro */
-.mix { display: flex; align-items: center; gap: 1.2em; }
+.mix { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em 1.2em; }
 .mix svg { flex: none; }
 .mix .m-seg { fill: none; stroke-width: 16; }
 .mix .m-seg.HIGH { stroke: var(--high); }
@@ -873,7 +873,7 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 .mix .m-seg.LOW { stroke: var(--low); }
 .mix .m-c1 { font-size: 26px; font-weight: 700; fill: var(--ink-900); font-family: var(--font); letter-spacing: -0.03em; }
 .mix .m-c2 { font-size: 10px; fill: var(--ink-500); font-family: var(--font); font-weight: 600; letter-spacing: 0.06em; }
-.mix-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35em; flex: 1; min-width: 0; }
+.mix-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35em; flex: 1 1 11em; min-width: 0; }
 .mix-legend a { display: grid; grid-template-columns: auto 1fr auto; gap: 0.6em; align-items: center; padding: 0.4em 0.5em; border-radius: 8px; color: inherit; text-decoration: none; font-size: 0.85rem; }
 .mix-legend a:hover { background: var(--surface-2); color: inherit; }
 .mix-legend b { font-variant-numeric: tabular-nums; }
