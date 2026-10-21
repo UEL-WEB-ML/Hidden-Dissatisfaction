@@ -105,7 +105,7 @@ var MOCK_DB = (function () {
       seller_id: "7c67e1448b00f6e969d365cea6b010ab", category: "furniture_decor", customer_city: "Recife", customer_state: "PE",
       order_value: 270.00, freight: 45.10,
       purchase_at: "2018-05-08", approved_at: "2018-05-08", carrier_at: "2018-05-14", delivered_at: "2018-05-31", estimated_at: "2018-06-06",
-      queued_at: "2018-06-01 09:00", status: "IN_PROGRESS", assignee: "u3", updated_at: "2018-06-03 10:00" },
+      queued_at: "2018-06-01 09:00", status: "SKIPPED", assignee: "u3", skip_reason: "UNREACHABLE", updated_at: "2018-06-03 10:00" },
 
     { order_id: "8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f", risk_score: 0.74, risk_level: "HIGH",
       top_factors: ["Shipping fee higher than 85% of orders", "Seller–customer distance over 2,500 km"],
@@ -334,6 +334,7 @@ var MOCK_DB = (function () {
     { at: "2018-06-01 08:20", actor: "u1", order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Nguyễn Văn A", reason: "" },
     { at: "2018-06-01 15:10", actor: "u1", order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · HAS_ISSUE", reason: "" },
     { at: "2018-06-01 09:40", actor: "u3", order_id: "2b4d6f8a0c1e4a3b5d7f9a1c3e5b7d90", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Lê Văn C", reason: "" },
+    { at: "2018-06-03 10:00", actor: "u3", order_id: "2b4d6f8a0c1e4a3b5d7f9a1c3e5b7d90", type: "SKIP", old_value: "IN_PROGRESS", new_value: "SKIPPED", reason: "UNREACHABLE: auto after attempt 3/3" },
     { at: "2018-06-02 09:00", actor: "u4", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "REOPEN", old_value: "COMPLETED", new_value: "PENDING", reason: "Customer emailed another complaint after the case was closed" },
     { at: "2018-06-02 09:30", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "CLAIM", old_value: "PENDING · (none)", new_value: "IN_PROGRESS · Trần Thị B", reason: "" },
     { at: "2018-06-02 16:00", actor: "u2", order_id: "7a8b9c0d1e2f4a3b4c5d6e7f8a9b0c1d", type: "STATUS", old_value: "IN_PROGRESS", new_value: "COMPLETED · NO_ISSUE", reason: "" },
@@ -369,10 +370,11 @@ var MOCK_DB = (function () {
       text: "Packaging dented on arrival. Product works, customer still annoyed." }
   ];
 
-  // ---------- Quyết định của Manager (feedback 13/10: trang Decision) ----------
+  // ---------- Quyết định của Manager (BRD 6.12, FRD F12) ----------
   // decision: NO_FURTHER_ACTION | FOLLOW_UP_CUSTOMER | WORK_WITH_SELLER | REFER_AFTER_SALES
   var decisions = [
     { order_id: "1d2c3b4a5f6e4d7c8b9a0f1e2d3c4b5a", at: "2018-06-01 16:30", actor: "u4", cycle: 1, decision: "WORK_WITH_SELLER",
+      reason: "Second packaging complaint for this seller this month", next_step_assignee: "u2",
       next_step: "Send the packaging photos to seller 955fee92 and ask for better padding on housewares orders.", due_date: "2018-06-06",
       note: "Second packaging complaint for this seller this month." }
   ];

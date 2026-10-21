@@ -4,13 +4,13 @@
 >
 > Thư mục này là **prototype** bằng code (HTML, CSS, JavaScript), phát triển từ wireframe Figma đó, bấm thử được như sản phẩm thật.
 > Khi sửa một màn thì cập nhật cả hai bản cho khớp nhau.
-> **13/10/2026:** bản code đã chỉnh theo BRD v4.0, FRD v2.0, API contract v0.2 và feedback giao diện 13/10. **14/10:** lên contract v0.3, thêm `js/config.js` + `BACKEND.md` để backend nối vào. **Bản Figma chưa cập nhật theo đợt này.**
+> **13/10/2026:** bản code đã chỉnh theo BRD v4.0, FRD v2.0, API contract v0.2 và feedback giao diện 13/10. **14/10:** lên contract v0.3, thêm `js/config.js` + `BACKEND.md` để backend nối vào. **Bản Figma chưa cập nhật theo đợt này.** **21/10:** lên contract v0.5: bỏ outcome "Không liên lạc được" (hết lượt mà không liên lạc được thì đơn tự chuyển Bỏ qua), quyết định của Manager bắt buộc lý do và có người thực hiện bước tiếp theo.
 
 Prototype cho đồ án môn Phát triển Web Kinh doanh: hệ thống nhận diện và ưu tiên đơn hàng Olist
 giao đúng hạn nhưng có nguy cơ bị đánh giá 1–2 sao (bất mãn ẩn).
 
 **Đây là bản phác thảo để thống nhất bố cục và hành vi, chưa phải sản phẩm.** Dữ liệu trong `js/mock-data.js`
-là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng API contract v0.3 (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`),
+là dữ liệu giả. Các trang lấy dữ liệu qua `js/api.js` theo đúng API contract v0.5 (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`),
 hiện đang chạy trên backend giả `js/mock-server.js`; khi backend thật xong thì chỉ sửa `js/config.js` (xem `BACKEND.md`).
 
 ## Cách xem

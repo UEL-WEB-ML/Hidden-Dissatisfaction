@@ -77,11 +77,10 @@ var STATUS_LABEL = {
   COMPLETED: L("Completed", "Hoàn tất"),
   SKIPPED: L("Skipped", "Bỏ qua")
 };
-// Outcome khi COMPLETED (BRD 6.5)
+// Outcome khi COMPLETED (BRD 6.5). Không có UNREACHABLE: hết lượt mà không liên lạc được thì đơn tự chuyển SKIPPED (contract v0.5)
 var OUTCOME_LABEL = {
   HAS_ISSUE: L("Issue found", "Có vấn đề"),
   NO_ISSUE: L("No issue", "Không có vấn đề"),
-  UNREACHABLE: L("Unreachable after max attempts", "Không liên lạc được sau khi hết lượt"),
   DUPLICATE: L("Duplicate case", "Trùng case")
 };
 // Lý do khi SKIPPED (BRD 6.6). Danh mục chờ Product Owner duyệt.
@@ -585,7 +584,7 @@ function renderFooter() {
   tools.className = "wf-tools";
   tools.lang = "vi";
   tools.innerHTML = '<b>Công cụ demo prototype, không có trong sản phẩm.</b> '
-    + "Đang dùng backend giả (js/mock-server.js) theo API_CONTRACT_olist_hidden_dissatisfaction.md v0.3. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
+    + "Đang dùng backend giả (js/mock-server.js) theo API_CONTRACT_olist_hidden_dissatisfaction.md v0.5. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
     + '<label>Đăng nhập lại với: <select onchange="switchUser(this.value)">' + opts + "</select></label>"
     + ' · <label>Giả lập mạng: <select onchange="setSim(this.value)">' + simOpts + "</select></label>"
     + ' · <a href="#" onclick="resetData(); return false;">Đặt lại dữ liệu mẫu</a>'
