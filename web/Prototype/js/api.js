@@ -32,6 +32,27 @@ function queryString(q) {
   return s ? "?" + s : "";
 }
 
+// Gửi 1 request AJAX bằng XMLHttpRequest. Kết quả: { status, body } (body là JSON đã parse, hoặc null)
+function ajax(method, url, headers, body, withCredentials) {
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState != 4) return;
+      // status 0: không kết nối được máy chủ (mất mạng, sai địa chỉ, bị chặn CORS)
+      if (xhr.status == 0) { reject(new Error("network")); return; }
+      var data = null;
+      if (xhr.status != 204 && xhr.responseText) {
+        try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
+      }
+      resolve({ status: xhr.status, body: data });
+    };
+    xhr.open(method, url, true);
+    for (var h in headers) xhr.setRequestHeader(h, headers[h]);
+    xhr.withCredentials = withCredentials;
+    xhr.send(body);
+  });
+}
+
 async function request(method, path, opts) {
   opts = opts || {};
   var query = {};
@@ -44,12 +65,8 @@ async function request(method, path, opts) {
     if (opts.body) headers["Content-Type"] = "application/json";   // FormData: để trình duyệt tự đặt multipart boundary
     if (API_CONFIG.AUTH == "bearer" && getToken()) headers["Authorization"] = "Bearer " + getToken();
     try {
-      var r = await fetch(API_CONFIG.BASE_URL + path + queryString(query), {
-        method: method, headers: headers,
-        body: opts.form || (opts.body ? JSON.stringify(opts.body) : undefined),
-        credentials: API_CONFIG.AUTH == "cookie" ? "include" : "same-origin"
-      });
-      res = { status: r.status, body: r.status == 204 ? null : await r.json().catch(function () { return null; }) };
+      res = await ajax(method, API_CONFIG.BASE_URL + path + queryString(query), headers,
+        opts.form || (opts.body ? JSON.stringify(opts.body) : null), API_CONFIG.AUTH == "cookie");
     } catch (e) {
       throw new ApiError(0, "NETWORK_ERROR", currentLang() == "vi" ? "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại." : "Can't reach the server. Check your connection and try again.");
     }

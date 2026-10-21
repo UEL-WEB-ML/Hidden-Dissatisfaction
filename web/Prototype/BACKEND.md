@@ -54,7 +54,7 @@ Mật khẩu đều là `123456`: `nhanvien`, `nhanvien2`, `nhanvien3` (Speciali
 | File | Vai trò |
 |---|---|
 | `js/config.js` | Cấu hình duy nhất cần sửa |
-| `js/api.js` | Mỗi hàm = 1 endpoint của contract; gửi token/cookie, `Accept-Language`, đổi lỗi HTTP thành `ApiError` |
+| `js/api.js` | Mỗi hàm = 1 endpoint của contract; gọi API bằng AJAX (`XMLHttpRequest`); gửi token/cookie, `Accept-Language`, đổi lỗi HTTP thành `ApiError` |
 | `js/common.js` | Dùng chung: nạp `GET /me` + `GET /config`, nhãn song ngữ, định dạng thời gian, thanh điều hướng |
 | `js/mock-data.js`, `js/mock-server.js` | Backend giả (dùng khi `USE_MOCK: true`, và là bản mẫu cho `tools/mock-backend.js`) |
 | `html/*.html` | Mỗi trang 1 file, chỉ gọi `api.xxx()` |
