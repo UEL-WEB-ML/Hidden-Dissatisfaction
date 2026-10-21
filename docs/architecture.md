@@ -25,7 +25,7 @@ The architecture is healthy when:
 
 ## Initial vertical slice
 
-The checked-in slice assesses whether one delivered order belongs to the primary cohort and derives its observed low-review label. It establishes:
+The checked-in vertical slice currently validates order eligibility and the observed low-review label. The target architecture expands that slice to product-item scoring while keeping eligibility, temporal splitting, and workflow at order level. It establishes:
 
 - a pure domain entity;
 - explicit exclusion reasons;
@@ -33,4 +33,4 @@ The checked-in slice assesses whether one delivered order belongs to the primary
 - a thin CLI boundary;
 - unit tests for prediction-time and label invariants.
 
-Olist joins and model training should be added as subsequent tested slices, not as unverified notebook copies.
+Olist joins and model training should be added as subsequent tested slices, not as unverified notebook copies. Item scoring must expose a versioned `product_item_id`; order scoring must be a pure, tested aggregation of item predictions (`max-v1` initially).

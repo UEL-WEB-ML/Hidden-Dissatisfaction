@@ -1,0 +1,17 @@
+# File tạm do LaTeX sinh ra khi biên dịch
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.run.xml
+*.toc
+*.xdv
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# File tạm của trình soạn thảo
+*.swp
+*~

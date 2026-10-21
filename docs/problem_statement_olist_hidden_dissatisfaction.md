@@ -1,4 +1,4 @@
-# Phát biểu vấn đề: Nhận diện bất mãn ẩn trong các đơn hàng Olist giao đúng hạn
+# Problem Statement: Nhận diện bất mãn ẩn ở cấp sản phẩm trong các đơn hàng Olist giao đúng hạn
 
 ## 1. Bối cảnh vấn đề
 
@@ -24,7 +24,9 @@ Khoảng trống cuối cùng liên quan đến tác động của biện pháp 
 
 ## 3. Phát biểu vấn đề nghiên cứu
 
-Đồ án giải quyết bài toán nhận diện các đơn hàng Olist đã được giao đúng hoặc sớm hơn ngày dự kiến nhưng vẫn có nguy cơ nhận đánh giá 1 hoặc 2 sao. Mô hình phải hoạt động ở cấp đơn hàng, chỉ sử dụng thông tin có sẵn tại thời điểm xác nhận giao hàng và trước khi khách hàng gửi đánh giá.
+Đồ án giải quyết bài toán nhận diện product item trong các đơn hàng Olist đã được giao đúng hoặc sớm hơn ngày dự kiến nhưng đơn vẫn có nguy cơ nhận đánh giá 1 hoặc 2 sao. Mô hình hoạt động ở cấp product item, chỉ sử dụng thông tin có sẵn tại thời điểm xác nhận giao hàng và trước khi khách hàng gửi đánh giá. Các điểm item được tổng hợp thành điểm cấp đơn bằng quy tắc có version; phiên bản đầu tiên là `max-v1`, tức điểm đơn bằng điểm item cao nhất.
+
+Olist chỉ cung cấp review ở cấp đơn hàng. Vì vậy, mỗi item kế thừa nhãn review của đơn chứa nó. Điểm item phải được hiểu là rủi ro review thấp của đơn trong bối cảnh item đó, không phải nhãn bất mãn riêng của sản phẩm và không phải bằng chứng sản phẩm gây ra đánh giá thấp.
 
 Vấn đề nghiên cứu không chỉ là xây dựng một mô hình có khả năng phân loại. Trọng tâm là xây dựng một quy trình dự báo phù hợp với thời gian thực tế, nhận diện được lớp đánh giá thấp, cung cấp xác suất đủ tin cậy, giải thích được các yếu tố liên quan và hỗ trợ xếp thứ tự ưu tiên khi nguồn lực kiểm tra có giới hạn.
 
@@ -34,7 +36,7 @@ Kết quả của đồ án được hiểu là công cụ hỗ trợ phát hi�
 
 ### 4.1. Câu hỏi nghiên cứu chính
 
-Trong nhóm đơn hàng Olist được giao đúng hoặc sớm hơn ngày dự kiến, mô hình học máy chỉ sử dụng thông tin có sẵn trước khi khách hàng viết đánh giá có thể dự báo đánh giá 1 hoặc 2 sao và hỗ trợ ưu tiên trường hợp tốt hơn các phương pháp đơn giản ở mức độ nào?
+Trong nhóm product item thuộc các đơn hàng Olist được giao đúng hoặc sớm hơn ngày dự kiến, mô hình học máy chỉ sử dụng thông tin có sẵn trước khi khách hàng viết đánh giá có thể ước lượng rủi ro review 1 hoặc 2 sao của đơn và tạo danh sách ưu tiên cấp đơn tốt hơn các phương pháp đơn giản ở mức độ nào?
 
 ### 4.2. Câu hỏi nghiên cứu thành phần
 
@@ -58,7 +60,7 @@ Mục tiêu của đồ án là xây dựng và đánh giá một quy trình h�
 
 ### 5.2. Mục tiêu cụ thể
 
-1. Xây dựng tập dữ liệu ở cấp đơn hàng với mốc thời gian dự báo được xác định rõ ràng.
+1. Xây dựng tập dữ liệu ở cấp product item với mốc thời gian dự báo được xác định rõ ràng, đồng thời giữ mọi item của cùng một order trong một temporal split.
 
 2. Ngăn ngừa việc sử dụng thông tin phát sinh sau thời điểm dự báo.
 
@@ -76,11 +78,11 @@ Mục tiêu của đồ án là xây dựng và đánh giá một quy trình h�
 
 ## 6. Đối tượng và kết quả mục tiêu
 
-Đối tượng nghiên cứu là các đơn hàng trong bộ dữ liệu Olist đã được giao cho khách hàng không muộn hơn ngày giao dự kiến. Đơn vị phân tích là một đơn hàng.
+Đối tượng nghiên cứu là các product item thuộc đơn hàng Olist đã được giao cho khách hàng không muộn hơn ngày giao dự kiến. Đơn vị ML là một product item; đơn vị workflow, chia tập và bootstrap là một order.
 
-Biến kết quả chính là việc đơn hàng nhận đánh giá 1 hoặc 2 sao trong nhóm đơn có đánh giá. Nhóm này được xem là nhóm cần phát hiện. Các mức điểm còn lại được dùng làm nhóm so sánh.
+Biến kết quả chính là việc đơn hàng chứa item nhận đánh giá 1 hoặc 2 sao trong nhóm đơn có đánh giá. Mọi item của cùng một đơn kế thừa cùng nhãn. Nhóm này được xem là nhóm cần phát hiện; các mức điểm còn lại được dùng làm nhóm so sánh.
 
-Kết quả đầu ra của mô hình là xác suất một đơn hàng sẽ nhận đánh giá 1 hoặc 2 sao. Xác suất này được dùng để sắp xếp các đơn theo mức rủi ro. Một kết quả phụ có thể được xây dựng để ước lượng khả năng một đơn hàng có đánh giá, qua đó hỗ trợ phân tích giới hạn của dữ liệu.
+Kết quả đầu ra của mô hình là điểm rủi ro cho từng product item. Hệ thống tổng hợp các điểm item bằng `max-v1` để tạo điểm order và sắp xếp order trong Risk Queue. Một kết quả phụ có thể được xây dựng để ước lượng khả năng một đơn hàng có đánh giá, qua đó hỗ trợ phân tích giới hạn của dữ liệu.
 
 Người sử dụng dự kiến của kết quả là nhóm phân tích dữ liệu hoặc nhóm vận hành dịch vụ khách hàng. Mô hình cung cấp danh sách ưu tiên để con người xem xét và không tự động quyết định biện pháp áp dụng cho khách hàng.
 
@@ -88,11 +90,11 @@ Người sử dụng dự kiến của kết quả là nhóm phân tích dữ li
 
 ### 7.1. Tính đúng đắn của thiết kế
 
-Nghiên cứu được xem là đúng về thiết kế khi toàn bộ thông tin đầu vào đã tồn tại tại thời điểm xác nhận giao hàng, không sử dụng nội dung đánh giá, thời gian tạo đánh giá hoặc bất kỳ thông tin nào phát sinh sau thời điểm dự báo. Việc chia dữ liệu chính phải theo thứ tự thời gian.
+Nghiên cứu được xem là đúng về thiết kế khi toàn bộ thông tin đầu vào đã tồn tại tại thời điểm xác nhận giao hàng, không sử dụng nội dung đánh giá, thời gian tạo đánh giá hoặc bất kỳ thông tin nào phát sinh sau thời điểm dự báo. Việc chia dữ liệu chính phải theo thứ tự thời gian ở cấp order; không được để item của cùng một order xuất hiện ở nhiều tập.
 
 ### 7.2. Khả năng phân biệt rủi ro
 
-Chỉ số chính là PR AUC, dùng để đánh giá đồng thời khả năng tìm thấy các trường hợp đánh giá thấp và mức chính xác của các cảnh báo. Chỉ số này phù hợp khi nhóm đánh giá thấp chiếm tỷ lệ nhỏ. Mô hình đề xuất cần tốt hơn mô hình chỉ dự báo theo tỷ lệ đánh giá thấp trong dữ liệu và tốt hơn hồi quy logistic trên tập kiểm tra theo thời gian.
+Chỉ số chính là PR AUC ở cấp item và sau tổng hợp `max-v1` ở cấp order. Khoảng tin cậy phải bootstrap theo order để không coi các item cùng đơn là quan sát độc lập. Mô hình đề xuất cần tốt hơn mô hình chỉ dự báo theo tỷ lệ đánh giá thấp trong dữ liệu và tốt hơn hồi quy logistic trên tập kiểm tra theo thời gian.
 
 Recall của nhóm đánh giá thấp phải được báo cáo để thể hiện tỷ lệ trường hợp thực sự có đánh giá 1 hoặc 2 sao được phát hiện. Precision phải được báo cáo cùng recall để cho biết tỷ lệ cảnh báo đúng trong số các trường hợp được mô hình cảnh báo. ROC AUC và F1 được sử dụng như chỉ số bổ sung, không phải căn cứ duy nhất để chọn mô hình.
 
@@ -120,7 +122,7 @@ Nếu mô hình không vượt phương pháp chỉ chọn theo giá trị đơn
 
 ### 8.1. Phạm vi dữ liệu
 
-Nghiên cứu sử dụng bộ dữ liệu thương mại điện tử Olist. Phân tích chính chỉ bao gồm các đơn đã giao và có ngày giao thực tế không muộn hơn ngày giao dự kiến. Việc dự báo điểm đánh giá chỉ được thực hiện trên các đơn có đánh giá quan sát được.
+Nghiên cứu sử dụng bộ dữ liệu thương mại điện tử Olist. Phân tích chính chỉ bao gồm product item thuộc các đơn đã giao và có ngày giao thực tế không muộn hơn ngày giao dự kiến. Việc học nhãn review chỉ được thực hiện trên các đơn có đánh giá quan sát được.
 
 ### 8.2. Phạm vi thông tin đầu vào
 

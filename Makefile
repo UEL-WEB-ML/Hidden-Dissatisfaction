@@ -1,4 +1,4 @@
-.PHONY: install quality test format
+.PHONY: install quality test format db-up db-down db-logs
 
 install:
 	python -m pip install -e ".[ml,notebook,dev]"
@@ -15,3 +15,12 @@ test:
 format:
 	ruff check --fix .
 	black .
+
+db-up:
+	docker compose up -d
+
+db-down:
+	docker compose down
+
+db-logs:
+	docker compose logs -f postgres

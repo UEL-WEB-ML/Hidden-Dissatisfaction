@@ -1,0 +1,50 @@
+% !TeX program = xelatex
+% =========================
+% main.tex  —  Trúc giữ, người khác KHÔNG sửa file này
+% Mỗi người chỉ sửa file trong thư mục chuong/ được giao.
+% =========================
+
+\documentclass[12pt,a4paper]{article}
+
+\input{settings}
+\input{bia-thong-tin}
+
+
+\begin{document}
+
+% Trang 1: bìa
+\input{bia}
+
+% Trang 2-3: danh sách thành viên + phân công
+\input{thanh-vien}
+
+% Trang 4: lời cảm ơn + lời cam kết
+\input{loi-cam-on}
+
+% Mục lục, không hiện số trang
+\clearpage
+\pagestyle{empty}
+\pagenumbering{gobble}
+\tableofcontents
+\thispagestyle{empty}   % trang mục lục không in số trang
+\clearpage
+
+% Nội dung chính, bắt đầu từ trang 1
+\pagestyle{fancy}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{chuong/00-tom-tat}
+\input{chuong/01-gioi-thieu}
+\input{chuong/02-co-so-ly-thuyet}
+\input{chuong/03-phuong-phap}
+\input{chuong/04-ket-qua}
+\input{chuong/05-thao-luan}
+\input{chuong/06-ket-luan}
+
+% Mục 7: tài liệu tham khảo (sinh tự động từ tailieu.bib)
+\printbibliography[heading=bibnumbered, title={TÀI LIỆU THAM KHẢO}]
+
+\input{chuong/08-phu-luc}
+
+\end{document}

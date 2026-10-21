@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hidden-dissatisfaction"
 version = "0.1.0"
-description = "Time-safe prediction and prioritization of hidden dissatisfaction in Olist orders"
+description = "Time-safe product-item risk scoring and order prioritization for Olist hidden dissatisfaction"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
