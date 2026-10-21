@@ -1051,6 +1051,7 @@ a.kpi.lead:hover { border-color: var(--accent); }
 .queue-table th, .queue-table td { padding-left: 0.5em; padding-right: 0.5em; }
 .queue-table th { font-size: 0.68rem; }
 .queue-table td:nth-child(4) { min-width: 10em; max-width: 14em; }
+.queue-table td:nth-child(8) .muted { white-space: nowrap; }   /* "Unassigned" không bị ngắt giữa chữ */
 .queue-table .prod-sub { font-size: 0.75rem; }
 .queue-table .mini { width: 2.6em; }
 .queue-table td:last-child .btn { height: 2.1rem; padding: 0 0.75em; font-size: 0.8rem; }
