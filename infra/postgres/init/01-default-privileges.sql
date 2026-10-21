@@ -1,0 +1,16 @@
+\set ON_ERROR_STOP on
+
+ALTER DEFAULT PRIVILEGES FOR ROLE hidden_dissatisfaction_owner IN SCHEMA app
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_runtime;
+ALTER DEFAULT PRIVILEGES FOR ROLE hidden_dissatisfaction_owner IN SCHEMA app
+  GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO app_runtime;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE ingest_writer IN SCHEMA bronze
+  GRANT SELECT ON TABLES TO transform_runner;
+ALTER DEFAULT PRIVILEGES FOR ROLE ingest_writer IN SCHEMA bronze
+  GRANT USAGE, SELECT ON SEQUENCES TO transform_runner;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE transform_runner IN SCHEMA silver, gold, ml
+  GRANT SELECT ON TABLES TO app_runtime, reader;
+ALTER DEFAULT PRIVILEGES FOR ROLE transform_runner IN SCHEMA silver, gold, ml
+  GRANT USAGE, SELECT ON SEQUENCES TO app_runtime, reader;

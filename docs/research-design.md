@@ -2,18 +2,19 @@
 
 ## Main question
 
-Among Olist orders delivered on time or early, how well can a calibrated model using only information available at delivery time predict an observed 1–2 star review and prioritize risky cases under a finite review budget compared with simple baselines?
+Among product items in Olist orders delivered on time or early, how well can a calibrated model using only information available at delivery time estimate the risk that the containing order receives an observed 1–2 star review, and how well do versioned item scores aggregate into an order-level priority queue compared with simple baselines?
 
 ## Estimand and scope
 
-- Unit: one delivered order.
+- ML unit: one product item, uniquely identified by `product_item_id = order_id + '-' + order_item_id`.
+- Workflow and split unit: one delivered order. Every item from an order must remain in the same temporal partition.
 - Prediction time: immediately after `order_delivered_customer_date`.
 - Primary population: orders delivered no later than `order_estimated_delivery_date`.
-- Primary outcome: review score in `{1, 2}` among orders with a review.
+- Primary outcome: review score in `{1, 2}` among orders with a review. Each item inherits its containing order's label because Olist does not identify which item caused the review.
 - Secondary outcome: review observation itself.
 - Generalization scope: the observed Olist period only unless external validation is added.
 
-The primary model estimates an observed conditional risk, not latent dissatisfaction for all customers. A two-stage sensitivity analysis may model review observation and low review conditional on observation separately.
+The item score estimates the conditional risk of a low review for the containing order in the context of that item. It is not an item-specific satisfaction label and must not be interpreted as evidence that the item caused dissatisfaction. Order risk is the maximum item score under the initial versioned aggregation rule `max-v1`. The primary model estimates observed conditional risk, not latent dissatisfaction for all customers. A two-stage sensitivity analysis may model review observation and low review conditional on observation separately.
 
 ## Permitted feature families
 
@@ -33,7 +34,7 @@ The primary model estimates an observed conditional risk, not latent dissatisfac
 
 ## Validation and model comparison
 
-1. Sort/split by delivery prediction time.
+1. Sort/split orders by delivery prediction time, then assign all product items from each order to the same partition.
 2. Reserve the latest period once as a final test set.
 3. Select features, hyperparameters, and calibration on earlier rolling folds.
 4. Fit every transformer on each training fold only.
@@ -43,12 +44,12 @@ The primary model estimates an observed conditional risk, not latent dissatisfac
 
 ## Required evidence
 
-- prevalence and cohort counts by time split;
-- PR-AUC with bootstrap confidence intervals;
+- order and product-item counts, label prevalence, and date ranges by time split;
+- item-level PR-AUC and `max-v1` order-level PR-AUC with order-clustered bootstrap confidence intervals;
 - minority precision, recall, and F1 at declared thresholds;
 - ROC-AUC as a secondary metric;
 - Brier score and calibration curve;
-- recall@budget and value-captured@budget at 5%, 10%, and 20%;
+- order-level recall@budget and value-captured@budget at 5%, 10%, and 20%;
 - comparisons against random and value-only policies;
 - global and case-level SHAP with non-causal wording;
 - error analysis by time, category, seller tenure, and geography where sample size permits.

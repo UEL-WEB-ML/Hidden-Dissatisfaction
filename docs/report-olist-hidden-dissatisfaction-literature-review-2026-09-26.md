@@ -11,7 +11,7 @@ filed-back: true
 
 Các nghiên cứu đã cho thấy hiệu suất logistics, đặc biệt là giao trễ, có liên hệ mạnh với đánh giá tiêu cực, hành vi mua lại và doanh số của người bán. Tuy nhiên, giao đúng hạn không đồng nghĩa với hài lòng. Ma trận lược khảo chỉ ra một nhóm quan trọng nhưng ít được nghiên cứu trực tiếp: những đơn đã giao đúng hoặc sớm nhưng vẫn nhận review 1–2 sao. Nhóm này có thể phản ánh các nguyên nhân ngoài trễ giao như chất lượng sản phẩm hoặc seller, phí vận chuyển, đơn nhiều món hoặc nhiều seller, giao tách đợt, sai lệch kỳ vọng và các ma sát dịch vụ khác.
 
-Khoảng trống trung tâm không đơn thuần là thiếu một mô hình có accuracy cao hơn. Khoảng trống nằm ở việc chưa có một quy trình dự báo bất mãn ẩn ở cấp đơn hàng đồng thời đáp ứng năm yêu cầu: đúng mốc thông tin trước review, đánh giá theo thời gian, chú trọng lớp thiểu số và hiệu chỉnh xác suất, xử lý review như nhãn có chọn lọc, và chứng minh giá trị ưu tiên dưới ngân sách hữu hạn so với các quy tắc đơn giản. Dữ liệu Olist quan sát không cho phép suy ra hành động chăm sóc nào gây ra cải thiện, nên nghiên cứu chỉ nên tuyên bố khả năng chẩn đoán và ưu tiên case, không tuyên bố hiệu quả nhân quả của voucher, hoàn tiền hay liên hệ khách hàng.
+Khoảng trống trung tâm không đơn thuần là thiếu một mô hình có accuracy cao hơn. Khoảng trống nằm ở việc chưa có một quy trình chấm điểm product item và tổng hợp thành order risk đồng thời đáp ứng năm yêu cầu: đúng mốc thông tin trước review, đánh giá theo thời gian ở cấp order, chú trọng lớp thiểu số và hiệu chỉnh xác suất, xử lý review cấp order như nhãn yếu kế thừa bởi item, và chứng minh giá trị ưu tiên dưới ngân sách hữu hạn so với các quy tắc đơn giản. Dữ liệu Olist quan sát không cho phép suy ra hành động chăm sóc nào gây ra cải thiện, nên nghiên cứu chỉ nên tuyên bố khả năng chẩn đoán và ưu tiên case, không tuyên bố hiệu quả nhân quả của voucher, hoàn tiền hay liên hệ khách hàng.
 
 ## 1. Bối cảnh nghiên cứu
 
@@ -19,7 +19,7 @@ Khoảng trống trung tâm không đơn thuần là thiếu một mô hình có
 
 Literature hiện có thiết lập ba mắt xích. Thứ nhất, hiệu suất giao hàng ảnh hưởng đến rating: giao trễ bị phạt mạnh hơn mức giao sớm được thưởng, và thời gian giao dài vẫn có thể làm giảm rating ngay cả khi đơn không bị xem là trễ (Ravula, 2023; Deshpande & Pendem, 2023). Thứ hai, trải nghiệm logistics không chỉ ảnh hưởng đến rating mà còn liên hệ với xác suất mua và doanh số seller (Deshpande & Pendem, 2023). Thứ ba, rating hoặc satisfaction không bao quát toàn bộ hành vi tương lai; chất lượng và giá giao hàng có thể tác động trực tiếp đến retention, còn giao nhanh bằng cách tách đơn có thể làm giảm mua lại do bất tiện và quan ngại môi trường (Rao et al., 2011; Brylla & Walsh, 2022).
 
-Do đó, dự báo review thấp có ý nghĩa quản trị, nhưng review thấp không phải là đại diện hoàn chỉnh cho churn, retention hay lợi nhuận. Nó nên được xem là một tín hiệu rủi ro dịch vụ ở cấp đơn hàng.
+Do đó, dự báo review thấp có ý nghĩa quản trị, nhưng review thấp không phải là đại diện hoàn chỉnh cho churn, retention hay lợi nhuận. Item score là tín hiệu rủi ro trong bối cảnh sản phẩm; `max-v1` chuyển các tín hiệu đó thành risk score cấp đơn cho workflow.
 
 ### 1.2. Giao trễ là tín hiệu mạnh nhưng tạo ra điểm mù
 
@@ -79,7 +79,7 @@ Olist không quan sát treatment và phản ứng với treatment. Vì vậy, ng
 
 ## 3. Phát biểu khoảng trống có thể dùng trong bài
 
-Mặc dù literature đã chứng minh vai trò của hiệu suất giao hàng đối với rating, retention và doanh số, các mô hình hiện có chủ yếu dựa vào tín hiệu giao trễ hoặc đánh giá satisfaction trên toàn bộ đơn hàng bằng thiết kế ngẫu nhiên và metric tổng thể. Điều này để lại một điểm mù đối với những đơn được giao đúng hoặc sớm nhưng vẫn nhận review 1–2 sao, nơi nguyên nhân bất mãn có thể đến từ cấu trúc đơn hàng, seller, sản phẩm, phí vận chuyển hoặc các dạng ma sát dịch vụ khác. Đồng thời, các nghiên cứu trước chưa kết hợp đầy đủ prediction-time integrity, temporal validation, calibration cho lớp thiểu số, review self-selection và đánh giá utility dưới ngân sách hữu hạn. Do đó, cần một mô hình cấp đơn hàng, dễ giải thích và được hiệu chỉnh, chỉ sử dụng thông tin có sẵn trước review, để nhận diện và ưu tiên các trường hợp bất mãn ẩn; tuy nhiên, vì thiếu dữ liệu can thiệp, mô hình chỉ hỗ trợ chẩn đoán và ưu tiên chứ không suy ra hiệu quả nhân quả của một biện pháp service recovery cụ thể.
+Mặc dù literature đã chứng minh vai trò của hiệu suất giao hàng đối với rating, retention và doanh số, các mô hình hiện có chủ yếu dựa vào tín hiệu giao trễ hoặc đánh giá satisfaction trên toàn bộ đơn hàng bằng thiết kế ngẫu nhiên và metric tổng thể. Điều này để lại một điểm mù đối với những đơn được giao đúng hoặc sớm nhưng vẫn nhận review 1–2 sao, nơi rủi ro có thể liên hệ với cấu trúc đơn hàng, seller, sản phẩm, phí vận chuyển hoặc các dạng ma sát dịch vụ khác. Đồng thời, các nghiên cứu trước chưa kết hợp đầy đủ prediction-time integrity, temporal validation, calibration cho lớp thiểu số, review self-selection và đánh giá utility dưới ngân sách hữu hạn. Do đó, cần một mô hình product-item dễ giải thích, được hiệu chỉnh và tổng hợp có version lên order, chỉ sử dụng thông tin có sẵn trước review; tuy nhiên, do nhãn review chỉ có ở cấp order và thiếu dữ liệu can thiệp, mô hình không thể quy nguyên nhân cho item hoặc suy ra hiệu quả nhân quả của một biện pháp service recovery cụ thể.
 
 ## 4. Mục tiêu nghiên cứu đề xuất
 
@@ -105,7 +105,7 @@ Xây dựng và đánh giá một khung dự báo có hiệu chỉnh và dễ gi
 
 ## 6. Phạm vi và thiết kế tối thiểu để trả lời RQ
 
-- **Đơn vị phân tích:** đơn hàng đã giao, giao trước hoặc đúng `order_estimated_delivery_date`.
+- **Đơn vị ML:** product item thuộc đơn đã giao trước hoặc đúng `order_estimated_delivery_date`; đơn hàng là đơn vị temporal split, bootstrap và workflow. Item kế thừa nhãn review cấp đơn và không được diễn giải là nguyên nhân của review.
 - **Prediction time:** ngay sau `order_delivered_customer_date`, trước `review_creation_date`.
 - **Outcome chính:** review score 1–2 trong số đơn có review.
 - **Outcome phụ:** có review hay không; dùng để mô tả hoặc mô hình hóa selection process.

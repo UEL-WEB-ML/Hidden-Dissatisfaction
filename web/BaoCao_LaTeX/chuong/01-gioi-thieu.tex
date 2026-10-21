@@ -1,0 +1,149 @@
+% =========================
+% chuong/01-gioi-thieu.tex  —  người viết: Trúc
+% MỤC 1. GIỚI THIỆU
+% Số liệu mô tả phải được tái lập từ pipeline version hóa trước khi nộp báo cáo.
+% Cohort: delivered, order_delivered_customer_date <= order_estimated_delivery_date.
+% Nhãn: review_score 1--2; chính sách multiple-review hiện giữ câu trả lời mới nhất
+% và phải được chốt trong luận văn. Không dùng số liệu từ lần đếm theo chính sách khác.
+% =========================
+
+\section{GIỚI THIỆU}
+
+% ------------------------------------------------------------
+\subsection{Bối cảnh và lý do thực hiện dự án}
+
+Trong thương mại điện tử, điểm đánh giá của khách hàng là một trong những thông tin
+người mua xem trước khi ra quyết định. Nghiên cứu trên hơn 15 triệu đơn hàng của nền
+tảng Tmall cho thấy trải nghiệm giao hàng ảnh hưởng đến điểm đánh giá, và điểm đánh giá
+đó có liên hệ với khả năng mua hàng của những khách đến sau và doanh số người bán
+\parencite{deshpande2023}. Vì vậy, review thấp là một tín hiệu dịch vụ đáng theo dõi,
+nhưng dữ liệu quan sát không đủ để quy trực tiếp thành doanh thu bị mất.
+
+Giao hàng trễ là nguyên nhân thường được nhắc đến nhất. \textcite{ravula2023} cho thấy
+khách hàng chấm điểm thấp hơn rõ rệt khi đơn đến trễ, trong khi giao sớm chỉ được cộng
+thêm rất ít. Do đó, các doanh nghiệp thường theo dõi tỉ lệ giao đúng hạn như một chỉ số
+chính của chất lượng dịch vụ. Tuy vậy, giao nhanh hơn chưa chắc làm khách hài lòng hơn:
+khi nhà bán lẻ tách đơn để giao nhanh từng phần, sự phiền toái khi nhận nhiều lần giao
+có thể triệt tiêu lợi ích của tốc độ và làm giảm việc mua lại \parencite{brylla2022}.
+
+Tuy nhiên, khi phân tích bộ dữ liệu công khai của Olist \parencite{olist2018}, nhóm nhận
+thấy vẫn tồn tại các đơn được giao trước hoặc đúng ngày dự kiến nhưng nhận review 1 hoặc
+2 sao. Tỷ lệ và số lượng chính thức phải được tái lập từ pipeline theo đúng chính sách
+multiple-review đã version hóa trước khi đưa vào báo cáo kết quả. Quan sát này cho thấy
+``đúng hạn'' không đồng nghĩa với ``hài lòng'' và tạo ra một nhóm case mà quy tắc chỉ theo
+dõi giao trễ sẽ bỏ sót.
+
+Nhóm gọi hiện tượng này là \textit{sự không hài lòng ẩn} (hidden dissatisfaction): khách
+hàng không hài lòng dù đơn hàng không có dấu hiệu bất thường nào trên các chỉ số vận hành.
+Đây là lý do nhóm chọn đề tài xây dựng một hệ thống web giúp doanh nghiệp nhận diện và xử
+lý sớm những đơn hàng này.
+
+% ------------------------------------------------------------
+\subsection{Vấn đề cần giải quyết}
+
+Các nghiên cứu dự đoán sự hài lòng trên dữ liệu Olist chủ yếu tập trung so sánh độ chính
+xác của các mô hình và dừng lại ở việc gán nhãn cho từng đơn hàng \parencite{orman2026}.
+Kết quả dạng này khó được sử dụng trực tiếp trong vận hành, vì nhân viên chăm sóc khách
+hàng cần biết đơn nào cần liên hệ trước, vì sao đơn đó có nguy cơ, và nên làm gì tiếp theo.
+Ngay cả khi có điểm dự đoán, việc chọn đơn nào để xử lý trước khi năng lực có hạn cũng
+không đơn giản: một nghiên cứu gần đây trên ba bộ dữ liệu, trong đó có Olist, cho thấy
+xếp hạng bằng mô hình học máy không phải lúc nào cũng tốt hơn quy tắc đơn giản là ưu tiên
+đơn có giá trị cao nhất \parencite{li2026}. Vì vậy, người dùng cần một công cụ hiển thị
+đồng thời mức rủi ro và các thông tin nghiệp vụ để tự đưa ra quyết định.
+
+Thời điểm can thiệp cũng quan trọng. Trong ngành hàng không, việc chủ động thông báo cho
+hành khách trước khi sự cố xảy ra giúp giảm đáng kể phản hồi tiêu cực trên mạng so với
+xử lý khi sự cố đã diễn ra \parencite{nazifi2021}. Tương tự, nếu doanh nghiệp liên hệ
+khách hàng trước khi họ để lại đánh giá, vấn đề có cơ hội được giải quyết sớm hơn.
+
+Từ góc độ hệ thống thông tin, nhóm xác định ba vấn đề cụ thể:
+
+\begin{itemize}
+    \item Chưa có công cụ tập hợp các đơn giao đúng hạn nhưng có nguy cơ bị đánh giá thấp
+    thành một danh sách ưu tiên để nhân viên xử lý trước khi khách hàng đánh giá.
+    \item Kết quả dự đoán, nếu chỉ ở dạng điểm số trong một tệp dữ liệu, không kèm lý do và
+    hành động đề xuất, nên người không chuyên về dữ liệu khó sử dụng.
+    \item Không có nơi ghi nhận ai đã xử lý đơn nào và kết quả ra sao, nên doanh nghiệp không
+    theo dõi và đánh giá được hiệu quả của việc chăm sóc khách hàng.
+\end{itemize}
+
+Từ đó, câu hỏi đặt ra cho dự án là: \textit{cần xây dựng hệ thống web như thế nào để kết quả
+dự đoán rủi ro được chuyển thành danh sách ưu tiên, lời giải thích và hành động cụ thể mà
+nhân viên chăm sóc khách hàng có thể sử dụng hằng ngày?}
+
+% ------------------------------------------------------------
+\subsection{Mục tiêu của dự án}
+
+\textbf{Mục tiêu tổng quát:} xây dựng một hệ thống web hỗ trợ nhân viên chăm sóc khách hàng
+phát hiện và xử lý các đơn hàng giao đúng hạn nhưng có nguy cơ nhận đánh giá tiêu cực.
+
+\textbf{Mục tiêu cụ thể:}
+
+\begin{enumerate}
+    \item Phân tích và thiết kế hệ thống thông qua các sơ đồ Use Case, DFD, BPMN và ERD.
+    \item Thiết kế cơ sở dữ liệu dựa trên 9 bảng dữ liệu Olist, bổ sung các bảng do hệ thống
+    tạo ra để lưu kết quả dự đoán, hành động xử lý và người dùng.
+    \item Xây dựng bốn màn hình chính: danh sách đơn cần ưu tiên (Risk Queue), chi tiết lý do
+    rủi ro của từng đơn (Order Detail), ghi nhận và theo dõi xử lý (Action Tracking), và
+    minh bạch nguồn dữ liệu (Data Quality).
+    \item Tích hợp output ML cấp product item và kết quả tổng hợp cấp order theo \texttt{max-v1},
+    kèm model version, threshold version, aggregation rule và các yếu tố liên quan.
+    \item Đảm bảo giao diện hiển thị được trên máy tính, máy tính bảng và điện thoại.
+\end{enumerate}
+
+% ------------------------------------------------------------
+\subsection{Phạm vi và giới hạn của dự án}
+
+\textbf{Phạm vi:}
+
+\begin{itemize}
+    \item Dữ liệu: bộ dữ liệu công khai Brazilian E-Commerce Public Dataset by Olist, gồm
+    99.441 đơn hàng từ tháng 9/2016 đến tháng 10/2018, chia thành 9 bảng có quan hệ với nhau.
+    \item Đối tượng phân tích: các đơn đã giao đến khách và được giao trước hoặc đúng ngày dự
+    kiến. Đơn giao trễ không thuộc phạm vi vì nguyên nhân không hài lòng đã rõ.
+    \item Người dùng: nhân viên chăm sóc khách hàng và người quản lý của doanh nghiệp.
+    \item Sản phẩm: hệ thống web ở mức nguyên mẫu (prototype), chạy được với dữ liệu thật
+    của Olist và kết quả dự đoán rủi ro.
+\end{itemize}
+
+\textbf{Giới hạn:}
+
+\begin{itemize}
+    \item Báo cáo web không tự huấn luyện lại mô hình; nó nhận artifact từ pipeline ML của
+    dự án và tập trung vào contract, trình bày, sử dụng và lưu trữ kết quả.
+    \item Olist chỉ có review cấp order, không có nhãn riêng cho product item. Mỗi item kế
+    thừa nhãn order; score item chỉ phản ánh rủi ro của order trong bối cảnh item và không
+    chứng minh item gây ra review thấp.
+    \item Chỉ một phần khách hàng chủ động viết đánh giá, nên những người đánh giá không đại
+    diện đầy đủ cho toàn bộ người mua \parencite{li2008}. Đơn không có đánh giá không được
+    xem là đơn khách hài lòng.
+    \item Khách hàng có rủi ro cao nhất chưa chắc là nhóm phản hồi tốt nhất với việc chăm sóc
+    \parencite{ascarza2018}. Vì vậy, hành động đề xuất trên hệ thống chỉ mang tính tham khảo,
+    quyết định cuối cùng do nhân viên đưa ra, và dự án không đánh giá hiệu quả thực tế của
+    việc liên hệ khách hàng.
+    \item Dữ liệu thuộc thị trường Brazil giai đoạn 2016--2018. Kết quả không được xem là áp
+    dụng trực tiếp cho thị trường Việt Nam hay thời điểm hiện tại.
+    \item Hệ thống chỉ ghi nhận hành động xử lý, không tích hợp gọi điện hay gửi email thật
+    đến khách hàng.
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{Phương pháp nghiên cứu và cách tiếp cận}
+
+Nhóm tiếp cận dự án theo hướng phát triển hệ thống thông tin hỗ trợ ra quyết định, gồm
+các bước sau:
+
+\begin{enumerate}
+    \item \textbf{Khảo sát dữ liệu:} tìm hiểu cấu trúc 9 bảng Olist và đo các số liệu nền
+    như tỉ lệ đơn giao đúng hạn bị đánh giá thấp để xác định vấn đề.
+    \item \textbf{Phân tích yêu cầu:} xác định người dùng, nhu cầu thông tin và các chức năng
+    cần có, thể hiện qua sơ đồ Use Case, DFD và BPMN.
+    \item \textbf{Thiết kế:} thiết kế cơ sở dữ liệu (ERD), thống nhất cấu trúc dữ liệu kết
+    quả dự đoán, và thiết kế giao diện bằng wireframe trên Figma trước khi lập trình.
+    \item \textbf{Xây dựng và tích hợp:} xây dựng giao diện bằng HTML, CSS và JavaScript, đọc
+    dữ liệu ở định dạng JSON, kết nối với cơ sở dữ liệu và nạp kết quả dự đoán rủi ro.
+    \item \textbf{Kiểm thử và đánh giá:} kiểm tra các chức năng chính và hiển thị trên ba kích
+    thước màn hình, sau đó đối chiếu kết quả với các mục tiêu đã đặt ra.
+\end{enumerate}
+
+Chi tiết về dữ liệu, công nghệ sử dụng và cách đánh giá được trình bày ở mục 3.
