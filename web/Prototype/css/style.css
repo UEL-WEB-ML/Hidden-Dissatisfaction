@@ -684,6 +684,8 @@ table.params th:nth-child(3) { width: 17%; }
 .k-col h2 { font-size: 0.9rem; margin: 0.1em 0.2em 0.7em; display: flex; align-items: center; gap: 0.45em; }
 .k-count { font-size: 0.78rem; color: var(--ink-600); font-weight: 600; }
 .k-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.75em 0.85em; margin-bottom: 0.6em; box-shadow: var(--shadow-1); font-size: 0.875rem; }
+.k-link { cursor: pointer; transition: border-color 0.15s; }
+.k-link:hover { border-color: var(--accent); }
 .k-top { display: flex; flex-wrap: wrap; gap: 0.35em; align-items: center; }
 .k-events { list-style: none; margin: 0.55em 0 0; padding: 0; }
 .k-events li { border-top: 1px solid var(--line); padding: 0.5em 0; font-size: 0.85rem; line-height: 1.45; }
@@ -921,6 +923,8 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 .feed { list-style: none; margin: 0; padding: 0; }
 .feed li { display: flex; align-items: center; gap: 0.55em; flex-wrap: wrap; padding: 0.6em 0; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
 .feed li:last-child { border-bottom: none; }
+.row-link { cursor: pointer; border-radius: 8px; padding-left: 0.5em !important; padding-right: 0.5em !important; margin: 0 -0.5em; transition: background 0.15s; }
+.row-link:hover { background: var(--surface-2); }
 .feed .f-why { flex-basis: 100%; color: var(--ink-500); font-size: 0.78rem; }
 .feed .f-when { margin-left: auto; color: var(--ink-500); font-size: 0.75rem; white-space: nowrap; }
 .insight { margin: -0.4em 0 0.8em; font-size: 0.85rem; color: var(--ink-700); }
