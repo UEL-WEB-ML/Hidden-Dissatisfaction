@@ -668,6 +668,17 @@ table.params td.pv { white-space: nowrap; font-variant-numeric: tabular-nums; }
 table.params th:nth-child(1) { width: 52%; }
 table.params th:nth-child(2) { width: 20%; }
 table.params th:nth-child(3) { width: 17%; }
+table.params th { white-space: normal; }   /* tiêu đề dài (tiếng Việt) xuống dòng thay vì chồng lên cột bên cạnh */
+/* Màn hẹp: mỗi tham số thành 1 thẻ, giá trị + phiên bản nằm dưới tên, nút Đổi ở cuối */
+@media (max-width: 768px) {
+  table.params, table.params tbody, table.params tr, table.params td { display: block; width: auto; }
+  table.params thead { display: none; }
+  table.params tr { padding: 0.8em 0; border-bottom: 1px solid var(--line); }
+  table.params tr:last-child { border-bottom: none; }
+  table.params td { border: none; padding: 0.15em 0; }
+  table.params td.pv { white-space: normal; margin-top: 0.4em; }
+  table.params td:last-child { padding-top: 0.5em; }
+}
 
 /* Hồ sơ */
 .profile-card { display: grid; gap: 1em; }
