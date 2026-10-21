@@ -579,8 +579,9 @@ details summary { cursor: pointer; font-weight: 600; font-size: 0.875rem; color:
 .work-box .contact-form { border-top: none; margin-top: 0; padding-top: 0; margin-bottom: 1em; }
 .keynums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6em; margin: -0.2em 0 1em; }
 .kn { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0.7em 0.8em; }
+.kn { container-type: inline-size; min-width: 0; }
 .kn-label { font-size: 0.75rem; color: var(--ink-500); font-weight: 600; }
-.kn-num { font-size: 1.5em; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
+.kn-num { font-size: min(1.5em, 22cqi); font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
 .kn-of { font-size: 0.6em; color: var(--ink-500); font-weight: 600; }
 .kn-sub { font-size: 0.78rem; color: var(--ink-600); }
 .kn-name { font-size: 1.05em; }
