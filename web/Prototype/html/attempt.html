@@ -34,9 +34,10 @@
 
     <div class="note" lang="vi">F07-S01..S04. Mỗi lần liên lạc lưu thời điểm, phương thức, kết quả, ghi chú, ngày hẹn tiếp (BRD 6.6 mục 1).
       Bộ đếm x/y của chu kỳ hiện tại; y = số lần tối đa trong bộ tham số đang hiệu lực (Settings), mở lại case thì đếm lại từ 0.
-      Ngày hẹn tự đề xuất theo khoảng cách giữa 2 lần (tham số). Hết lượt thì khoá form, hướng dẫn bỏ qua (thử đơn 2b4d6f8a với nhanvien2).
-      <br>Ô minh chứng (feedback 13/10, chưa có trong FRD, chờ BA): tối đa 3 tệp PNG/JPG/PDF, mỗi tệp ≤ 5 MB, kèm ô "Mã tham chiếu"
-      (mã cuộc gọi, tiêu đề email). Prototype chỉ lưu tên tệp, bản thật upload lên kho tệp. Đang để KHÔNG bắt buộc: chờ BA chốt có bắt buộc không.</div>
+      Ngày hẹn tự đề xuất theo khoảng cách giữa 2 lần (tham số). Contract v0.5: lần cuối mà kết quả khác "Liên lạc được" thì backend tự chuyển đơn sang Bỏ qua / Không liên lạc được
+      (đơn 2b4d6f8a của nhanvien2 là ví dụ). Lần cuối liên lạc được thì khoá form, hướng dẫn hoàn tất.
+      <br>Ô minh chứng (BRD 6.6, FRD F07-S03): tối đa 3 tệp PNG/JPG/PDF, mỗi tệp ≤ 5 MB, không nhận URL, kèm ô "Mã tham chiếu"
+      (mã cuộc gọi, tiêu đề email). Không bắt buộc (BRD: Attempt "có thể kèm" tệp).</div>
   </div>
 
   <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
@@ -119,9 +120,10 @@
       } else if (!mine()) {
         html = '<p class="muted">' + L("Only " + o.assignee_name + " (the assignee) can log attempts. You can read the history below.", "Chỉ " + o.assignee_name + " (người phụ trách) được ghi. Bạn xem lịch sử bên dưới.") + "</p>";
       } else if (n >= max) {
+        // Còn ở Đang xử lý mà đã đủ lượt nghĩa là lần cuối đã liên lạc được (không được thì backend đã tự chuyển Bỏ qua)
         html = '<div class="alert warn"><span class="icon">!</span><b>' + L("All " + max + " contact attempts used.", "Đã dùng hết " + max + " lần liên lạc.") + "</b><br>"
-          + L("If the customer is still unreachable, skip with \"" + SKIP_LABEL.UNREACHABLE + "\", or ask a manager for an exception.", "Nếu vẫn không liên lạc được khách, bỏ qua với lý do \"" + SKIP_LABEL.UNREACHABLE + "\", hoặc nhờ Manager xử lý ngoại lệ.")
-          + '<div class="actions"><button class="btn sm" onclick="skip(\'UNREACHABLE\')">' + L("Skip: unreachable", "Bỏ qua: không liên lạc được") + '</button> <button class="btn sm" onclick="complete()">' + L("Complete", "Hoàn tất") + "</button></div></div>";
+          + L("The customer was reached on the last attempt. Complete the order with the outcome.", "Lần cuối đã liên lạc được khách. Hoàn tất đơn kèm kết quả.")
+          + '<div class="actions"><button class="btn sm primary" onclick="complete()">' + L("Complete", "Hoàn tất") + "</button></div></div>";
       } else {
         var last = cyc[n - 1];
         var early = last && last.next_contact_date && inputDate(NOW) < inputDate(last.next_contact_date);
@@ -130,6 +132,8 @@
         for (var r in CONTACT_RESULT_LABEL) results += '<option value="' + r + '">' + CONTACT_RESULT_LABEL[r] + "</option>";
         html = '<form class="contact-form" onsubmit="saveContact(); return false;">'
           + "<h3>" + L("Attempt " + (n + 1) + " of " + max, "Lần " + (n + 1) + " / " + max) + "</h3>"
+          + (n + 1 == max ? '<p class="tiny warn-text">' + L("Last attempt: if the customer is not reached, the order is skipped automatically (" + SKIP_LABEL.UNREACHABLE + ").",
+            "Lần cuối: nếu không liên lạc được khách, đơn tự chuyển Bỏ qua (" + SKIP_LABEL.UNREACHABLE + ").") + "</p>" : "")
           + (early ? '<p class="tiny warn-text">' + L("Before the planned date (" + viTime(last.next_contact_date) + "). The default gap is " + config.retry_gap_days + " business day(s).",
             "Sớm hơn ngày đã hẹn (" + viTime(last.next_contact_date) + "). Khoảng cách mặc định là " + config.retry_gap_days + " ngày làm việc.") + "</p>" : "")
           + '<div class="grid2">'
@@ -239,7 +243,9 @@
         var r = await api.addContact(o.order_id, { contacted_at: apiTime(el("c-at").value), method: el("c-method").value,
           result: el("c-result").value, note: el("c-note").value.trim(), next_contact_date: el("c-next").value,
           evidence: evidence, evidence_ref: el("c-ref").value.trim() });
-        toast(L("Saved contact attempt " + r.order.contact_count + "/" + r.order.max_contact + ".", "Đã lưu lần liên lạc " + r.order.contact_count + "/" + r.order.max_contact + "."));
+        if (r.order.status == "SKIPPED") toast(L("Saved the last attempt. The customer was not reached, so the order was skipped (" + SKIP_LABEL.UNREACHABLE + ").",
+          "Đã lưu lần cuối. Không liên lạc được khách nên đơn tự chuyển Bỏ qua (" + SKIP_LABEL.UNREACHABLE + ")."));
+        else toast(L("Saved contact attempt " + r.order.contact_count + "/" + r.order.max_contact + ".", "Đã lưu lần liên lạc " + r.order.contact_count + "/" + r.order.max_contact + "."));
         files = [];
         refresh();
       } catch (e) {
@@ -255,12 +261,8 @@
       catch (e) { return apiFail(e); }
     }
     function complete() {
-      var n = cyc.length, max = o.max_contact, radios = "";
-      for (var k in OUTCOME_LABEL) {
-        var lock = k == "UNREACHABLE" && n < max;
-        radios += '<label class="radio' + (lock ? " disabled" : "") + '"><input type="radio" name="oc" value="' + k + '"' + (lock ? " disabled" : "") + "> " + OUTCOME_LABEL[k]
-          + (lock ? ' <span class="tiny">' + L("(needs " + max + " attempts, currently " + n + ")", "(cần " + max + " lần, hiện " + n + ")") + "</span>" : "") + "</label>";
-      }
+      var radios = "";
+      for (var k in OUTCOME_LABEL) radios += '<label class="radio"><input type="radio" name="oc" value="' + k + '"> ' + OUTCOME_LABEL[k] + "</label>";
       openModal(L("Complete order", "Hoàn tất đơn"), '<fieldset><legend>' + L("Outcome", "Kết quả") + ' *</legend>' + radios + "</fieldset>"
         + '<div class="form-row"><label for="oc-note">' + L("Note", "Ghi chú") + '</label><textarea id="oc-note" rows="2"></textarea></div>', L("Complete", "Hoàn tất"), function () {
         var p = document.querySelector('input[name="oc"]:checked');
