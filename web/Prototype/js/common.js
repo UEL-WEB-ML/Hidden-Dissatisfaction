@@ -316,6 +316,13 @@ function copyBtn(id) {
 function idLink(id, href) {
   return '<a class="id" href="' + href + '" aria-label="' + L("Order ", "Đơn ") + id + '">' + shortId(id) + "</a>" + copyBtn(id);
 }
+// Thẻ/dòng có data-href: bấm vào chỗ trống cũng mở trang đó (link, nút, "Show all" vẫn giữ việc của chúng)
+document.addEventListener("click", function (e) {
+  var box = e.target.closest("[data-href]");
+  if (!box || e.target.closest("a, button, summary, input, select, textarea")) return;
+  if (String(window.getSelection())) return;   // đang bôi đen chữ để sao chép thì không mở
+  location.href = box.getAttribute("data-href");
+});
 function copyId(id) {
   try { navigator.clipboard.writeText(id); } catch (e) { }
   toast(L("Copied ID ", "Đã sao chép mã ") + id);

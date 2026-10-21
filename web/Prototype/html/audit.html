@@ -108,7 +108,7 @@
           var total = o.event_count;
           var first = "", rest = "";
           for (var m = 0; m < ev.length; m++) (m < 3 ? (first += eventLine(ev[m])) : (rest += eventLine(ev[m])));
-          cards += '<article class="k-card">'
+          cards += '<article class="k-card k-link" data-href="order.html?id=' + orders[j] + '">'
             + '<div class="k-top">' + idLink(orders[j], "order.html?id=" + orders[j]) + " " + badge(o.risk_level)
             + (o.has_override ? ' <span class="ev OVERRIDE">' + EVENT_LABEL.OVERRIDE + "</span>" : "") + "</div>"
             + '<div class="tiny">' + (o.assignee_name || L("Unassigned", "Chưa ai nhận")) + " · " + (ev.length == total ? total + L(total == 1 ? " action" : " actions", " thao tác") : L(ev.length + " of " + total + " actions match", ev.length + "/" + total + " thao tác khớp")) + "</div>"
