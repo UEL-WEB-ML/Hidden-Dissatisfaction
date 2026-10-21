@@ -587,7 +587,7 @@
       var html = "";
       for (var i = 0; i < ev.length && i < 4; i++) {
         var e = ev[i];
-        html += '<li><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> <b>" + e.actor_name + "</b>" + (e.order_id ? idLink(e.order_id, "order.html?id=" + e.order_id) : '<a href="settings.html">' + L("Settings", "Cài đặt") + "</a>")
+        html += '<li class="row-link" data-href="' + (e.order_id ? "order.html?id=" + e.order_id : "settings.html") + '"><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> <b>" + e.actor_name + "</b>" + (e.order_id ? idLink(e.order_id, "order.html?id=" + e.order_id) : '<a href="settings.html">' + L("Settings", "Cài đặt") + "</a>")
           + '<span class="f-when">' + viTime(e.created_at) + "</span>"
           + '<span class="f-why">' + changeHtml(e.old_value, e.new_value) + (e.reason ? L(" · Reason: ", " · Lý do: ") + e.reason : "") + "</span></li>";
       }

@@ -465,7 +465,7 @@
         var who = c.assignee_id ? c.assignee_name + (c.assignee_id == ME.user_id ? L(" (you)", " (bạn)") : "") : '<span class="muted">' + L("Unassigned", "Chưa ai nhận") + "</span>";
         var aging = durationText(agingHours(c)) + escBadge(c);
         var st = statusBadge(c.status) + (outcomeText(c) ? '<div class="tiny">' + outcomeText(c) + "</div>" : "")
-          + (isStale(c) ? '<div class="tiny warn-text">' + L("No update for ≥ ", "≥ ") + durationText(config.stale_hours) + L("", " không cập nhật") + "</div>" : "");
+          + (isStale(c) ? '<div class="tiny warn-text">' + L("No update for ≥&nbsp;", "≥&nbsp;") + durationText(config.stale_hours) + L("", " không cập nhật") + "</div>" : "");
         rows += '<tr class="' + c.risk_level + (isClosed(c) ? " done" : "") + '">'
           + "<td>" + idLink(c.order_id, link) + "</td>"
           + '<td class="num"><b class="score">' + c.risk_score.toFixed(2) + '</b><span class="mini"><div style="width:' + (c.risk_score * 100) + '%"></div></span></td>'

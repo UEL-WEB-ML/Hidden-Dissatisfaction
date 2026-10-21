@@ -29,6 +29,9 @@ Mở `html/login.html` bằng trình duyệt, không cần cài gì. Góc trên 
 - Thanh điều hướng (cột dọc bên trái, trên điện thoại thành thanh ngang) theo vai: Specialist có Risk Queue, Chi tiết đơn, Liên lạc khách; Manager có Tổng quan, Risk Queue, Chi tiết đơn, Quyết định, Lịch sử thao tác, Cài đặt.
   Bấm avatar ở cuối thanh điều hướng để mở menu: Hồ sơ, Ngôn ngữ, Cài đặt tham số (Manager), Đăng xuất.
 - Thao tác được backend giả lưu tạm trong trình duyệt (localStorage) nên chuyển màn không mất.
+- **Demo AJAX (thuyết trình):** chạy `node tools/mock-backend.js` rồi mở `http://localhost:8000/html/login.html?mock=0&api=/api/v1`.
+  Mọi dữ liệu đi qua AJAX (`XMLHttpRequest` trong `js/api.js`, xem được ở tab Network của F12), nhận JSON rồi dùng DOM vẽ lên trang.
+  Dữ liệu nằm trên server nên tắt server chạy lại là về dữ liệu mẫu. Xong demo mở `?mock=default` để về backend giả trong trình duyệt.
 - Giờ máy chủ giả bắt đầu ở **04/06/2018 14:00** (mỗi thao tác cộng 1 phút) để SLA và aging luôn ra cùng một kết quả.
 - Thu nhỏ cửa sổ để xem bố cục máy tính bảng (768px) và điện thoại (375px).
 - Ô màu vàng là ghi chú cho BA/Frontend (có mã function FRD), không thuộc giao diện thật.

@@ -579,8 +579,9 @@ details summary { cursor: pointer; font-weight: 600; font-size: 0.875rem; color:
 .work-box .contact-form { border-top: none; margin-top: 0; padding-top: 0; margin-bottom: 1em; }
 .keynums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6em; margin: -0.2em 0 1em; }
 .kn { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0.7em 0.8em; }
+.kn { container-type: inline-size; min-width: 0; }
 .kn-label { font-size: 0.75rem; color: var(--ink-500); font-weight: 600; }
-.kn-num { font-size: 1.5em; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
+.kn-num { font-size: min(1.5em, 22cqi); font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
 .kn-of { font-size: 0.6em; color: var(--ink-500); font-weight: 600; }
 .kn-sub { font-size: 0.78rem; color: var(--ink-600); }
 .kn-name { font-size: 1.05em; }
@@ -667,6 +668,17 @@ table.params td.pv { white-space: nowrap; font-variant-numeric: tabular-nums; }
 table.params th:nth-child(1) { width: 52%; }
 table.params th:nth-child(2) { width: 20%; }
 table.params th:nth-child(3) { width: 17%; }
+table.params th { white-space: normal; }   /* tiêu đề dài (tiếng Việt) xuống dòng thay vì chồng lên cột bên cạnh */
+/* Màn hẹp: mỗi tham số thành 1 thẻ, giá trị + phiên bản nằm dưới tên, nút Đổi ở cuối */
+@media (max-width: 768px) {
+  table.params, table.params tbody, table.params tr, table.params td { display: block; width: auto; }
+  table.params thead { display: none; }
+  table.params tr { padding: 0.8em 0; border-bottom: 1px solid var(--line); }
+  table.params tr:last-child { border-bottom: none; }
+  table.params td { border: none; padding: 0.15em 0; }
+  table.params td.pv { white-space: normal; margin-top: 0.4em; }
+  table.params td:last-child { padding-top: 0.5em; }
+}
 
 /* Hồ sơ */
 .profile-card { display: grid; gap: 1em; }
@@ -683,6 +695,8 @@ table.params th:nth-child(3) { width: 17%; }
 .k-col h2 { font-size: 0.9rem; margin: 0.1em 0.2em 0.7em; display: flex; align-items: center; gap: 0.45em; }
 .k-count { font-size: 0.78rem; color: var(--ink-600); font-weight: 600; }
 .k-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.75em 0.85em; margin-bottom: 0.6em; box-shadow: var(--shadow-1); font-size: 0.875rem; }
+.k-link { cursor: pointer; transition: border-color 0.15s; }
+.k-link:hover { border-color: var(--accent); }
 .k-top { display: flex; flex-wrap: wrap; gap: 0.35em; align-items: center; }
 .k-events { list-style: none; margin: 0.55em 0 0; padding: 0; }
 .k-events li { border-top: 1px solid var(--line); padding: 0.5em 0; font-size: 0.85rem; line-height: 1.45; }
@@ -862,7 +876,7 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 .q-flag svg { width: 14px; height: 14px; }
 
 /* Vòng phân bố mức rủi ro */
-.mix { display: flex; align-items: center; gap: 1.2em; }
+.mix { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em 1.2em; }
 .mix svg { flex: none; }
 .mix .m-seg { fill: none; stroke-width: 16; }
 .mix .m-seg.HIGH { stroke: var(--high); }
@@ -870,7 +884,7 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 .mix .m-seg.LOW { stroke: var(--low); }
 .mix .m-c1 { font-size: 26px; font-weight: 700; fill: var(--ink-900); font-family: var(--font); letter-spacing: -0.03em; }
 .mix .m-c2 { font-size: 10px; fill: var(--ink-500); font-family: var(--font); font-weight: 600; letter-spacing: 0.06em; }
-.mix-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35em; flex: 1; min-width: 0; }
+.mix-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35em; flex: 1 1 11em; min-width: 0; }
 .mix-legend a { display: grid; grid-template-columns: auto 1fr auto; gap: 0.6em; align-items: center; padding: 0.4em 0.5em; border-radius: 8px; color: inherit; text-decoration: none; font-size: 0.85rem; }
 .mix-legend a:hover { background: var(--surface-2); color: inherit; }
 .mix-legend b { font-variant-numeric: tabular-nums; }
@@ -920,6 +934,8 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 .feed { list-style: none; margin: 0; padding: 0; }
 .feed li { display: flex; align-items: center; gap: 0.55em; flex-wrap: wrap; padding: 0.6em 0; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
 .feed li:last-child { border-bottom: none; }
+.row-link { cursor: pointer; border-radius: 8px; padding-left: 0.5em !important; padding-right: 0.5em !important; margin: 0 -0.5em; transition: background 0.15s; }
+.row-link:hover { background: var(--surface-2); }
 .feed .f-why { flex-basis: 100%; color: var(--ink-500); font-size: 0.78rem; }
 .feed .f-when { margin-left: auto; color: var(--ink-500); font-size: 0.75rem; white-space: nowrap; }
 .insight { margin: -0.4em 0 0.8em; font-size: 0.85rem; color: var(--ink-700); }
@@ -1046,6 +1062,7 @@ a.kpi.lead:hover { border-color: var(--accent); }
 .queue-table th, .queue-table td { padding-left: 0.5em; padding-right: 0.5em; }
 .queue-table th { font-size: 0.68rem; }
 .queue-table td:nth-child(4) { min-width: 10em; max-width: 14em; }
+.queue-table td:nth-child(8) .muted { white-space: nowrap; }   /* "Unassigned" không bị ngắt giữa chữ */
 .queue-table .prod-sub { font-size: 0.75rem; }
 .queue-table .mini { width: 2.6em; }
 .queue-table td:last-child .btn { height: 2.1rem; padding: 0 0.75em; font-size: 0.8rem; }
