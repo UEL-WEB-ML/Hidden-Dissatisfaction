@@ -1,13 +1,13 @@
 // =========================================================
 // mock-server.js — BACKEND GIẢ chạy ngay trong trình duyệt
-// Trả lời đúng các endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md v0.3 (đường dẫn, JSON, mã lỗi HTTP),
+// Trả lời đúng các endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md v0.5 (đường dẫn, JSON, mã lỗi HTTP),
 // để frontend làm trước khi backend thật xong. Frontend chỉ gọi qua js/api.js, không gọi file này trực tiếp.
 // Luật nghiệp vụ (BRD v4.0 mục 6) nằm ở đây, đúng chỗ của nó ở bản thật: backend kiểm tra, frontend chỉ hiển thị.
 // Khi có backend thật: bỏ mock-data.js + mock-server.js khỏi các trang, api.js tự chuyển sang gọi fetch.
 // =========================================================
 
 var MockServer = (function () {
-  var STORE_KEY = "hd-mock-db-v3";   // đổi khi đổi cấu trúc dữ liệu, để trình duyệt bỏ dữ liệu lưu theo cấu trúc cũ
+  var STORE_KEY = "hd-mock-db-v5";   // đổi khi đổi cấu trúc dữ liệu, để trình duyệt bỏ dữ liệu lưu theo cấu trúc cũ
   var SAVED = ["cases", "contacts", "audits", "now", "comments", "decisions", "params", "users"];
   var db;
   var LANG = "en";   // ngôn ngữ của câu thông báo lỗi, lấy từ header Accept-Language của từng request
@@ -163,13 +163,12 @@ var MockServer = (function () {
     return parseTime(a.queued_at) - parseTime(b.queued_at);
   }
 
-  // Case cần Manager ra quyết định: đã đóng mà chu kỳ này chưa có quyết định, hoặc đang mở mà đã hết lượt liên lạc
+  // Case cần Manager ra quyết định: đã đóng mà chu kỳ này chưa có quyết định (contract v0.5)
   function needsDecision(c) {
-    var decided = false, ds = decisionsOf(c.order_id);
-    for (var i = 0; i < ds.length; i++) if (ds[i].cycle == c.cycle_no) decided = true;
-    if (decided) return false;
-    if (isClosed(c)) return true;
-    return c.status == "IN_PROGRESS" && cycleContacts(c).length >= cfg().max_contact;
+    if (!isClosed(c)) return false;
+    var ds = decisionsOf(c.order_id);
+    for (var i = 0; i < ds.length; i++) if (ds[i].cycle == c.cycle_no) return false;
+    return true;
   }
 
   // ---------- Định dạng trả về (API_CONTRACT mục 3) ----------
@@ -377,7 +376,8 @@ var MockServer = (function () {
       contacts: contactsOutAll(id),
       comments: commentsOf(id).map(commentOut),
       decisions: ds,
-      next_step: ds.length ? { decision: ds[0].decision, next_step: ds[0].next_step, due_date: ds[0].due_date, decided_by: ds[0].actor_name, decided_at: ds[0].created_at } : null,
+      next_step: ds.length ? { decision: ds[0].decision, reason: ds[0].reason, next_step: ds[0].next_step, next_step_assignee_id: ds[0].next_step_assignee_id,
+        next_step_assignee_name: ds[0].next_step_assignee_name, due_date: ds[0].due_date, decided_by: ds[0].actor_name, decided_at: ds[0].created_at } : null,
       status_history: history,
       model_notes: notes,
       audit_events: me.role == "MANAGER" ? audits.map(auditOut) : null,
@@ -389,8 +389,9 @@ var MockServer = (function () {
     return { created_at: x.at, author_id: x.user, author_name: u ? u.full_name : null, author_role: u ? u.role : null, text: x.text };
   }
   function decisionOut(x) {
-    return { created_at: x.at, actor_id: x.actor, actor_name: userName(x.actor), cycle_no: x.cycle, decision: x.decision,
-      next_step: x.next_step, due_date: x.due_date || null, note: x.note || "" };
+    return { created_at: x.at, actor_id: x.actor, actor_name: userName(x.actor), cycle_no: x.cycle, decision: x.decision, reason: x.reason || "",
+      next_step: x.next_step, next_step_assignee_id: x.next_step_assignee || null, next_step_assignee_name: x.next_step_assignee ? userName(x.next_step_assignee) : null,
+      due_date: x.due_date || null, note: x.note || "" };
   }
 
   // ---------- Thao tác (F05–F08) ----------
@@ -490,6 +491,11 @@ var MockServer = (function () {
     db.contacts.push(x);
     c.updated_at = db.now;
     addAudit(me.id, id, "CONTACT", n + "/" + cf.max_contact, (n + 1) + "/" + cf.max_contact + " · " + body.result, "");
+    // Auto-skip (contract v0.5 mục 4.5): lần cuối mà vẫn không REACHED thì đơn tự chuyển SKIPPED/UNREACHABLE
+    if (n + 1 >= cf.max_contact && body.result != "REACHED") {
+      c.status = "SKIPPED"; c.skip_reason = "UNREACHABLE";
+      addAudit(me.id, id, "SKIP", "IN_PROGRESS", "SKIPPED", "UNREACHABLE: auto after attempt " + (n + 1) + "/" + cf.max_contact);
+    }
     save();
     return ok({ contact: contactOut(x, n), order: orderOut(c) }, 201);
   }
@@ -502,11 +508,8 @@ var MockServer = (function () {
     if (c.status != "IN_PROGRESS") return fail(409, "INVALID_STATE", M("Only in-progress orders can be completed.", "Chỉ đơn Đang xử lý mới hoàn tất được."));
     if (!canWork(c, me)) return fail(403, "FORBIDDEN", M("Only the assignee or a manager can complete this order.", "Chỉ người phụ trách hoặc Manager được hoàn tất đơn này."));
     var outcome = body.outcome;
-    if (["HAS_ISSUE", "NO_ISSUE", "UNREACHABLE", "DUPLICATE"].indexOf(outcome) == -1) return fail(422, "VALIDATION_ERROR", M("Choose an outcome before completing.", "Chọn kết quả trước khi hoàn tất."), { field: "outcome" });
-    if (outcome == "UNREACHABLE" && cycleContacts(c).length < cf.max_contact) {
-      return fail(422, "OUTCOME_NOT_ALLOWED", M("\"Unreachable\" needs " + cf.max_contact + " contact attempts first.",
-        "\"Không liên lạc được\" cần đủ " + cf.max_contact + " lần liên lạc trước."), { field: "outcome" });
-    }
+    // UNREACHABLE không còn là outcome hoàn tất (v0.5): hết lượt mà không liên lạc được thì đơn tự chuyển SKIPPED
+    if (["HAS_ISSUE", "NO_ISSUE", "DUPLICATE"].indexOf(outcome) == -1) return fail(422, "VALIDATION_ERROR", M("Choose an outcome before completing.", "Chọn kết quả trước khi hoàn tất."), { field: "outcome" });
     c.status = "COMPLETED"; c.outcome = outcome; c.updated_at = tick();
     addAudit(me.id, id, "STATUS", "IN_PROGRESS", "COMPLETED · " + outcome, body.note || "");
     save();
@@ -582,12 +585,14 @@ var MockServer = (function () {
     var c = findCase(id);
     if (!c) return notFound(id);
     if (DECISIONS.indexOf(body.decision) == -1) return fail(422, "VALIDATION_ERROR", M("Choose a decision.", "Chọn quyết định."), { field: "decision" });
-    var next = (body.next_step || "").trim();
+    var reason = (body.reason || "").trim(), next = (body.next_step || "").trim(), who = body.next_step_assignee_id || null;
+    if (!reason) return fail(422, "REASON_REQUIRED", M("Give a reason for this decision.", "Ghi lý do cho quyết định này."), { field: "reason" });
     if (!next) return fail(422, "VALIDATION_ERROR", M("Write the next step so the team knows what to do.", "Ghi bước tiếp theo để nhóm biết phải làm gì."), { field: "next_step" });
+    if (who && !findUser(who)) return fail(422, "VALIDATION_ERROR", M("The person for the next step doesn't exist.", "Người thực hiện bước tiếp theo không tồn tại."), { field: "next_step_assignee_id" });
     if (body.due_date && body.due_date < db.now.substring(0, 10)) return fail(422, "VALIDATION_ERROR", M("The due date can't be in the past.", "Hạn không được ở quá khứ."), { field: "due_date" });
-    var x = { order_id: id, at: tick(), actor: me.id, cycle: c.cycle_no, decision: body.decision, next_step: next, due_date: body.due_date || "", note: (body.note || "").trim() };
+    var x = { order_id: id, at: tick(), actor: me.id, cycle: c.cycle_no, decision: body.decision, reason: reason, next_step: next, next_step_assignee: who, due_date: body.due_date || "", note: (body.note || "").trim() };
     db.decisions.push(x);
-    db.audits.push({ at: x.at, actor: me.id, order_id: id, type: "DECISION", old_value: "", new_value: body.decision, reason: next });
+    db.audits.push({ at: x.at, actor: me.id, order_id: id, type: "DECISION", old_value: "", new_value: body.decision, reason: reason });
     save();
     return ok({ decision: decisionOut(x), order: orderOut(c) }, 201);
   }
@@ -689,7 +694,7 @@ var MockServer = (function () {
       if (isStale(x)) t.stale++;
       if (isClosed(x)) {
         r.closed++;
-        if (x.status == "COMPLETED") { r.completed++; if (x.outcome == "HAS_ISSUE") r.issue_found++; if (x.outcome == "UNREACHABLE") r.unreachable++; }
+        if (x.status == "COMPLETED") { r.completed++; if (x.outcome == "HAS_ISSUE") r.issue_found++; }
         if (x.status == "SKIPPED") { r.skipped++; if (x.skip_reason == "UNREACHABLE") r.unreachable++; }
       }
       for (var k = 0; k < bandOut.length; k++) {

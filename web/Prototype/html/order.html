@@ -205,7 +205,7 @@
         html = "<b>" + (mine ? L("You are handling this order.", "Bạn đang xử lý đơn này.") : L(o.assignee_name + " is handling this order.", o.assignee_name + " đang xử lý đơn này.")) + "</b> "
           + L("Contacted " + n + "/" + max + " times", "Đã liên lạc " + n + "/" + max + " lần")
           + (last && last.next_contact_date ? L(", next contact planned for ", ", hẹn liên lạc tiếp ") + viTime(last.next_contact_date) : "") + ".";
-        if (n >= max) html += L(" No contact attempts left: complete or skip.", " Hết lượt liên lạc: hoàn tất hoặc bỏ qua.");
+        if (n >= max) html += L(" No contact attempts left: complete the order.", " Hết lượt liên lạc: hoàn tất đơn.");
         if (over) html += L(" SLA overdue.", " Quá hạn SLA.");
       }
       if (isClosed(o)) {
@@ -350,7 +350,7 @@
     function suggestedNext() {
       if (o.status == "PENDING") return o.self_claim_allowed ? L("A specialist claims the order.", "Nhân viên nhận đơn.") : L("A manager assigns the order to a specialist.", "Manager giao đơn cho một nhân viên.");
       if (o.status == "IN_PROGRESS") {
-        if (cycleContacts.length >= o.max_contact) return L("Out of attempts: complete or skip, then the manager decides.", "Hết lượt liên lạc: hoàn tất hoặc bỏ qua, rồi Manager ra quyết định.");
+        if (cycleContacts.length >= o.max_contact) return L("Reached on the last attempt: complete the case with an outcome.", "Lần cuối đã liên lạc được: hoàn tất case kèm kết quả.");
         return needContact() || cycleContacts.length == 0 ? L("Contact the customer and log the attempt with evidence.", "Liên lạc khách và ghi lại kèm minh chứng.") : L("Complete the case with an outcome.", "Hoàn tất case với kết quả.");
       }
       return L("The manager reviews the case and writes a decision.", "Manager xem lại case và ghi quyết định.");
@@ -361,6 +361,8 @@
         html = '<div class="next-card"><div class="nc-head"><span class="dec-tag">' + DECISION_LABEL[ns.decision] + "</span>"
           + (ns.due_date ? ' <span class="tiny">' + L("Due ", "Hạn ") + viTime(ns.due_date) + "</span>" : "") + "</div>"
           + "<p>" + ns.next_step + "</p>"
+          + (ns.next_step_assignee_name ? '<div class="tiny">' + L("Assigned to ", "Giao cho ") + "<b>" + ns.next_step_assignee_name + "</b></div>" : "")
+          + (ns.reason ? '<div class="tiny">' + L("Reason: ", "Lý do: ") + ns.reason + "</div>" : "")
           + '<div class="tiny">' + L("Decided by ", "Quyết định bởi ") + ns.decided_by + ", " + viTime(ns.decided_at) + "</div></div>";
       } else {
         html = '<div class="next-card auto"><div class="nc-head"><span class="tiny">' + L("Suggested by the workflow", "Gợi ý theo quy trình") + "</span></div><p>" + suggestedNext() + "</p></div>";
@@ -479,13 +481,8 @@
     }
 
     function complete() {
-      var n = cycleContacts.length, max = o.max_contact;
       var radios = "";
-      for (var k in OUTCOME_LABEL) {
-        var lock = k == "UNREACHABLE" && n < max;
-        radios += '<label class="radio' + (lock ? " disabled" : "") + '"><input type="radio" name="oc" value="' + k + '"' + (lock ? " disabled" : "") + "> "
-          + OUTCOME_LABEL[k] + (lock ? ' <span class="tiny">' + L("(needs " + max + " attempts, currently " + n + ")", "(cần " + max + " lần, hiện " + n + ")") + "</span>" : "") + "</label>";
-      }
+      for (var k in OUTCOME_LABEL) radios += '<label class="radio"><input type="radio" name="oc" value="' + k + '"> ' + OUTCOME_LABEL[k] + "</label>";
       openModal(L("Complete order", "Hoàn tất đơn"), '<fieldset><legend>' + L("Outcome", "Kết quả") + ' *</legend>' + radios + "</fieldset>"
         + '<div class="form-row"><label for="oc-note">' + L("Note", "Ghi chú") + '</label><textarea id="oc-note" rows="2"></textarea></div>'
         + '<p class="tiny">' + L("Completing releases the assignee's slot. The manager then writes a decision.", "Hoàn tất sẽ trả slot cho người phụ trách. Sau đó Manager ghi quyết định.") + "</p>", L("Complete", "Hoàn tất"), function () {

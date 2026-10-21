@@ -1,6 +1,6 @@
 # Nối backend vào frontend
 
-Frontend chỉ lấy và ghi dữ liệu qua `js/api.js`, đúng theo **API contract v0.3** (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`).
+Frontend chỉ lấy và ghi dữ liệu qua `js/api.js`, đúng theo **API contract v0.5** (repo `docs`, `docs/API_CONTRACT_olist_hidden_dissatisfaction.md`).
 Backend làm đúng contract là chạy, không phải sửa trang nào.
 
 ## 1. Chuyển sang backend thật: sửa 1 file
