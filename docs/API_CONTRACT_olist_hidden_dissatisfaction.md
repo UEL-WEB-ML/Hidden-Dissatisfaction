@@ -7,7 +7,7 @@
 | Phiên bản | 0.5 |
 | Trạng thái | Bản nháp, Frontend và Backend cùng chốt |
 | Ngày | 21/10/2026 |
-| Tài liệu liên quan | BRD_olist_hidden_dissatisfaction.md (v4.2); FRD_olist_hidden_dissatisfaction.md (v2.2); DATA_DICTIONARY_web_olist_hidden_dissatisfaction.md (v0.5); ERD – TBD |
+| Tài liệu liên quan | BRD_olist_hidden_dissatisfaction.md (v4.2); FRD_olist_hidden_dissatisfaction.md (v2.2); DATA_DICTIONARY_web_olist_hidden_dissatisfaction.md (v0.5); ERD_olist_hidden_dissatisfaction.md |
 | Bản chạy thử | Chưa được lưu trong repository hiện tại; mock/frontend phải được cập nhật và kiểm tra theo contract v0.5 trước khi tuyên bố tương thích |
 
 ### Thay đổi so với v0.4 (21/10)
@@ -264,8 +264,13 @@ Review Olist chỉ có ở cấp order, nên các item trong cùng order kế th
 
 ### 3.5. Audit event (BRD 6.8)
 
-`created_at`, `actor_id`, `actor_name`, `order_id` (**null** với `PARAMETER_CHANGE`), `event_type`, `old_value`, `new_value`, `reason`, kèm `order` tóm tắt
+`created_at`, `actor_kind` (`USER` hoặc `SYSTEM`), `actor_id` (nullable khi `SYSTEM`), `actor_name`, `order_id` (**null** với `PARAMETER_CHANGE`), `event_type`, `old_value`, `new_value`, `reason`, kèm `order` tóm tắt
 (`status`, `risk_level`, `assignee_name`, `event_count`, `has_override`; null khi không gắn đơn) để màn Audit History xếp thẻ theo trạng thái mà không phải gọi thêm.
+
+Queue seed tự động dùng `event_type = QUEUE_SEED`, `actor_kind = SYSTEM`,
+`actor_id = null`; `reason` chứa source/batch provenance. Với cycle đang mở,
+`parameter_version` là snapshot lúc cycle bắt đầu; việc áp dụng bản mới vào
+cycle đã mở là deferred trong P7.
 
 ## 4. Endpoint
 
