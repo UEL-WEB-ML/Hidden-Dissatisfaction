@@ -31,6 +31,7 @@ from hidden_dissatisfaction.modeling.evaluation import (
 from hidden_dissatisfaction.modeling.schema import (
     CATEGORICAL_FEATURES,
     FEATURES,
+    MODEL_INPUT_SCHEMA_VERSION,
     TARGET,
     VALUE_COLUMN,
     validate_modeling_table,
@@ -483,7 +484,16 @@ def _write_artifacts(
         path.parent.mkdir(parents=True, exist_ok=True)
     for path, value in extras.items():
         path.write_text(json.dumps(value, indent=2, sort_keys=True), encoding="utf-8")
-    joblib.dump(estimator, model_path)
+    joblib.dump(
+        {
+            "kind": "HIDDEN_DISSATISFACTION_MODEL",
+            "artifact_format_version": 1,
+            "model_input_schema_version": MODEL_INPUT_SCHEMA_VERSION,
+            "feature_names": list(FEATURES),
+            "estimator": estimator,
+        },
+        model_path,
+    )
     item_predictions.to_csv(item_path, index=False)
     order_predictions.to_csv(order_path, index=False)
     report["artifact_inventory"] = {

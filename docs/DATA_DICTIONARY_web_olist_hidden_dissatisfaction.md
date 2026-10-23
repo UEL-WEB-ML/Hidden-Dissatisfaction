@@ -42,7 +42,7 @@ Tên cột và các mã (`SPECIALIST`, `PHONE`, `CONTACT`…) trong tài liệu 
 
 ## 2. Điểm cần nhóm xem
 
-1. **Ngưỡng HIGH/MEDIUM thuộc release ML**, không thuộc `app.parameters`. Pipeline chọn ngưỡng trên validation theo policy đã khai báo, lưu trong `ml.model_thresholds`, và API đọc theo `threshold_version`. Các giá trị 0,70/0,45 trong mock data chỉ là ví dụ của `thr-v1`, không phải hằng số nghiệp vụ.
+1. **Ngưỡng HIGH/MEDIUM thuộc release ML**, không thuộc `app.parameters`. Pipeline chọn ngưỡng trên validation theo policy đã khai báo, lưu trong `ml.model_thresholds`, và API đọc theo cặp định danh `(release_version, threshold_version)`. Các giá trị 0,70/0,45 trong mock data chỉ là ví dụ của `thr-v1`, không phải hằng số nghiệp vụ.
 2. **Quy tắc tổng hợp `aggregation_rule`**: đã chốt `max-v1` (điểm đơn = điểm product item cao nhất). Mọi thay đổi công thức phải dùng version mới.
 3. **`synthetic_data_flag`**: nhóm ML chốt sản phẩm nào được giả lập, sinh bằng cách nào; web chỉ đọc cờ và gắn nhãn.
 4. **`close_note`** dùng cho cả hoàn tất và bỏ qua, không bắt buộc, trừ `skip_reason = 'OTHER'`.
@@ -230,9 +230,9 @@ Mỗi dòng là **một phiên bản** của một tham số. Giá trị đang h
 
 | Cột | Kiểu | Bắt buộc | Khoá / ràng buộc / mặc định | Ý nghĩa | Ví dụ | Nguồn |
 |---|---|---|---|---|---|---|
-| `threshold_version` | varchar(20) | Có | PK | Phiên bản bộ ngưỡng | thr-v1 | Model release |
+| `threshold_version` | varchar(20) | Có | PK cùng `model_release_id` | Phiên bản bộ ngưỡng; định danh đầy đủ là `(release_version, threshold_version)` | thr-v1 | Model release |
 | `model_version` | varchar(50) | Có |  | Model mà ngưỡng được chọn trên validation | hd-item-v1 | Model registry |
-| `high_from`, `medium_from` | numeric(4,3) | Có | `1 >= high_from > medium_from >= 0` | Ranh giới level | 0.700; 0.450 | Validation policy |
+| `high_from`, `medium_from` | numeric(18,17) | Có | `1 >= high_from > medium_from >= 0` | Ranh giới level | 0.700; 0.450 | Validation policy |
 | `selection_policy` | varchar(50) | Có |  | Quy tắc chọn ngưỡng, không chỉnh trên test | validation-f1-v1 | Experiment config |
 | `created_at` | timestamptz | Có |  | Thời điểm phát hành | 2026-10-21T00:00:00Z | Model registry |
 
@@ -245,8 +245,8 @@ Mỗi dòng là **một phiên bản** của một tham số. Giá trị đang h
 | `risk_score` | numeric(4,3) | Có | 0–1 | Điểm **tổng hợp** của đơn (web không bao giờ sửa) | 0.910 | BRD 6.1 mục 3 |
 | `risk_level` | varchar(10) | Có | HIGH / MEDIUM / LOW | Mức rủi ro theo ngưỡng | HIGH | BRD 6.1 mục 4 |
 | `aggregation_rule` | varchar(20) | Có |  | Quy tắc tổng hợp + version | max-v1 | BRD 6.1 mục 3–4 |
-| `items_count` | smallint | Có |  | Số sản phẩm trong đơn | 3 | FRD F04-S03 |
-| `top_factors` | jsonb | Không | Mảng chuỗi; rỗng nếu model chưa trả | Yếu tố liên quan của sản phẩm điểm cao nhất (hiển thị nguyên văn) | ["Seller took 5 days to hand over"] | Inference contract |
+| `items_count` | smallint | Có |  | Số sản phẩm trong đơn (view alias của `item_count`) | 3 | FRD F04-S03 |
+| `top_factors` | jsonb | Không | Mảng chuỗi; rỗng nếu model chưa trả | Yếu tố liên quan/giải thích, không phải quan hệ nhân quả | ["Seller took 5 days to hand over"] | Inference contract |
 | `suggested_action` | varchar(30) | Có | CONTACT / MONITOR / NO_ACTION | Đề xuất của model (chỉ tham khảo) | CONTACT | BRD 6.1 mục 6 |
 | `model_version` | varchar(50) | Có |  | Phiên bản model | hd-model v0.3 | Inference contract |
 | `threshold_version` | varchar(20) | Có |  | Phiên bản ngưỡng HIGH/MEDIUM | thr-v1 | BRD 6.1 mục 4 |

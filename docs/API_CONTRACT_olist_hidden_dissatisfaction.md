@@ -23,7 +23,7 @@
 - Chốt Product Item Risk Output là đơn vị ML và Order Risk Case là đơn vị workflow.
 - Chốt `max-v1`: điểm order bằng điểm product item cao nhất trong order.
 - Làm rõ item kế thừa nhãn review cấp order; score không chứng minh item gây bất mãn.
-- Ngưỡng LOW/MEDIUM/HIGH do pipeline chọn trên validation, phát hành cùng `threshold_version`; các số trong ví dụ không phải hằng số nghiệp vụ.
+- Ngưỡng LOW/MEDIUM/HIGH do pipeline chọn trên validation, phát hành cùng định danh `(release_version, threshold_version)`; các số trong ví dụ không phải hằng số nghiệp vụ.
 
 ### Thay đổi so với v0.2 (13/10)
 
@@ -333,7 +333,7 @@ Luồng Frontend: chọn ngôn ngữ ở màn Đăng nhập thì lưu trên máy
 ```
 
 - `parameter_version`: mốc hiệu lực gần nhất của bộ tham số, để case đã đóng giữ đúng bộ đã dùng.
-- `high_from`, `medium_from`: ngưỡng thuộc model release, đọc từ `ml.model_thresholds` theo `threshold_version`; chỉ đọc và **không** có trong `/parameters`. Các giá trị mẫu 0,70/0,45 không được ghi cứng ngoài mock data của `thr-v1`.
+- `high_from`, `medium_from`: ngưỡng thuộc model release, đọc từ `ml.model_thresholds` theo `(release_version, threshold_version)`; chỉ đọc và **không** có trong `/parameters`. Các giá trị mẫu 0,70/0,45 không được ghi cứng ngoài mock data của `thr-v1`.
 - `server_time`: Frontend dùng làm mặc định và giới hạn cho ô "thời điểm liên lạc", "thời điểm hiệu lực".
 - `typical_order` (không bắt buộc): mức thường gặp để Chi tiết đơn so sánh (số ngày seller giao cho vận chuyển, tổng số ngày giao, giá trị đơn, phí ship).
   Số mẫu là trung vị của 80.039 đơn Olist giao đúng hạn được 3-5 sao. Backend chưa trả thì Frontend dùng đúng các số này.
