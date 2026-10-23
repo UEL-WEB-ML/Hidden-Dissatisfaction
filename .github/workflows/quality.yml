@@ -3,6 +3,7 @@ name: quality
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -18,3 +19,29 @@ jobs:
       - run: uv run black --check .
       - run: uv run mypy src tests
       - run: uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
+
+  p4-release-verify:
+    name: P4 release verification
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      DBT_HOST: ${{ secrets.DBT_HOST }}
+      DBT_PORT: ${{ secrets.DBT_PORT }}
+      DBT_USER: ${{ secrets.DBT_USER }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}
+      DBT_DATABASE: ${{ secrets.DBT_DATABASE }}
+      DBT_TARGET_SCHEMA: ${{ secrets.DBT_TARGET_SCHEMA }}
+      DBT_SOURCE_RUN_ID: ${{ secrets.DBT_SOURCE_RUN_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.11"
+      - run: uv sync --frozen --extra warehouse
+      - name: Require release-gate contract
+        run: |
+          test -n "$DBT_USER" || { echo "DBT_USER secret is required" >&2; exit 1; }
+          test -n "$DBT_PASSWORD" || { echo "DBT_PASSWORD secret is required" >&2; exit 1; }
+          test -n "$DBT_SOURCE_RUN_ID" || { echo "DBT_SOURCE_RUN_ID secret is required" >&2; exit 1; }
+      - run: make p4-release-verify

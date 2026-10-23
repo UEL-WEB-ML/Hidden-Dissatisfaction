@@ -1,0 +1,15 @@
+version: 2
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: ingestion_runs
+      - {name: olist_customers, identifier: customers}
+      - {name: olist_sellers, identifier: sellers}
+      - {name: olist_products, identifier: products}
+      - {name: olist_orders, identifier: orders}
+      - {name: olist_order_items, identifier: order_items}
+      - {name: olist_order_payments, identifier: order_payments}
+      - {name: olist_order_reviews, identifier: order_reviews}
+      - {name: olist_geolocation, identifier: geolocation}
+      - {name: product_category_name_translation, identifier: category_translation}

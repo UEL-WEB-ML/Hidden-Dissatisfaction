@@ -26,10 +26,25 @@ data/interim/*
 data/processed/*
 artifacts/models/*
 artifacts/predictions/*
+artifacts/checkpoints/
+artifacts/config/
+artifacts/metrics/
+artifacts/reproducibility/
+artifacts/selection/
 runs/
+logs/
+
+# Local dbt and agent state
+dbt/.user.yml
+dbt/logs/
+dbt/target/
+.slim/
 
 # Generated report output
 web/BaoCao_LaTeX/main.pdf
+reports/experiments/
+reports/figures/
+reports/tables/
 
 # Keep directory documentation/placeholders
 !data/raw/README.md

@@ -2,7 +2,9 @@
 
 import argparse
 import json
+import os
 from collections.abc import Sequence
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -38,11 +40,41 @@ def _build_parser() -> argparse.ArgumentParser:
     train.add_argument(
         "--data",
         type=Path,
-        default=Path("data/processed/modelling_orders.parquet"),
+        default=Path("data/processed/modelling_items.parquet"),
     )
+    export = subparsers.add_parser(
+        "export-modelling-items", help="Export a Gold modelling-items snapshot."
+    )
+    export.add_argument("--dsn", default=None, help="Postgres DSN (or WAREHOUSE_DSN)")
+    export.add_argument("--source-run-id", required=True)
+    export.add_argument(
+        "--output", type=Path, default=Path("data/processed/modelling_items.parquet")
+    )
+    export.add_argument("--source-manifest", type=Path)
+    export.add_argument("--source-hash", action="append", default=[], metavar="NAME=HASH")
+    export.add_argument("--cutoff-version", default="p4")
+    export.add_argument("--review-policy-version", default="adr-001-latest-answered-v1")
+    export.add_argument("--feature-schema-version", default="ml-modelling-items-v1")
+    export.add_argument("--git-sha")
     train.add_argument("--output-root", type=Path, default=Path("."))
     train.add_argument("--config", type=Path, default=Path("configs/experiment.toml"))
     train.add_argument("--bootstrap-iterations", type=int)
+    train.add_argument(
+        "--finalize-test",
+        action="store_true",
+        help="Evaluate the sealed test partition using a frozen selection record.",
+    )
+    train.add_argument(
+        "--selection-record",
+        "--frozen-selection-record",
+        dest="selection_record",
+        type=Path,
+        help="Development output, or frozen selection-record JSON for finalization.",
+    )
+    train.add_argument(
+        "--test-lock",
+        help="Lock from the frozen selection record (required for finalization).",
+    )
     return parser
 
 
@@ -73,23 +105,75 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "train":
         from hidden_dissatisfaction.modeling.training import TrainingConfig, run_training
 
+        if args.finalize_test and (args.selection_record is None or args.test_lock is None):
+            parser = _build_parser()
+            parser.error("--finalize-test requires both --selection-record and --test-lock")
+
         config = TrainingConfig.from_toml(args.config)
         if args.bootstrap_iterations is not None:
-            config = TrainingConfig(
-                validation_start=config.validation_start,
-                test_start=config.test_start,
-                test_end=config.test_end,
-                seed=config.seed,
-                budgets=config.budgets,
-                bootstrap_iterations=args.bootstrap_iterations,
-                rolling_folds=config.rolling_folds,
-            )
+            config = replace(config, bootstrap_iterations=args.bootstrap_iterations)
+
+        frozen_selection_record = None
+        if args.finalize_test:
+            try:
+                frozen_selection_record = json.loads(
+                    args.selection_record.read_text(encoding="utf-8")
+                )
+            except (OSError, json.JSONDecodeError) as error:
+                raise SystemExit(f"unable to read selection record: {error}") from error
+            if not isinstance(frozen_selection_record, dict):
+                raise SystemExit("selection record must contain a JSON object")
+
         report = run_training(
             args.data,
             config=config,
             output_root=args.output_root,
+            finalize_test=args.finalize_test,
+            frozen_selection_record=frozen_selection_record,
+            test_lock=args.test_lock,
         )
+        if args.selection_record is not None and not args.finalize_test:
+            args.selection_record.parent.mkdir(parents=True, exist_ok=True)
+            args.selection_record.write_text(
+                json.dumps(report["selection_record"], indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
         print(json.dumps(report, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "export-modelling-items":
+        from hidden_dissatisfaction.application.modelling_export import ModellingExportMetadata
+        from hidden_dissatisfaction.infrastructure.modelling_parquet_exporter import (
+            export_gold_modelling_items,
+        )
+        from hidden_dissatisfaction.infrastructure.postgres_modelling_items_reader import (
+            PostgresGoldModellingItemsReader,
+        )
+
+        hashes = {}
+        if args.source_manifest is not None:
+            manifest = json.loads(args.source_manifest.read_text(encoding="utf-8"))
+            hashes.update(manifest.get("source_hashes", manifest.get("hashes", {})))
+        for value in args.source_hash:
+            if "=" not in value:
+                raise SystemExit("--source-hash must be NAME=HASH")
+            name, digest = value.split("=", 1)
+            hashes[name] = digest
+        dsn = args.dsn or os.environ.get("WAREHOUSE_DSN") or os.environ.get("DBT_DSN")
+        if not dsn:
+            raise SystemExit("--dsn or WAREHOUSE_DSN is required")
+        metadata = ModellingExportMetadata(
+            args.source_run_id,
+            hashes,
+            args.cutoff_version,
+            args.review_policy_version,
+            args.feature_schema_version,
+            args.git_sha,
+        )
+        export_gold_modelling_items(
+            PostgresGoldModellingItemsReader(dsn, args.source_run_id), metadata, args.output
+        )
+        print(str(args.output))
         return 0
 
     return 2

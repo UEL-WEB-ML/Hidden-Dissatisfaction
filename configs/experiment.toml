@@ -1,7 +1,7 @@
 [project]
 name = "olist-hidden-dissatisfaction"
 random_seed = 42
-prediction_time = "order_delivered_customer_date"
+prediction_time = "prediction_at"
 
 [cohort]
 delivered_status = "delivered"
@@ -11,16 +11,19 @@ require_observed_review_for_primary_outcome = true
 
 [validation]
 strategy = "rolling_origin"
-time_column = "order_delivered_customer_date"
+time_column = "prediction_at"
 # Initial fixed boundaries for the reproducible baseline. Revisit only through a committed
-# config change after validating monthly counts from the rebuilt order-level dataset.
-validation_start = "2018-01-01T00:00:00"
-test_start = "2018-04-01T00:00:00"
+# config change after validating monthly counts from the rebuilt p5-item-v1 dataset.
+train_end = "2017-10-01T00:00:00"
+selection_end = "2017-12-01T00:00:00"
+calibration_fit_end = "2018-02-01T00:00:00"
+calibration_compare_end = "2018-04-01T00:00:00"
+threshold_end = "2018-06-01T00:00:00"
 test_end = "2018-09-01T00:00:00"
 rolling_folds = 3
 
 [evaluation]
-primary_metric = "average_precision"
+primary_metric = "order_max_v1_pr_auc"
 report_metrics = [
     "average_precision",
     "roc_auc",
@@ -33,7 +36,9 @@ budgets = [0.05, 0.10, 0.20]
 bootstrap_iterations = 1000
 
 [models]
-baselines = ["prevalence", "logistic_regression", "random_forest"]
-candidates = ["hist_gradient_boosting"]
+families = ["prevalence", "logistic", "random_forest", "hist_gradient_boosting"]
+variants = ["prevalence-v1", "logistic-c0_1-v1", "logistic-c1-v1", "random_forest-depth8-leaf5-v1", "random_forest-depth12-leaf10-v1", "hist_gradient_boosting-l2-1-leaf31-v1", "hist_gradient_boosting-l2-5-leaf15-v1"]
+regimes = ["item_unweighted", "order_weight", "order_reference"]
 default_resampling = "none"
 calibration_methods = ["sigmoid", "isotonic"]
+n_jobs = 1

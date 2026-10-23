@@ -1,4 +1,9 @@
-"""Versioned feature schema and input validation for the primary model."""
+"""The versioned P5 product-item modelling contract.
+
+The table is item-grained, while labels, prediction cut-offs, and weights are
+order-grained.  Keeping that distinction here prevents accidental re-use of
+the old one-row-per-order contract.
+"""
 
 from __future__ import annotations
 
@@ -6,69 +11,54 @@ from collections.abc import Sequence
 
 import pandas as pd
 
+SCHEMA_VERSION = "p5-item-v1"
+
 SOURCE_NUMERIC_FEATURES = (
-    "delivery_days",
-    "days_vs_estimate",
-    "promised_days",
-    "handoff_days",
-    "carrier_to_customer_days",
-    "approval_hours",
-    "n_items",
-    "n_products",
-    "n_sellers",
-    "n_categories",
-    "n_seller_states",
     "price",
-    "price_max",
-    "price_std",
-    "freight",
-    "freight_max",
-    "freight_std",
-    "freight_ratio",
-    "distance_km",
-    "installments",
-    "n_pay",
-    "photos",
-    "desc_len",
-    "weight_g",
-    "weight_max_g",
-    "weight_std_g",
-    "seller_prior_neg_rate",
-    "seller_prior_n",
+    "freight_value",
+    "payment_count",
+    "payment_amount",
+    "max_payment_installments",
+    "seller_prior_review_count",
+    "seller_prior_review_score_avg",
+    "category_prior_review_count",
+    "category_prior_review_score_avg",
 )
-DERIVED_NUMERIC_FEATURES = (
-    "items_per_seller",
-    "products_per_seller",
-    "price_per_item",
-    "freight_per_item",
-    "weight_per_item",
+SOURCE_BINARY_FEATURES = (
+    "seller_history_low_support_flag",
+    "category_history_low_support_flag",
 )
-SOURCE_BINARY_FEATURES = ("dispatch_late",)
-DERIVED_BINARY_FEATURES = (
-    "is_multi_item",
-    "is_multi_product",
-    "is_multi_seller",
-    "seller_history_available",
-)
-NUMERIC_FEATURES = SOURCE_NUMERIC_FEATURES + DERIVED_NUMERIC_FEATURES
-BINARY_FEATURES = SOURCE_BINARY_FEATURES + DERIVED_BINARY_FEATURES
-CATEGORICAL_FEATURES = ("category", "customer_state", "payment_type")
+NUMERIC_FEATURES = SOURCE_NUMERIC_FEATURES
+BINARY_FEATURES = SOURCE_BINARY_FEATURES
+CATEGORICAL_FEATURES = ("product_category", "customer_state")
 FEATURES = NUMERIC_FEATURES + BINARY_FEATURES + CATEGORICAL_FEATURES
 SOURCE_FEATURES = SOURCE_NUMERIC_FEATURES + SOURCE_BINARY_FEATURES + CATEGORICAL_FEATURES
 
-KEY_COLUMNS = (
-    "order_id",
-    "customer_unique_id",
-    "main_seller",
+# These columns are retained for splitting/diagnostics and may arrive as
+# strings when the modelling table was read from CSV.  Normalize them before
+# any feature or duration calculations consume the frame.
+RAW_TIMESTAMP_COLUMNS = (
     "order_purchase_timestamp",
     "order_delivered_customer_date",
+    "order_approved_at",
+    "order_delivered_carrier_date",
+    "order_estimated_delivery_date",
+)
+
+KEY_COLUMNS = (
+    "product_item_id",
+    "order_id",
+    "prediction_at",
 )
 TARGET = "negative"
 VALUE_COLUMN = "price"
+WEIGHT_COLUMN = "order_weight"
+REQUIRED_COLUMNS = frozenset({*KEY_COLUMNS, TARGET, WEIGHT_COLUMN, *SOURCE_FEATURES})
 
 FORBIDDEN_FEATURES = frozenset(
     {
         *KEY_COLUMNS,
+        WEIGHT_COLUMN,
         "split",
         "review_score",
         "review_comment_title",
@@ -78,10 +68,17 @@ FORBIDDEN_FEATURES = frozenset(
         "label_uncertain",
         "review_conflict",
         "review_id_shared",
+        "review_version",
+        "feature_schema_version",
+        "order_purchase_timestamp",
+        "order_delivered_customer_date",
+        "order_approved_at",
+        "order_delivered_carrier_date",
+        "order_estimated_delivery_date",
         TARGET,
     }
 )
-REQUIRED_COLUMNS = frozenset({*KEY_COLUMNS, *SOURCE_FEATURES, TARGET})
+DENYLIST = FORBIDDEN_FEATURES
 
 
 class ModelingDataError(ValueError):
@@ -89,46 +86,55 @@ class ModelingDataError(ValueError):
 
 
 def validate_modeling_table(frame: pd.DataFrame) -> pd.DataFrame:
-    """Validate and normalize a one-row-per-order modeling table."""
+    """Validate and normalize a P5 one-row-per-product-item table."""
     if frame.empty:
         raise ModelingDataError("Modeling table is empty")
     missing = sorted(REQUIRED_COLUMNS.difference(frame.columns))
     if missing:
         raise ModelingDataError(f"Missing required columns: {', '.join(missing)}")
-    if frame["order_id"].isna().any() or not frame["order_id"].is_unique:
-        raise ModelingDataError("order_id must be non-null and unique")
+    for column in ("product_item_id", "order_id"):
+        if frame[column].isna().any() or frame[column].astype(str).str.strip().eq("").any():
+            raise ModelingDataError(f"{column} must be non-null and nonempty")
+    if frame["product_item_id"].duplicated().any():
+        raise ModelingDataError("product_item_id must be unique")
 
     normalized = frame.copy()
-    timestamps = pd.to_datetime(normalized["order_delivered_customer_date"], errors="coerce")
-    if timestamps.isna().any():
-        raise ModelingDataError("order_delivered_customer_date contains missing/invalid values")
-    normalized["order_delivered_customer_date"] = timestamps
+    timestamp_columns = ("prediction_at",) + RAW_TIMESTAMP_COLUMNS
+    for column in timestamp_columns:
+        if column not in normalized:
+            continue
+        timestamps = pd.to_datetime(normalized[column], errors="coerce")
+        if timestamps.isna().any():
+            raise ModelingDataError(f"{column} contains missing/invalid values")
+        normalized[column] = timestamps
 
-    target_values = set(normalized[TARGET].dropna().astype(int).unique())
-    if normalized[TARGET].isna().any() or not target_values.issubset({0, 1}):
+    target = pd.to_numeric(normalized[TARGET], errors="coerce")
+    target_values = set(target.dropna().unique())
+    if target.isna().any() or not target_values.issubset({0, 1}):
         raise ModelingDataError("negative must be a non-null binary target")
-    normalized[TARGET] = normalized[TARGET].astype(int)
-    return add_derived_features(normalized)
-
-
-def add_derived_features(frame: pd.DataFrame) -> pd.DataFrame:
-    """Add deterministic, prediction-time-safe order structure features."""
-    enriched = frame.copy()
-    enriched["is_multi_item"] = enriched["n_items"].gt(1).astype(int)
-    enriched["is_multi_product"] = enriched["n_products"].gt(1).astype(int)
-    enriched["is_multi_seller"] = enriched["n_sellers"].gt(1).astype(int)
-    enriched["seller_history_available"] = enriched["seller_prior_neg_rate"].notna().astype(int)
-    enriched["items_per_seller"] = _safe_ratio(enriched["n_items"], enriched["n_sellers"])
-    enriched["products_per_seller"] = _safe_ratio(enriched["n_products"], enriched["n_sellers"])
-    enriched["price_per_item"] = _safe_ratio(enriched["price"], enriched["n_items"])
-    enriched["freight_per_item"] = _safe_ratio(enriched["freight"], enriched["n_items"])
-    enriched["weight_per_item"] = _safe_ratio(enriched["weight_g"], enriched["n_items"])
-    return enriched
-
-
-def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
-    ratio = numerator.div(denominator.where(denominator.gt(0)))
-    return ratio.replace([float("inf"), float("-inf")], pd.NA)
+    normalized[TARGET] = target.astype(int)
+    for order, group in normalized.groupby("order_id", dropna=False):
+        if group[TARGET].nunique() != 1 or group["prediction_at"].nunique() != 1:
+            raise ModelingDataError(
+                f"label and prediction_at must be consistent within order {order!r}"
+            )
+    weights = pd.to_numeric(normalized[WEIGHT_COLUMN], errors="coerce")
+    if weights.isna().any() or (~weights.gt(0)).any():
+        raise ModelingDataError("order_weight must be positive and numeric")
+    normalized[WEIGHT_COLUMN] = weights
+    sums = normalized.groupby("order_id")[WEIGHT_COLUMN].sum()
+    if not sums.sub(1).abs().le(1e-6).all():
+        raise ModelingDataError("order_weight must sum to one within each order")
+    for column in NUMERIC_FEATURES:
+        if column in normalized:
+            values = pd.to_numeric(normalized[column], errors="coerce")
+            # Null history values are intentional and are imputed inside folds;
+            # only non-null values that cannot be parsed are invalid.
+            invalid = normalized[column].notna() & values.isna()
+            if invalid.any():
+                raise ModelingDataError(f"{column} must contain numeric values or nulls")
+            normalized[column] = values
+    return normalized
 
 
 def validate_feature_list(features: Sequence[str]) -> None:

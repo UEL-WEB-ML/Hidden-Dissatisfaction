@@ -1,5 +1,9 @@
 # Modeling and training implementation plan
 
+P5 v1 is frozen by [ADR-010](adr/ADR-010-p5-training-protocol.md). This plan is
+implementation scope only; empirical completion is recorded only after the relevant
+artifact exists. P4 release-gate evidence is a prerequisite for starting P5.
+
 This document is the execution checklist for the first reproducible modeling pipeline. It is
 derived from `research-design.md`, `data-contract.md`, and `architecture.md`. External capstone
 repositories are outside this project's evidence base; their feature choices, metrics, and reported
@@ -19,13 +23,15 @@ and pass unit tests plus the repository quality workflow.
 - [x] Population: delivered on or before the estimated date, with an observed review.
 - [x] Primary target: `negative`, meaning review score 1 or 2.
 - [x] Forbidden model inputs: identifiers, review fields, label-quality fields, and split metadata.
-- [x] Primary model-selection metric: average precision (PR-AUC).
-- [x] Candidate families: prevalence baseline, Logistic Regression, Random Forest, and histogram
-  gradient boosting.
+- [x] Primary selection order: maximum v1 order-level PR-AUC; item-level PR-AUC is reported and
+  used as a diagnostic.
+- [x] Fixed candidates: prevalence baseline, Logistic Regression, Random Forest, and histogram
+  gradient boosting. CatBoost is excluded from P5 v1.
 - [x] Imbalance treatment in the first run: class weights; threshold selection is separate.
 - [x] Final test data remains untouched until model and calibration method have been selected.
 - [x] Seed: 42.
-- [x] Initial order aggregation: `max-v1` (maximum item risk score within an order).
+- [x] Compare item score policies: unweighted item score, `order_weight`, and the order reference
+  policy; the selected policy is reported alongside max-v1 order aggregation.
 - [x] Interpretation boundary: an item inherits the containing order's review label; item risk is not evidence that the item caused dissatisfaction.
 - [ ] Multiple-review policy receives final thesis approval. The current dataset keeps the latest
   answer and exposes uncertainty flags for sensitivity analysis.
@@ -46,7 +52,8 @@ and pass unit tests plus the repository quality workflow.
 - [ ] Split orders on delivery/prediction time rather than the purchase-time `split` column created by the exploratory notebook, then keep every item from an order in the same partition.
 - [x] Use explicit boundaries from `configs/experiment.toml`; never infer boundaries from test data.
 - [x] Assert chronological ordering and require both classes in every partition.
-- [x] Divide validation chronologically into a model-selection segment and a calibration segment.
+- [x] Use five chronological temporal development segments, preserving order clusters, plus one
+  sealed final-test segment.
 - [x] Report row counts, date ranges, and prevalence for every partition.
 - [ ] Report both order and item counts and assert zero `order_id` overlap between partitions.
 - [ ] Revisit fixed boundaries after rebuilding the dataset and inspecting monthly delivery counts;
@@ -61,23 +68,27 @@ and pass unit tests plus the repository quality workflow.
 - [x] Fit each transformer only as part of its estimator pipeline on training data.
 - [x] Implement the prevalence baseline as a real estimator with `predict_proba`.
 - [x] Use deterministic seeds and bounded parallelism.
-- [x] Add optional CatBoost with native categorical handling; it participates when the `boosting`
-  extra is installed.
+- [x] Keep the candidate set fixed to prevalence, Logistic Regression, Random Forest, and histogram
+  gradient boosting; do not add CatBoost in P5 v1.
 - [x] Add deterministic multi-item/multi-seller flags and per-item/per-seller ratio features.
 - [ ] Add LightGBM/XGBoost only if CatBoost and corrected sklearn baselines justify wider search.
 - [ ] Treat SMOTE as a later ablation and recalibrate probabilities if it is introduced.
 
 ## Phase 4 — Selection, thresholding, and calibration
 
-- [x] Compare uncalibrated candidates on the earlier validation segment using PR-AUC.
-- [x] Select the best non-test candidate.
-- [x] Split the later validation segment chronologically again: fit sigmoid/isotonic calibration on
-  the first half and compare Brier score on the second half.
+- [x] Compare uncalibrated candidates across the five development segments and select by maximum
+  v1 order-level PR-AUC.
+- [x] Keep calibration fitting and calibration comparison separated: fit on the designated fit
+  portion and compare on the independent comparison portion.
 - [x] Retain the uncalibrated model when neither calibration method improves held-out Brier score.
-- [x] Select a classification threshold on validation only by minority-class F1.
+- [x] Select thresholds on development data only: high priority is the top 5%; medium priority
+  extends through the top 20%.
+- [x] Document item calibration wording and the order-priority score ordering explicitly.
 - [x] Record the selected estimator, calibration method, threshold, seed, and config.
 - [x] Replace single-period model selection with expanding-window rolling-origin comparison.
-- [ ] Add bounded rolling-origin hyperparameter search after the revised feature baseline is run.
+- [x] Add deterministic bounded rolling-origin search over seven versioned variants; selection is
+  max-v1 order PR-AUC, then Brier score, then declared model simplicity. Calibration and threshold
+  selection remain downstream and never enter tuning.
 
 ## Phase 5 — Final evaluation and prioritization
 
@@ -85,11 +96,14 @@ and pass unit tests plus the repository quality workflow.
 - [ ] Aggregate item scores with `max-v1` and compute the same metrics at order level.
 - [ ] Compute order-level recall@budget and low-review order value captured at 5%, 10%, and 20%.
 - [x] Compare risk ranking with deterministic value-only and expected random policies.
-- [ ] Bootstrap confidence intervals by resampling orders, not individual product-item rows, with a fixed seed.
+- [ ] Bootstrap confidence intervals with 1,000 order-cluster resamples, never individual item
+  rows, using a fixed seed.
+- [ ] Lock the selected model, calibration, aggregation, wording, and thresholds once; run the
+  sealed final test exactly once after the lock.
 - [x] Export row-level test predictions for audit and later error analysis.
-- [ ] Produce calibration and precision-recall plots in the reporting notebook after real data exists.
+- [x] Provide an artifact-only reporting notebook and reusable renderer for calibration and precision-recall plots; execute it only after real sealed artifacts exist.
 - [ ] Add subgroup error analysis by month, category, seller history/tenure proxy, and geography.
-- [ ] Add global and case-level SHAP analysis with explicitly non-causal wording.
+- [ ] Add global and case-level SHAP analysis with explicitly non-causal wording (only when saved SHAP artifacts exist; the renderer never recomputes explanations).
 
 ## Phase 6 — Reproducibility and interfaces
 
@@ -108,7 +122,7 @@ and pass unit tests plus the repository quality workflow.
 3. Confirm and, if needed, update temporal boundaries in `configs/experiment.toml`.
 4. Run `hidden-dissatisfaction train --data data/processed/modelling_items.parquet` after the CLI accepts the item-grain contract.
 5. Review `reports/experiments/latest.json` before opening the test-result notebook.
-6. Execute `notebooks/03_modeling_and_training.ipynb` for presentation tables and figures.
+6. Execute `notebooks/03_model_evaluation.ipynb` for presentation tables and figures; it reads artifacts only.
 7. Mark remaining checklist items only when backed by a reproducible artifact or test.
 
 ## Tracking rule
