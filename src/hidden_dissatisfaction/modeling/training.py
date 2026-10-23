@@ -228,6 +228,8 @@ def run_training(
         raise ValueError(
             "test finalization requires a frozen selection record and matching test lock"
         )
+    if finalize_test and partitions.test[TARGET].nunique() != 2:
+        raise ValueError("finalized test partition must contain both target classes")
 
     metrics: dict[str, Any] = {}
     priorities: dict[str, Any] = {}
@@ -313,7 +315,7 @@ def run_training(
             "rows": len(frame),
         },
         "config": _json_safe_config(settings),
-        "partitions": partition_summary(partitions),
+        "partitions": partition_summary(partitions, expose_test_outcomes=finalize_test),
         "selection_average_precision": selection_scores,
         "selection_average_precision_std": selection_standard_deviation,
         "rolling_validation": fold_scores,
