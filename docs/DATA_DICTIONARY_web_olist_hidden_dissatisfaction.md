@@ -8,7 +8,7 @@
 | Trạng thái | Bản nháp, chờ duyệt: khớp ERD, kiểu dữ liệu PostgreSQL (khoá chính/khoá ngoại), phần view đọc từ ML |
 | Ngày | 21/10/2026 |
 | Nguồn | Tab DATA DICTIONARY WEB trong sheet phân công của nhóm. Sửa ở đây hoặc ở sheet thì cập nhật cả hai cho khớp |
-| Tài liệu liên quan | BRD v4.2; FRD v2.2; API_CONTRACT_olist_hidden_dissatisfaction.md v0.5; ERD – TBD |
+| Tài liệu liên quan | BRD v4.2; FRD v2.2; API_CONTRACT_olist_hidden_dissatisfaction.md v0.5; ERD_olist_hidden_dissatisfaction.md |
 
 ### Thay đổi so với v0.2 (13/10)
 
@@ -186,8 +186,9 @@ Evidence chỉ là file PNG/JPG/PDF upload qua API, không lưu URL tùy ý làm
 | `event_id` | bigint | Có | PK, identity | Mã sự kiện (tăng dần) | 1024 | FRD 4.1 Audit Event |
 | `case_id` | uuid | Không | FK → app.review_cases; NULL với PARAMETER_CHANGE | Case liên quan | 9a1e… | BRD 6.8, 6.9 |
 | `order_id` | varchar(32) | Không | NULL với PARAMETER_CHANGE | Mã đơn (lưu thêm để lọc nhanh ở màn Audit) | 8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f | F09 |
-| `actor_id` | uuid | Có | FK → app.users | Ai thực hiện | 8b2a… | BRD 6.8 |
-| `event_type` | varchar(20) | Có | CHECK IN ('CLAIM','ASSIGN','REASSIGN','STATUS','CONTACT','SKIP','REOPEN','OVERRIDE','MODEL_NOTE','COMMENT','DECISION','PARAMETER_CHANGE') | Loại thao tác | REASSIGN | F09-S02 |
+| `actor_kind` | varchar(10) | Có | CHECK IN ('USER','SYSTEM') | Loại actor | USER | P7 baseline |
+| `actor_id` | uuid | Theo actor_kind | FK → app.users khi USER; NULL khi SYSTEM | Ai thực hiện | 8b2a… | P7 baseline |
+| `event_type` | varchar(20) | Có | CHECK IN ('CLAIM','ASSIGN','REASSIGN','STATUS','CONTACT','SKIP','REOPEN','OVERRIDE','MODEL_NOTE','COMMENT','DECISION','PARAMETER_CHANGE','QUEUE_SEED') | Loại thao tác | REASSIGN | F09-S02; P7 |
 | `old_value` | text | Không |  | Giá trị cũ | Trần Thị B | BRD 6.8 |
 | `new_value` | text | Có |  | Giá trị mới | Lê Văn C | BRD 6.8 |
 | `reason` | text | Khi REASSIGN, REOPEN, OVERRIDE, MODEL_NOTE, DECISION, PARAMETER_CHANGE |  | Lý do / nội dung | B nghỉ chiều nay; C nắm khách miền Bắc | BRD 6.8, 6.9, 6.12 |
@@ -213,6 +214,10 @@ Giá trị ban đầu: `sla_calendar` = CALENDAR; `sla_hours_high` = 4; `sla_hou
 ### `app.parameters` (thay `app.config`)
 
 Mỗi dòng là **một phiên bản** của một tham số. Giá trị đang hiệu lực tại thời điểm t = phiên bản mới nhất có `effective_at ≤ t`.
+
+Trong P7, `review_cycles.parameter_version` là snapshot của bộ tham số tại
+lúc cycle bắt đầu; thay đổi parameter không tự làm đổi snapshot của cycle đang
+mở. Quy tắc áp dụng phiên bản mới vào open cycle là **deferred/planned**.
 
 | Cột | Kiểu | Bắt buộc | Khoá / ràng buộc / mặc định | Ý nghĩa | Ví dụ | Nguồn |
 |---|---|---|---|---|---|---|
