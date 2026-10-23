@@ -2,6 +2,14 @@
 
 ## Hệ thống hỗ trợ chăm sóc khách hàng cho đơn hàng và sản phẩm có nguy cơ bất mãn ẩn
 
+### P7 workflow additions
+
+The workflow persists one active assignment per case, append-only contact
+attempts/evidence/comments/manager decisions, and audit corrections. Decision
+values are `NO_FURTHER_ACTION`, `FOLLOW_UP_CUSTOMER`, `WORK_WITH_SELLER`, and
+`REFER_AFTER_SALES`. Local unattached evidence expires after 24 hours and
+stores JSON metadata.
+
 | Thuộc tính | Nội dung |
 |---|---|
 | Phiên bản | 0.5 |

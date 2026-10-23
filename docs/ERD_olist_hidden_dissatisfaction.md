@@ -36,8 +36,11 @@ UNIQUE. `audit_events` là sự kiện append-only.
 tới `app.users`; `SYSTEM` bắt buộc `actor_id = NULL`. Queue seed dùng
 `event_type = QUEUE_SEED` và `reason` ghi source/batch provenance.
 
-## 3. Planned/deferred
+## 3. Workflow rules (V006+)
 
 `assignments`, `contact_attempts`, `contact_evidence`, `case_comments`,
-`manager_decisions` và các bảng workflow khác là **planned/deferred**, chưa
-thuộc P7 seed baseline và không được suy ra thành migration từ ERD này.
+Các bảng workflow được triển khai ở V006+. Mỗi case chỉ có một assignment
+đang hoạt động; evidence unattached có TTL mặc định 24 giờ và metadata JSONB.
+Decisions dùng đúng bốn mã: `NO_FURTHER_ACTION`, `FOLLOW_UP_CUSTOMER`,
+`WORK_WITH_SELLER`, `REFER_AFTER_SALES`. Workflow, corrections và bundle items
+append-only.
