@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import uuid
 from collections.abc import Sequence
@@ -87,6 +89,19 @@ class ReleaseScoring:
         for column in inputs.select_dtypes(include="number"):
             if not pd.Series(inputs[column]).map(lambda x: math.isfinite(float(x))).all():
                 raise ValueError("non-finite model input")
+        # Hash the exact, ordered values and keys supplied to predict_proba.
+        hash_rows = [
+            [str(order), str(product), list(values)]
+            for order, product, values in zip(
+                request.items["order_id"],
+                request.items["product_item_id"],
+                inputs.itertuples(index=False, name=None),
+                strict=True,
+            )
+        ]
+        model_input_hash = hashlib.sha256(
+            json.dumps(hash_rows, separators=(",", ":"), ensure_ascii=False, default=str).encode()
+        ).hexdigest()
         if not hasattr(estimator, "predict_proba"):
             raise ValueError("invalid estimator")
         raw = np.asarray(estimator.predict_proba(inputs), dtype=float)
@@ -141,7 +156,13 @@ class ReleaseScoring:
                 }
             )
         payload = PredictionWrite(
-            run_id, request.release, request.source, request.thresholds, items, tuple(orders)
+            run_id,
+            request.release,
+            request.source,
+            request.thresholds,
+            items,
+            tuple(orders),
+            model_input_hash,
         )
         self.writer.write(payload)
         return tuple(

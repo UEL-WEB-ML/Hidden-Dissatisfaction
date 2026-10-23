@@ -48,6 +48,7 @@ class PredictionWrite:
     thresholds: ThresholdPolicy
     item_snapshots: tuple[Mapping[str, object], ...]
     order_snapshots: tuple[Mapping[str, object], ...]
+    model_input_hash: str
 
 
 class ModelArtifactLoader(Protocol):
