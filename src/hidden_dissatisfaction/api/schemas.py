@@ -20,6 +20,12 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: UUID
     email: EmailStr
+    preferred_language: str | None = None
+
+
+class UpdateMeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    preferred_language: str
 
 
 class ErrorDetail(BaseModel):
