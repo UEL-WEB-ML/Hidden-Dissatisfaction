@@ -39,17 +39,16 @@ class TemporalPartitions:
 
 
 def _orders(frame: pd.DataFrame, time_column: str) -> pd.DataFrame:
-    required = {"order_id", time_column, TARGET}
+    required = {"order_id", time_column}
     missing = required.difference(frame.columns)
     if missing:
         raise ModelingDataError(f"Missing required columns: {', '.join(sorted(missing))}")
     if frame["order_id"].isna().any() or frame[time_column].isna().any():
         raise ModelingDataError("order_id and prediction_at must be non-null")
     grouped = frame.groupby("order_id", sort=False, dropna=False)
-    bad = grouped[TARGET].nunique().gt(1) | grouped[time_column].nunique().gt(1)
-    if bad.any():
-        raise ModelingDataError("order_id has inconsistent prediction_at or negative values")
-    return grouped[[time_column, TARGET]].first().reset_index()
+    if grouped[time_column].nunique().gt(1).any():
+        raise ModelingDataError("order_id has inconsistent prediction_at")
+    return grouped[time_column].first().reset_index()
 
 
 def grouped_temporal_split(
@@ -121,8 +120,11 @@ def temporal_split(
 def _validate_partitions(parts: TemporalPartitions, time_column: str) -> None:
     seen: set[object] = set()
     for name, part in parts.as_dict().items():
-        if part.empty or part[TARGET].nunique() != 2:
-            raise ModelingDataError(f"Temporal partition '{name}' must be non-empty and two-class")
+        if part.empty:
+            raise ModelingDataError(f"Temporal partition '{name}' must be non-empty")
+        # The sealed test outcome must not be inspected during development.
+        if name != "test" and part[TARGET].nunique() != 2:
+            raise ModelingDataError(f"Temporal partition '{name}' must be two-class")
         overlap = seen.intersection(part.order_id)
         if overlap:
             raise ModelingDataError("orders overlap temporal partitions")
@@ -130,19 +132,26 @@ def _validate_partitions(parts: TemporalPartitions, time_column: str) -> None:
 
 
 def partition_summary(
-    partitions: TemporalPartitions, time_column: str = "prediction_at"
+    partitions: TemporalPartitions,
+    time_column: str = "prediction_at",
+    *,
+    expose_test_outcomes: bool = False,
 ) -> dict[str, dict[str, object]]:
-    return {
-        n: {
+    summary = {}
+    for n, p in partitions.as_dict().items():
+        details = {
             "item_count": len(p),
             "order_count": p.order_id.nunique(),
             "start": p[time_column].min().isoformat(),
             "end": p[time_column].max().isoformat(),
-            "prevalence": float(p[TARGET].mean()),
-            "two_class": p[TARGET].nunique() == 2,
         }
-        for n, p in partitions.as_dict().items()
-    }
+        if n != "test" or expose_test_outcomes:
+            details.update(
+                prevalence=float(p[TARGET].mean()),
+                two_class=p[TARGET].nunique() == 2,
+            )
+        summary[n] = details
+    return summary
 
 
 def rolling_origin_splits(
