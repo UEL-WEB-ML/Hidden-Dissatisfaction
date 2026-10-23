@@ -1,6 +1,7 @@
 """DSN-gated integration coverage for the P6.2 Postgres writer."""
 
 import os
+from typing import Any
 from uuid import uuid4
 
 import psycopg
@@ -52,7 +53,7 @@ def _payload(prediction_id: str, release_id: str, duplicate: bool = False) -> Pr
 
 
 @pytest.fixture
-def db():
+def db() -> Any:
     if not DSN:
         pytest.skip("P6_TEST_POSTGRES_DSN is not set")
     release_id = str(uuid4())
@@ -76,7 +77,7 @@ def db():
             yield DSN, release_id, conn
 
 
-def test_writer_persists_release_scored_snapshots(db):
+def test_writer_persists_release_scored_snapshots(db: Any) -> None:
     dsn, release_id, conn = db
     payload = _payload(str(uuid4()), release_id)
     PostgresAtomicPredictionWriter(dsn).write(payload)
@@ -106,7 +107,7 @@ def test_writer_persists_release_scored_snapshots(db):
     ).fetchone()[0]
 
 
-def test_writer_rolls_back_on_duplicate_item(db):
+def test_writer_rolls_back_on_duplicate_item(db: Any) -> None:
     dsn, release_id, conn = db
     payload = _payload(str(uuid4()), release_id, duplicate=True)
     with pytest.raises(psycopg.Error):
