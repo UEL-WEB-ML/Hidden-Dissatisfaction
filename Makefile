@@ -1,4 +1,4 @@
-.PHONY: install quality test format db-up db-down db-logs
+.PHONY: install quality test format db-up db-down db-logs p4-release-verify
 
 install:
 	python -m pip install -e ".[ml,notebook,dev]"
@@ -24,3 +24,11 @@ db-down:
 
 db-logs:
 	docker compose logs -f postgres
+
+# Opt-in gate: this requires the complete Olist warehouse and a completed run.
+p4-release-verify:
+	@test -n "$(DBT_USER)" || (echo "DBT_USER is required for release verification" >&2; exit 1)
+	@test -n "$(DBT_PASSWORD)" || (echo "DBT_PASSWORD is required for release verification" >&2; exit 1)
+	@test -n "$(DBT_SOURCE_RUN_ID)" || (echo "DBT_SOURCE_RUN_ID is required for release verification" >&2; exit 1)
+	uv run --frozen --extra warehouse dbt build --project-dir dbt --profiles-dir dbt --select +gold.ml_modelling_items stg_sellers --exclude tag:release_only --vars "{source_run_id: $(DBT_SOURCE_RUN_ID)}"
+	uv run --frozen --extra warehouse dbt test --project-dir dbt --profiles-dir dbt --select tag:release_only --vars "{source_run_id: $(DBT_SOURCE_RUN_ID)}"

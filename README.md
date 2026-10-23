@@ -78,6 +78,24 @@ uv run mypy src tests
 uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
 ```
 
+Before promoting any modelling dataset or release, the mandatory P4 release
+gate must pass against the complete Olist warehouse and a completed Bronze
+ingestion run:
+
+```bash
+DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<completed-run-uuid> \
+  make p4-release-verify
+```
+
+The target fails if `DBT_USER`, `DBT_PASSWORD`, or `DBT_SOURCE_RUN_ID` is
+unavailable, first builds `+gold.ml_modelling_items`, then runs
+`dbt test --select tag:release_only` with the same profile and source-run vars. `DBT_HOST`,
+`DBT_PORT`, `DBT_DATABASE`, and `DBT_TARGET_SCHEMA` can configure the
+warehouse connection. Ordinary CI does not run this gate because it does not
+require the full Olist data. GitHub Actions provides the same gate as a
+manually dispatched P4 release verification job; configure its required
+repository secrets before dispatching it.
+
 ## Current implementation status
 
 The existing Python training pipeline and historical generated artifact are still order-level. The product-item contract is now authoritative, but the notebook, schema code, CLI and tests must complete that migration before product-item outputs are considered final results. The checklist is maintained in [`docs/modeling-training-plan.md`](docs/modeling-training-plan.md).

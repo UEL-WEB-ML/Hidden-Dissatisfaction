@@ -1,0 +1,68 @@
+version: 2
+models:
+  - name: stg_customers
+    columns:
+      - {name: customer_id, tests: [not_null, unique]}
+      - {name: source_run_id, tests: [not_null]}
+  - name: stg_sellers
+    columns:
+      - {name: seller_id, tests: [not_null, unique]}
+      - {name: source_run_id, tests: [not_null]}
+  - name: stg_products
+    columns:
+      - {name: product_id, tests: [not_null, unique]}
+      - {name: source_run_id, tests: [not_null]}
+  - name: stg_orders
+    description: Run-scoped order headers and lifecycle timestamps.
+    tests:
+      - unique_combination_of_columns:
+          combination_of_columns: [source_run_id, order_id]
+      - relationships_on_columns: {to: ref('stg_customers'), columns: [source_run_id, customer_id]}
+    columns:
+      - {name: order_id, tests: [not_null, unique]}
+      - {name: source_run_id, tests: [not_null]}
+      - {name: customer_id, tests: [not_null]}
+  - name: stg_order_items
+    description: Run-scoped order line items with product and seller keys.
+    tests:
+      - unique_combination_of_columns:
+          combination_of_columns: [source_run_id, order_id, order_item_id]
+      - unique:
+          column_name: "order_id || '-' || order_item_id"
+      - relationships_on_columns: {to: ref('stg_orders'), columns: [source_run_id, order_id]}
+      - relationships_on_columns: {to: ref('stg_products'), columns: [source_run_id, product_id]}
+      - relationships_on_columns: {to: ref('stg_sellers'), columns: [source_run_id, seller_id]}
+    columns:
+      - {name: order_id, tests: [not_null]}
+      - {name: source_run_id, tests: [not_null]}
+      - {name: product_id, tests: [not_null]}
+      - {name: seller_id, tests: [not_null]}
+  - name: stg_order_payments
+    description: Run-scoped payment records for orders.
+    tests:
+      - unique_combination_of_columns:
+          combination_of_columns: [source_run_id, order_id, payment_sequential]
+      - unique:
+          column_name: "order_id || '-' || payment_sequential"
+      - relationships_on_columns: {to: ref('stg_orders'), columns: [source_run_id, order_id]}
+    columns:
+      - {name: order_id, tests: [not_null]}
+      - {name: source_run_id, tests: [not_null]}
+  - name: stg_order_reviews
+    description: Run-scoped customer review records.
+    tests:
+      - unique_combination_of_columns:
+          combination_of_columns: [source_run_id, review_id, order_id]
+      - relationships_on_columns: {to: ref('stg_orders'), columns: [source_run_id, order_id]}
+    columns:
+      - {name: review_id, tests: [not_null]}
+      - {name: order_id, tests: [not_null]}
+      - {name: source_run_id, tests: [not_null]}
+      - {name: review_score, tests: [{accepted_values: {values: [1, 2, 3, 4, 5]}}]}
+  - name: stg_geolocation
+    columns:
+      - {name: source_run_id, tests: [not_null]}
+  - name: geolocation_zip
+    columns:
+      - {name: zip_code_prefix, tests: [not_null, unique]}
+      - {name: source_run_id, tests: [not_null]}
