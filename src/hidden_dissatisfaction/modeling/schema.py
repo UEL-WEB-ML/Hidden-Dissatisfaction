@@ -12,6 +12,7 @@ from collections.abc import Sequence
 import pandas as pd
 
 SCHEMA_VERSION = "p5-item-v1"
+MODEL_INPUT_SCHEMA_VERSION = SCHEMA_VERSION
 
 SOURCE_NUMERIC_FEATURES = (
     "price",
@@ -33,6 +34,7 @@ BINARY_FEATURES = SOURCE_BINARY_FEATURES
 CATEGORICAL_FEATURES = ("product_category", "customer_state")
 FEATURES = NUMERIC_FEATURES + BINARY_FEATURES + CATEGORICAL_FEATURES
 SOURCE_FEATURES = SOURCE_NUMERIC_FEATURES + SOURCE_BINARY_FEATURES + CATEGORICAL_FEATURES
+MODEL_FEATURES = FEATURES
 
 # These columns are retained for splitting/diagnostics and may arrive as
 # strings when the modelling table was read from CSV.  Normalize them before
@@ -148,3 +150,14 @@ def validate_feature_list(features: Sequence[str]) -> None:
     unknown = sorted(set(features).difference(FEATURES))
     if unknown:
         raise ModelingDataError(f"Undeclared model inputs: {', '.join(unknown)}")
+
+
+def validate_runtime_model_input(frame: pd.DataFrame, feature_names: Sequence[str]) -> pd.DataFrame:
+    """Validate only the feature payload presented to a released model."""
+    validate_feature_list(feature_names)
+    if list(feature_names) != list(FEATURES):
+        raise ModelingDataError("Runtime model input feature order does not match the schema")
+    missing = [name for name in feature_names if name not in frame.columns]
+    if missing:
+        raise ModelingDataError(f"Missing runtime model inputs: {', '.join(missing)}")
+    return frame.loc[:, list(feature_names)].copy()
