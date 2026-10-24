@@ -63,7 +63,7 @@ class PostgresQueueSeedStore:
                         cur.execute(
                             """INSERT INTO app.audit_events
                             (case_id,order_id,provenance,event_type,new_value,reason)
-                            VALUES (%s,%s,'QUEUE_SEED','CASE_CREATED','PENDING',%s)""",
+                            VALUES (%s,%s,'QUEUE_SEED','QUEUE_SEED','PENDING',%s)""",
                             (row[0], order_id, "prediction " + str(prediction_id)),
                         )
         return SeedSummary(created, skipped)

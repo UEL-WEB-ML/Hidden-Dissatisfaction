@@ -6,7 +6,7 @@ from uuid import UUID
 @dataclass(frozen=True)
 class User:
     id: UUID
-    email: str
+    username: str
     password_hash: str
     is_active: bool = True
 
