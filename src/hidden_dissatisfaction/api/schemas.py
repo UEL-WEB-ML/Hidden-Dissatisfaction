@@ -1,25 +1,23 @@
-from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    email: EmailStr
+    username: str = Field(min_length=1, max_length=50)
     password: str = Field(min_length=8, max_length=256)
 
 
 class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    expires_at: datetime
+    token: str
+    user: "UserResponse"
 
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: UUID
-    email: EmailStr
+    username: str
     preferred_language: str | None = None
 
 
@@ -31,6 +29,7 @@ class UpdateMeRequest(BaseModel):
 class ErrorDetail(BaseModel):
     code: str
     message: str
+    details: dict[str, object] | None = None
 
 
 class ErrorEnvelope(BaseModel):

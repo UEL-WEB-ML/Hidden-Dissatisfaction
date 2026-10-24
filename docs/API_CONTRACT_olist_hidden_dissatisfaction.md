@@ -87,7 +87,7 @@ Tên field và các mã (`SPECIALIST`, `PHONE`, `CONTACT`…) theo **DATA_DICTIO
 
 ### 2.2. Xác thực
 
-- `POST /auth/login` trả `token`. Mọi request khác gửi header `Authorization: Bearer <token>`.
+- `POST /api/v1/auth/login` trả `token` và `user`. Mọi request khác gửi header `Authorization: Bearer <token>`.
 - Nếu Backend dùng **session cookie** thay cho token: đặt `AUTH: "cookie"` trong `js/config.js`. Khi đó Frontend không gửi header `Authorization`
   mà gửi kèm cookie (`credentials: "include"`); `POST /auth/login` không cần trả `token`, chỉ cần trả `user` và đặt cookie.
   Khác cổng/khác domain thì Backend phải bật CORS có `Access-Control-Allow-Credentials: true` và cookie `SameSite` phù hợp.
@@ -284,7 +284,7 @@ cycle đã mở là deferred trong P7.
 
 ### 4.1. Xác thực và tài khoản
 
-#### `POST /auth/login`
+#### `POST /api/v1/auth/login`
 
 Body: `{ "username": "nhanvien", "password": "123456" }`
 
@@ -308,11 +308,11 @@ User:
 
 `active_count`, `slots_left` là `null` với Manager.
 
-#### `POST /auth/logout`: hủy token. Trả `204`.
+#### `POST /api/v1/auth/logout`: hủy token. Trả `204`.
 
-#### `GET /me`: người đang đăng nhập (User).
+#### `GET /api/v1/auth/me`: người đang đăng nhập (User).
 
-#### `PATCH /me`: lưu ngôn ngữ giao diện theo tài khoản (FRD F11-S01)
+#### `PATCH /api/v1/auth/me`: lưu ngôn ngữ giao diện theo tài khoản (FRD F11-S01)
 
 Body: `{ "preferred_language": "vi" }`. 200: User. Lỗi: `422 VALIDATION_ERROR` nếu khác `vi`/`en`.
 

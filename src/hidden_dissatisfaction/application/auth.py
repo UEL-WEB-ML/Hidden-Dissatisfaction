@@ -15,7 +15,7 @@ from hidden_dissatisfaction.domain.auth import (
 
 
 class UserRepository(Protocol):
-    async def by_email(self, email: str) -> User | None: ...
+    async def by_username(self, username: str) -> User | None: ...
     async def by_id(self, user_id: UUID) -> User | None: ...
 
 
@@ -26,8 +26,8 @@ class AuthService:
         self.users, self.secret, self.algorithm, self.minutes = users, secret, algorithm, minutes
         self.passwords = PasswordHash.recommended()
 
-    async def login(self, email: str, password: str) -> AccessToken:
-        user = await self.users.by_email(email)
+    async def login(self, username: str, password: str) -> AccessToken:
+        user = await self.users.by_username(username)
         if (
             not user
             or not user.is_active

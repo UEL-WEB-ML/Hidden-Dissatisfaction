@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -27,7 +27,18 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
         yield
 
     app = FastAPI(title="Hidden Dissatisfaction API", lifespan=lifespan)
-    security = HTTPBearer()
+    security = HTTPBearer(auto_error=False)
+
+    def error(code: str, message: str, details: dict[str, object] | None = None) -> HTTPException:
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": code, "message": message, "details": details},
+        )
+
+    def user_response(user: User, preferred_language: str | None = None) -> UserResponse:
+        return UserResponse(
+            id=user.id, username=user.username, preferred_language=preferred_language
+        )
 
     def service() -> AuthService:
         if auth is None:
@@ -35,14 +46,21 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
         return auth
 
     async def current_user(
-        credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
         svc: Annotated[AuthService, Depends(service)],
     ) -> User:
         try:
+            if credentials is None:
+                raise InvalidToken
             return await svc.identify(credentials.credentials)
         except (InvalidToken, UserNotFound, ValueError, KeyError) as exc:
             raise HTTPException(
-                401, detail={"code": "invalid_token", "message": "Invalid access token"}
+                401,
+                detail={
+                    "code": "UNAUTHENTICATED",
+                    "message": "Invalid access token",
+                    "details": None,
+                },
             ) from exc
 
     @app.get("/health/live")
@@ -59,37 +77,42 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.post("/auth/login", response_model=TokenResponse)
+    @app.post("/api/v1/auth/login", response_model=TokenResponse)
     async def login(
         body: LoginRequest, svc: Annotated[AuthService, Depends(service)]
     ) -> TokenResponse:
         try:
-            token = await svc.login(str(body.email), body.password)
+            token = await svc.login(body.username, body.password)
         except InvalidCredentials as exc:
             raise HTTPException(
-                401, detail={"code": "invalid_credentials", "message": "Invalid credentials"}
+                401,
+                detail={
+                    "code": "INVALID_CREDENTIALS",
+                    "message": "Invalid credentials",
+                    "details": None,
+                },
             ) from exc
-        return TokenResponse(access_token=token.token, expires_at=token.expires_at)
+        user = await svc.identify(token.token)
+        return TokenResponse(token=token.token, user=user_response(user))
 
-    @app.post("/auth/logout", status_code=204)
+    @app.post("/api/v1/auth/logout", status_code=204)
     async def logout(_: Annotated[User, Depends(current_user)]) -> None:
         return None
 
-    @app.get("/me", response_model=UserResponse)
+    @app.get("/api/v1/auth/me", response_model=UserResponse)
     async def me(user: Annotated[User, Depends(current_user)]) -> UserResponse:
-        return UserResponse(id=user.id, email=user.email)
+        return user_response(user)
 
-    @app.patch("/me", response_model=UserResponse)
+    @app.patch("/api/v1/auth/me", response_model=UserResponse)
     async def update_me(
         body: UpdateMeRequest, user: Annotated[User, Depends(current_user)]
     ) -> UserResponse:
         if body.preferred_language not in {"vi", "en"}:
             raise HTTPException(
-                422, detail={"code": "validation_error", "message": "Invalid language"}
+                422,
+                detail={"code": "VALIDATION_ERROR", "message": "Invalid language", "details": None},
             )
-        return UserResponse(
-            id=user.id, email=user.email, preferred_language=body.preferred_language
-        )
+        return user_response(user, body.preferred_language)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
@@ -97,7 +120,17 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
         message = "Dữ liệu không hợp lệ" if language.startswith("vi") else "Validation error"
         return JSONResponse(
             status_code=422,
-            content={"error": {"code": "validation_error", "message": message}},
+            content={"error": {"code": "VALIDATION_ERROR", "message": message, "details": None}},
         )
+
+    @app.exception_handler(HTTPException)
+    async def http_error(_: Request, exc: HTTPException) -> JSONResponse:
+        detail = (
+            exc.detail
+            if isinstance(exc.detail, dict)
+            else {"code": "HTTP_ERROR", "message": str(exc.detail), "details": None}
+        )
+        detail.setdefault("details", None)
+        return JSONResponse(status_code=exc.status_code, content={"error": detail})
 
     return app
