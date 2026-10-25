@@ -1438,6 +1438,7 @@ db = [
 ]
 dev = [
     { name = "black" },
+    { name = "httpx" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "psycopg", extra = ["binary"] },
@@ -1480,6 +1481,7 @@ requires-dist = [
     { name = "email-validator", specifier = ">=2.2,<3" },
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115,<1" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27,<1" },
     { name = "ipykernel", marker = "extra == 'notebook'", specifier = ">=6.29,<8" },
     { name = "joblib", marker = "extra == 'ml'", specifier = ">=1.4,<2" },
     { name = "jupyterlab", marker = "extra == 'notebook'", specifier = ">=4.2,<5" },

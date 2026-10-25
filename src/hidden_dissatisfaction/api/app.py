@@ -18,6 +18,7 @@ from hidden_dissatisfaction.application.queue import (
     RiskOrderQueryPort,
     summarize_queue,
 )
+from hidden_dissatisfaction.application.workflow_commands import WorkflowCommands
 from hidden_dissatisfaction.domain.auth import (
     AccessToken,
     InvalidCredentials,
@@ -38,10 +39,13 @@ from .authorization import require_manager
 from .config import Settings
 from .dependencies import (
     build_auth_service,
+    build_case_reads,
     build_claim_case,
+    build_evidence_store,
     build_operational_reads,
     build_parameter_version_service,
     build_risk_order_query,
+    build_workflow_commands,
 )
 from .schemas import (
     CreateParameterVersionRequest,
@@ -53,6 +57,7 @@ from .schemas import (
     UpdateMeRequest,
     UserResponse,
 )
+from .workflow_routes import CaseReads, EvidenceFiles, build_workflow_router
 
 
 async def readiness_check() -> bool:
@@ -93,6 +98,9 @@ def create_app(
     risk_orders: RiskOrderQueryPort | None = None,
     operational_reads: OperationalReadService | None = None,
     claim_case: ClaimCase | None = None,
+    workflow_commands: WorkflowCommands | None = None,
+    case_reads: CaseReads | None = None,
+    evidence_files: EvidenceFiles | None = None,
 ) -> FastAPI:
     settings = settings or Settings(jwt_secret="change-me-in-production")
     auth = auth or build_auth_service(settings)
@@ -100,6 +108,9 @@ def create_app(
     risk_orders = risk_orders or build_risk_order_query(settings)
     operational_reads = operational_reads or build_operational_reads(settings)
     claim_case = claim_case or build_claim_case(settings)
+    workflow_commands = workflow_commands or build_workflow_commands(settings)
+    reads: CaseReads = case_reads or build_case_reads(settings)
+    evidence_files = evidence_files or build_evidence_store(settings)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -380,6 +391,10 @@ def create_app(
                 "slots_left": result.capacity - result.active_count,
             },
         }
+
+    app.include_router(
+        build_workflow_router(current_user, workflow_commands, reads, evidence_files)
+    )
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:

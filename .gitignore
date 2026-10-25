@@ -52,3 +52,6 @@ reports/tables/
 !data/processed/README.md
 !artifacts/models/.gitkeep
 !artifacts/predictions/.gitkeep
+
+# Uploaded contact evidence (local dev adapter)
+data/evidence/

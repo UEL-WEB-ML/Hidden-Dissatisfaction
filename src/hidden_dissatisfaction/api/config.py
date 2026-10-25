@@ -9,3 +9,4 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = 30
     environment: str = "development"
+    evidence_dir: str = "./data/evidence"
