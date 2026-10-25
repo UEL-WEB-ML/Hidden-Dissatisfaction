@@ -1,8 +1,12 @@
 """Production dependency wiring for HTTP interfaces."""
 
+from pathlib import Path
+
 from hidden_dissatisfaction.application.auth import AuthService
 from hidden_dissatisfaction.application.parameters import CreateParameterVersion
 from hidden_dissatisfaction.infrastructure.database import build_session_factory
+from hidden_dissatisfaction.infrastructure.local_evidence_store import LocalEvidenceStore
+from hidden_dissatisfaction.infrastructure.postgres_case_reads import PostgresCaseReads
 from hidden_dissatisfaction.infrastructure.postgres_claim_case import PostgresClaimCase
 from hidden_dissatisfaction.infrastructure.postgres_operational_reads import (
     PostgresOperationalReadModel,
@@ -10,6 +14,9 @@ from hidden_dissatisfaction.infrastructure.postgres_operational_reads import (
 from hidden_dissatisfaction.infrastructure.postgres_parameters import PostgresParameterVersionWriter
 from hidden_dissatisfaction.infrastructure.postgres_risk_queue import PostgresRiskOrderQuery
 from hidden_dissatisfaction.infrastructure.postgres_users import PostgresUserRepository
+from hidden_dissatisfaction.infrastructure.postgres_workflow_commands import (
+    PostgresWorkflowCommands,
+)
 
 from .config import Settings
 
@@ -47,3 +54,22 @@ def build_claim_case(settings: Settings) -> PostgresClaimCase:
     """Build the transactional P9 claim adapter."""
     dsn = settings.database_url.replace("postgresql+asyncpg://", "postgresql://", 1)
     return PostgresClaimCase(dsn)
+
+
+def _dsn(settings: Settings) -> str:
+    return settings.database_url.replace("postgresql+asyncpg://", "postgresql://", 1)
+
+
+def build_workflow_commands(settings: Settings) -> PostgresWorkflowCommands:
+    """Build the transactional P9 write adapter."""
+    return PostgresWorkflowCommands(_dsn(settings))
+
+
+def build_case_reads(settings: Settings) -> PostgresCaseReads:
+    """Build the Order Detail, Dashboard and Audit read projections."""
+    return PostgresCaseReads(_dsn(settings))
+
+
+def build_evidence_store(settings: Settings) -> LocalEvidenceStore:
+    """Build the local-volume evidence adapter (ADR-006 dev default)."""
+    return LocalEvidenceStore(_dsn(settings), Path(settings.evidence_dir))

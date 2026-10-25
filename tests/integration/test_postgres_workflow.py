@@ -405,3 +405,91 @@ def test_decision_is_appended_to_the_current_cycle_without_changing_status(
         commands.add_decision(
             AddDecision(order_id, manager, "FOLLOW_UP_CUSTOMER", "r", "n", uuid4(), None, None)
         )
+
+
+def _reads() -> Any:
+    from hidden_dissatisfaction.infrastructure.postgres_case_reads import PostgresCaseReads
+
+    assert RUNTIME_DSN
+    return PostgresCaseReads(RUNTIME_DSN)
+
+
+def test_detail_projects_cycles_contacts_decisions_and_role_based_audit(
+    db: psycopg.Connection[Any], make_case: Callable[..., str]
+) -> None:
+    manager, specialist = _user(db, "MANAGER"), _user(db, "SPECIALIST")
+    order_id = make_case(assignee=specialist)
+    commands, reads = _commands(), _reads()
+    file_id = _upload(db, specialist)
+    commands.add_contact(_contact(order_id, specialist, "REACHED", (file_id,)))
+    commands.add_comment(order_id, specialist, False, "called")
+    commands.complete(order_id, specialist, False, "HAS_ISSUE", None)
+    commands.add_decision(
+        AddDecision(order_id, manager, "WORK_WITH_SELLER", "r", "n", None, None, None)
+    )
+    now = datetime.now(UTC)
+    as_specialist = reads.detail(order_id, now, include_audit=False)
+    as_manager = reads.detail(order_id, now, include_audit=True)
+    assert as_specialist["audit_events"] is None and len(as_manager["audit_events"]) >= 4
+    order = as_manager["order"]
+    assert (order["status"], order["needs_decision"], order["sla_state"]) == (
+        "COMPLETED",
+        False,
+        "none",
+    )
+    assert order["items_count"] == 1 and order["top_item"]["product_item_id"].endswith("-1")
+    assert as_manager["next_step"]["decision"] == "WORK_WITH_SELLER"
+    contact = as_manager["contacts"][0]
+    assert contact["attempt_no"] == 1 and contact["evidence"][0]["file_id"] == str(file_id)
+    assert [c["text"] for c in as_manager["comments"]] == ["called"]
+    assert len(as_manager["cycles"]) == 1 and as_manager["cycles"][0]["contact_count"] == 1
+
+
+def test_dashboard_reconciles_with_queue_filters_and_supports_product_view(
+    db: psycopg.Connection[Any], make_case: Callable[..., str]
+) -> None:
+    make_case(score=0.95), make_case(score=0.1)
+    reads = _reads()
+    now = datetime.now(UTC)
+    kwargs: dict[str, Any] = {
+        "days": None,
+        "level": None,
+        "seller": None,
+        "category": None,
+        "assignee": None,
+        "status": "OPEN",
+        "product_item": None,
+        "view": "order",
+    }
+    by_order = reads.dashboard(now, **kwargs)
+    open_total = _scalar(
+        db, "SELECT count(*) FROM app.review_cases WHERE status IN ('PENDING','IN_PROGRESS')"
+    )
+    assert by_order["totals"]["cases"] == open_total
+    assert sum(by_order["by_level"].values()) == open_total
+    assert sum(d["HIGH"] + d["MEDIUM"] + d["LOW"] for d in by_order["trend"]) == open_total
+    product = reads.dashboard(now, **{**kwargs, "view": "product"})
+    assert product["product"]["totals"]["orders"] == open_total
+    assert product["product"]["totals"]["total_items"] >= open_total
+
+
+def test_audit_events_are_filtered_paginated_and_counted(
+    db: psycopg.Connection[Any], make_case: Callable[..., str]
+) -> None:
+    manager, specialist = _user(db, "MANAGER"), _user(db, "SPECIALIST")
+    order_id = make_case()
+    _commands().assign(order_id, manager, specialist, None, False)
+    page = _reads().audit_events(
+        event_type="ASSIGN",
+        actor_id=None,
+        order_id=order_id[:12],
+        override_only=False,
+        limit=1,
+        offset=0,
+    )
+    assert page["total"] == 1 and page["all_total"] >= 1
+    assert page["items"][0]["order"]["assignee_name"] is not None
+    none = _reads().audit_events(
+        event_type=None, actor_id=None, order_id=order_id, override_only=True, limit=20, offset=0
+    )
+    assert none["total"] == 0
