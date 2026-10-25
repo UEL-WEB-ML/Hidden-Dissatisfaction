@@ -5,6 +5,7 @@ from typing import Annotated, Any, Protocol
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -116,7 +117,31 @@ def create_app(
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         yield
 
-    app = FastAPI(title="Hidden Dissatisfaction API", lifespan=lifespan)
+    app = FastAPI(title="Hidden Dissatisfaction API", version="0.5", lifespan=lifespan)
+    if settings.cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=settings.cors_origins,
+            allow_methods=["GET", "POST", "PATCH"],
+            allow_headers=["Authorization", "Content-Type", "Accept-Language"],
+        )
+
+    @app.middleware("http")
+    async def limit_request_size(request: Request, call_next: Any) -> Any:
+        declared = request.headers.get("content-length")
+        if declared and declared.isdigit() and int(declared) > settings.max_request_bytes:
+            return JSONResponse(
+                status_code=413,
+                content={
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Request too large",
+                        "details": None,
+                    }
+                },
+            )
+        return await call_next(request)
+
     security = HTTPBearer(auto_error=False)
 
     def error(code: str, message: str, details: dict[str, object] | None = None) -> HTTPException:

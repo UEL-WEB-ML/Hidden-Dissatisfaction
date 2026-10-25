@@ -10,3 +10,5 @@ class Settings(BaseSettings):
     access_token_minutes: int = 30
     environment: str = "development"
     evidence_dir: str = "./data/evidence"
+    cors_origins: list[str] = []  # explicit allowlist; empty = same-origin only
+    max_request_bytes: int = 6 * 1024 * 1024  # 5 MB evidence + multipart overhead
