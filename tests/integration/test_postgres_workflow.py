@@ -304,7 +304,14 @@ def test_reassign_and_capacity_override_are_audited(
     db: psycopg.Connection[Any], make_case: Callable[..., str]
 ) -> None:
     manager, first, second = _user(db, "MANAGER"), _user(db, "SPECIALIST"), _user(db, "SPECIALIST")
-    for _ in range(5):
+    capacity = int(
+        _scalar(
+            db,
+            "SELECT value FROM app.parameters WHERE param_key='capacity' AND effective_at <= now() "
+            "ORDER BY effective_at DESC, version DESC LIMIT 1",
+        )
+    )
+    for _ in range(capacity):
         make_case(assignee=second)
     order_id = make_case(assignee=first)
     commands = _commands()

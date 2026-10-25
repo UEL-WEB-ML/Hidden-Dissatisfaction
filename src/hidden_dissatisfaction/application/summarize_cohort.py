@@ -42,8 +42,8 @@ class SummarizePrimaryCohort:
             if assessment.is_eligible:
                 eligible_orders += 1
                 low_review_orders += int(assessment.low_review is True)
-            elif assessment.exclusion_reason is not None:
-                exclusions[assessment.exclusion_reason.value] += 1
+            else:  # CohortAssessment guarantees an excluded order has a reason
+                exclusions[assessment.exclusion_reason.value] += 1  # type: ignore[union-attr]
 
         return CohortSummary(
             total_orders=total_orders,
