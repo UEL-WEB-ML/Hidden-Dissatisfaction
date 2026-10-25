@@ -13,7 +13,11 @@ from hidden_dissatisfaction.application.parameters import (
     CreateParameterVersionCommand,
     ParameterVersion,
 )
-from hidden_dissatisfaction.application.queue import QueuePage, RiskOrderQueryPort
+from hidden_dissatisfaction.application.queue import (
+    QueuePage,
+    RiskOrderQueryPort,
+    summarize_queue,
+)
 from hidden_dissatisfaction.domain.auth import (
     AccessToken,
     InvalidCredentials,
@@ -292,6 +296,29 @@ def create_app(
                 detail={"code": "VALIDATION_ERROR", "message": str(exc), "details": None},
             ) from exc
         return queue_page_response(page)
+
+    @app.get("/api/v1/orders/summary")
+    async def order_summary(user: Annotated[User, Depends(current_user)]) -> dict[str, object]:
+        specialist = user.role is Role.SPECIALIST
+        me = next(
+            (
+                u
+                for u in operational_reads.users(user.role.value, datetime.now(UTC))
+                if str(u["user_id"]) == str(user.id)
+            ),
+            None,
+        )
+        summary = summarize_queue(
+            risk_orders, specialist=specialist, slots_left=me["slots_left"] if me else None
+        )
+        first = summary.first_pending
+        return {
+            **{k: v for k, v in summary.__dict__.items() if k != "first_pending"},
+            "first_pending": (
+                QueueOrderResponse(**first.__dict__).model_dump(mode="json") if first else None
+            ),
+            "me": me,
+        }
 
     @app.get("/api/v1/orders/filter-options")
     async def order_filter_options() -> dict[str, tuple[str, ...]]:
