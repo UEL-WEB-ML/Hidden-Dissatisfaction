@@ -19,6 +19,8 @@ jobs:
       - run: uv run black --check .
       - run: uv run mypy src tests
       - run: uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
+      - name: Domain and application coverage gate
+        run: uv run pytest tests/unit tests/contract -q --cov=hidden_dissatisfaction.domain --cov=hidden_dissatisfaction.application --cov-fail-under=100
 
   p4-release-verify:
     name: P4 release verification

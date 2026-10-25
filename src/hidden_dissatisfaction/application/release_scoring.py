@@ -109,9 +109,7 @@ class ReleaseScoring:
             raise ValueError("invalid probability output")
         if not np.isfinite(raw).all() or ((raw < 0) | (raw > 1)).any():
             raise ValueError("invalid probability output")
-        probabilities = raw[:, 1]
-        if not all(math.isfinite(float(x)) and 0 <= float(x) <= 1 for x in probabilities):
-            raise ValueError("invalid probability output")
+        probabilities = raw[:, 1]  # already finite and within [0, 1] (checked above)
         rows = [
             ItemScore(str(item), float(score))
             for item, score in zip(request.items["product_item_id"], probabilities, strict=True)

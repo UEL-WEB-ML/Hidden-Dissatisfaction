@@ -33,20 +33,22 @@ def test_parameter_append_is_audited_and_future_revision_is_not_effective_early(
             (manager_id, f"parameter-{str(manager_id)[:8]}", "not-used", "Parameter Manager"),
         )
 
+    before = PostgresConfigurationReader(runtime_dsn).effective_parameters(now).value("capacity")
+    scheduled_capacity = str(int(before) + 7)
     result = PostgresParameterVersionWriter(runtime_dsn).append_version(
         CreateParameterVersionCommand(
             key="capacity",
-            value=6,
+            value=int(scheduled_capacity),
             effective_at=future,
             reason="Integration test shift",
             actor_id=manager_id,
         ),
-        normalized_value="6",
+        normalized_value=scheduled_capacity,
         now=now,
     )
 
     assert result.version >= 2
-    assert result.value == "6"
+    assert result.value == scheduled_capacity
     with psycopg.connect(setup_dsn) as verify:
         assert verify.execute(
             """
@@ -62,9 +64,9 @@ def test_parameter_append_is_audited_and_future_revision_is_not_effective_early(
         assert revision_count[0] >= 14
 
     current = PostgresConfigurationReader(runtime_dsn).effective_parameters(now)
-    assert current.value("capacity") == "5"
+    assert current.value("capacity") == before
     future_bundle = PostgresConfigurationReader(runtime_dsn).effective_parameters(future)
-    assert future_bundle.value("capacity") == "6"
+    assert future_bundle.value("capacity") == scheduled_capacity
 
 
 def _manager(setup_dsn: str) -> object:
