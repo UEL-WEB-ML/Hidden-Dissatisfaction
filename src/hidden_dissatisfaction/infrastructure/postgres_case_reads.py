@@ -28,8 +28,12 @@ _CASE_ROWS = """
     JOIN ml.v_risk_orders_for_web r ON r.prediction_id = c.prediction_id AND r.order_id = c.order_id
     LEFT JOIN app.users u ON u.user_id = c.assignee_id
     LEFT JOIN LATERAL (
-        SELECT cycle_id, started_at, sla_due_at FROM app.review_cycles
-        WHERE case_id = c.case_id ORDER BY cycle_no DESC LIMIT 1
+        SELECT y.cycle_id, y.started_at,
+               COALESCE((SELECT a.sla_due_at FROM app.sla_adjustments a
+                         WHERE a.cycle_id = y.cycle_id
+                         ORDER BY a.adjustment_id DESC LIMIT 1), y.sla_due_at) AS sla_due_at
+        FROM app.review_cycles y
+        WHERE y.case_id = c.case_id ORDER BY y.cycle_no DESC LIMIT 1
     ) cy ON TRUE
     LEFT JOIN LATERAL (
         SELECT count(*)::int AS contact_total,

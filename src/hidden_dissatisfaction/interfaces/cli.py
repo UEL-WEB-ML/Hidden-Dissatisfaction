@@ -75,6 +75,16 @@ def _build_parser() -> argparse.ArgumentParser:
         "--test-lock",
         help="Lock from the frozen selection record (required for finalization).",
     )
+
+    for name, text in (
+        ("recalculate-sla", "Apply changed SLA parameters to OPEN review cycles."),
+        ("purge-evidence", "Delete unattached evidence uploads past retention."),
+    ):
+        job = subparsers.add_parser(name, help=text)
+        job.add_argument("--dsn", default=None, help="Postgres DSN (or HD_RUNTIME_DSN)")
+    purge = subparsers.choices["purge-evidence"]
+    purge.add_argument("--root", type=Path, default=Path("data/evidence"))
+    purge.add_argument("--retention-hours", type=int, default=24)
     return parser
 
 
@@ -174,6 +184,28 @@ def main(argv: Sequence[str] | None = None) -> int:
             PostgresGoldModellingItemsReader(dsn, args.source_run_id), metadata, args.output
         )
         print(str(args.output))
+        return 0
+
+    if args.command in ("recalculate-sla", "purge-evidence"):
+        from datetime import UTC
+
+        dsn = args.dsn or os.environ.get("HD_RUNTIME_DSN")
+        if not dsn:
+            _build_parser().error("--dsn or HD_RUNTIME_DSN is required")
+        now = datetime.now(UTC)
+        if args.command == "recalculate-sla":
+            from hidden_dissatisfaction.infrastructure.sla_recalculation import (
+                PostgresSlaRecalculator,
+            )
+
+            print(json.dumps({"adjusted_cycles": PostgresSlaRecalculator(dsn).run(now)}))
+        else:
+            from hidden_dissatisfaction.infrastructure.evidence_cleanup import (
+                purge_unattached_uploads,
+            )
+
+            removed = purge_unattached_uploads(dsn, args.root, now, args.retention_hours)
+            print(json.dumps({"purged_uploads": removed}))
         return 0
 
     return 2

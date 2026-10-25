@@ -20,3 +20,17 @@ dropdb hidden_dissatisfaction_p61_test
 The runner never auto-baselines an existing database: a database that already
 contains tables but has no `app.schema_migrations` ledger must be migrated only
 after an explicit operator review.
+
+## P9 migrations
+
+| Version | Purpose |
+|---|---|
+| V009-V011 | Runtime language grant, parameter grants, initial parameter bundle |
+| V012 | Workflow contract columns (attempt, decision) |
+| V013 | `attempt_no` unique per cycle; `evidence_uploads` for unattached files |
+| V014 | `p7_case_guard` runs as definer so runtime updates pass the snapshot guard |
+| V015 | Read-path indexes chosen from `EXPLAIN ANALYZE` on about 100k cases |
+| V016 | `ml.v_active_thresholds` so `/config` needs no raw `ml.*` grant |
+| V017 | `app.sla_adjustments` (append-only) for recalculated open-cycle SLA |
+| V018 | Retention purge of unattached uploads; attached evidence stays protected |
+

@@ -65,3 +65,73 @@ def test_parameter_append_is_audited_and_future_revision_is_not_effective_early(
     assert current.value("capacity") == "5"
     future_bundle = PostgresConfigurationReader(runtime_dsn).effective_parameters(future)
     assert future_bundle.value("capacity") == "6"
+
+
+def _manager(setup_dsn: str) -> object:
+    manager_id = uuid4()
+    with psycopg.connect(setup_dsn) as setup:
+        setup.execute(
+            "INSERT INTO app.users(user_id, username, password_hash, full_name, role) "
+            "VALUES (%s, %s, 'x', 'Race Manager', 'MANAGER')",
+            (manager_id, f"race-{manager_id.hex[:8]}"),
+        )
+    return manager_id
+
+
+def test_config_reports_the_value_effective_now_not_a_scheduled_one() -> None:
+    from hidden_dissatisfaction.infrastructure.postgres_operational_reads import (
+        PostgresOperationalReadModel,
+    )
+
+    if not SETUP_DSN or not RUNTIME_DSN:
+        pytest.skip("P9_TEST_POSTGRES_DSN and P9_APP_RUNTIME_DSN are required")
+    manager_id = _manager(SETUP_DSN)
+    now = datetime.now(UTC).replace(microsecond=0)
+    writer = PostgresParameterVersionWriter(RUNTIME_DSN)
+    reads = PostgresOperationalReadModel(RUNTIME_DSN)
+    before = reads.config(now)["soon_hours"]
+    scheduled = int(before) % 700 + 3  # type: ignore[call-overload]
+    writer.append_version(
+        CreateParameterVersionCommand("soon_hours", scheduled, now + timedelta(days=2), "later", manager_id),  # type: ignore[arg-type]
+        str(scheduled),
+        now,
+    )
+    assert reads.config(now)["soon_hours"] == before
+    assert reads.config(now + timedelta(days=3))["soon_hours"] == scheduled
+
+
+def test_concurrent_parameter_writes_serialize_without_duplicate_versions() -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    if not SETUP_DSN or not RUNTIME_DSN:
+        pytest.skip("P9_TEST_POSTGRES_DSN and P9_APP_RUNTIME_DSN are required")
+    manager_id = _manager(SETUP_DSN)
+    runtime_dsn = RUNTIME_DSN
+    now = datetime.now(UTC).replace(microsecond=0)
+    when = now + timedelta(days=30)
+
+    def write(value: int) -> int:
+        return (
+            PostgresParameterVersionWriter(runtime_dsn)
+            .append_version(
+                CreateParameterVersionCommand("stale_hours", value, when, "race", manager_id),  # type: ignore[arg-type]
+                str(value),
+                now,
+            )
+            .version
+        )
+
+    with ThreadPoolExecutor(6) as pool:
+        versions = sorted(pool.map(write, range(40, 46)))
+    assert versions == list(range(versions[0], versions[0] + 6))
+    with psycopg.connect(SETUP_DSN) as check:
+        audit = check.execute(
+            "SELECT count(*) FROM app.audit_events WHERE actor_id=%s AND event_type='PARAMETER_CHANGE'",
+            (manager_id,),
+        ).fetchone()
+        revisions = check.execute(
+            "SELECT count(DISTINCT revision) FROM app.parameter_bundles WHERE created_by=%s",
+            (manager_id,),
+        ).fetchone()
+    assert audit is not None and audit[0] == 6
+    assert revisions is not None and revisions[0] == 6
