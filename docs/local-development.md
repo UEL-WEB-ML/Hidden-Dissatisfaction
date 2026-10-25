@@ -8,7 +8,7 @@ Python 3.11 and `uv` are required:
 
 ```bash
 uv python install 3.11
-uv sync --frozen --extra ml --extra notebook --extra dev
+uv sync --frozen --extra db --extra ml --extra notebook --extra dev
 uv run pytest
 ```
 
@@ -17,6 +17,26 @@ Optional CatBoost support:
 ```bash
 uv sync --frozen --extra ml --extra boosting --extra notebook --extra dev
 ```
+
+## Resource-aware execution
+
+Use a small, committed fixture for routine local development. Run only the
+relevant unit, contract, or sample-data integration tests locally; do not run
+full dbt builds, full training, large bootstrap jobs, or SHAP across the whole
+dataset on a constrained workstation.
+
+Run milestone jobs that require the complete Olist dataset on the project
+server: full warehouse builds, modelling-dataset export, final P5 training and
+evaluation, P6 scoring, and Compose/E2E validation. The server clone receives
+source code through Git, while raw data, `.env` files, generated Parquet files,
+model artifacts, and experiment outputs are transferred or created outside
+Git. Store these large files on the Linux filesystem rather than a mounted
+Windows drive when working in WSL.
+
+Before a server run, freeze the commit SHA, input manifest, run configuration,
+and environment versions. Copy back the resulting manifests, metrics, figures,
+and release metadata needed as reproducibility evidence; never commit raw
+customer or review data.
 
 ## Olist data
 
@@ -32,12 +52,15 @@ See [`data-contract.md`](data-contract.md) for required filenames and validation
 
 ```bash
 cp .env.example .env
-# Change POSTGRES_SUPERUSER_PASSWORD in .env.
-docker compose up -d
+# Change POSTGRES_SUPERUSER_PASSWORD, HD_APP_RUNTIME_PASSWORD and HD_JWT_SECRET in .env.
+docker compose up -d postgres
+make migrate
 docker compose ps
 ```
 
-The bootstrap creates the `app`, `bronze`, `silver`, `gold` and `ml` schemas. Files in `infra/postgres/init/` run only when the volume is first initialized.
+The bootstrap creates the `app`, `bronze`, `silver`, `gold` and `ml` schemas. Files in `infra/postgres/init/` run only when the volume is first initialized. `make migrate` executes each forward-only SQL file exactly once and records it in `app.schema_migrations`; it is safe to rerun.
+It also creates the `app_api` login, which inherits the least-privilege `app_runtime`
+role. API processes must use `HD_DATABASE_URL`, never the PostgreSQL superuser.
 
 ```bash
 docker compose exec postgres psql -U postgres -d hidden_dissatisfaction -c '\dn'

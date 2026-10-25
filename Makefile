@@ -1,4 +1,4 @@
-.PHONY: install quality test format db-up db-down db-logs p4-release-verify
+.PHONY: install quality test format db-up db-down db-logs migrate migrate-info p4-release-verify
 
 install:
 	python -m pip install -e ".[ml,notebook,dev]"
@@ -24,6 +24,12 @@ db-down:
 
 db-logs:
 	docker compose logs -f postgres
+
+migrate:
+	docker compose run --rm migrate
+
+migrate-info:
+	docker compose exec postgres psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -c 'SELECT version, applied_at FROM app.schema_migrations ORDER BY version'
 
 # Opt-in gate: this requires the complete Olist warehouse and a completed run.
 p4-release-verify:
