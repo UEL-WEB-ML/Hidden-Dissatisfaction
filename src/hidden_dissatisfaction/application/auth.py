@@ -17,6 +17,7 @@ from hidden_dissatisfaction.domain.auth import (
 class UserRepository(Protocol):
     async def by_username(self, username: str) -> User | None: ...
     async def by_id(self, user_id: UUID) -> User | None: ...
+    async def set_preferred_language(self, user_id: UUID, language: str) -> User: ...
 
 
 class AuthService:
@@ -51,3 +52,9 @@ class AuthService:
         if not user or not user.is_active:
             raise UserNotFound
         return user
+
+    async def update_preferred_language(self, user: User, language: str) -> User:
+        """Persist a validated interface-language preference for an active user."""
+        if not user.is_active:
+            raise UserNotFound
+        return await self.users.set_preferred_language(user.id, language)

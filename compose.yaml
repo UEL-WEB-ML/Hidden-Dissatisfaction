@@ -5,6 +5,7 @@ services:
       POSTGRES_USER: ${POSTGRES_SUPERUSER}
       POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      HD_APP_RUNTIME_PASSWORD: ${HD_APP_RUNTIME_PASSWORD}
       TZ: UTC
       PGTZ: UTC
     ports:
@@ -20,6 +21,23 @@ services:
       retries: 5
       start_period: 20s
     restart: unless-stopped
+
+  migrate:
+    image: ${POSTGRES_IMAGE}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_SUPERUSER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGPASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+    volumes:
+      - ./infra/postgres/migrations:/migrations:ro
+      - ./infra/postgres/migrate.sh:/usr/local/bin/hd-migrate:ro
+    entrypoint: ["bash", "/usr/local/bin/hd-migrate"]
+    restart: "no"
 
 volumes:
   postgres_data:

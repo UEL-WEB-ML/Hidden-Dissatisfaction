@@ -21,16 +21,21 @@ class PostgresConfigurationReader:
         if as_of.tzinfo is None:
             raise ValueError("as_of must be timezone-aware")
         sql = """
+        WITH effective_revisions AS (
+            SELECT b.revision
+            FROM app.parameter_bundles b
+            JOIN app.parameters p ON p.parameter_id = b.parameter_id
+            GROUP BY b.revision
+            HAVING max(p.effective_at) <= %s
+        )
         SELECT b.revision, p.param_key, p.value
-        FROM app.parameter_bundles b JOIN app.parameters p ON p.parameter_id=b.parameter_id
-        WHERE p.effective_at <= %s
-          AND b.revision = (SELECT max(b2.revision) FROM app.parameter_bundles b2
-                            JOIN app.parameters p2 ON p2.parameter_id=b2.parameter_id
-                            WHERE p2.effective_at <= %s)
+        FROM app.parameter_bundles b
+        JOIN app.parameters p ON p.parameter_id = b.parameter_id
+        WHERE b.revision = (SELECT max(revision) FROM effective_revisions)
         ORDER BY p.param_key
         """
         with psycopg.connect(self.dsn, row_factory=dict_row) as conn:
-            rows = conn.execute(sql, (as_of, as_of)).fetchall()
+            rows = conn.execute(sql, (as_of,)).fetchall()
         if not rows:
             raise LookupError("no effective parameter bundle")
         return EffectiveParameterBundle(

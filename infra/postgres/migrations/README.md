@@ -1,7 +1,9 @@
 # PostgreSQL migrations
 
-`V001__p6_1_prediction_contract.sql` is forward-only and should be executed by
-a superuser after the bootstrap scripts. It uses `SET ROLE
+Migrations are forward-only and are executed by `make migrate` after the
+bootstrap scripts. The runner connects as the configured PostgreSQL superuser,
+records successfully applied filenames in `app.schema_migrations`, and is safe
+to rerun. Migrations use `SET ROLE
 hidden_dissatisfaction_owner` for DDL, then resets role before grants (the
 bootstrap `migrator` role is NOLOGIN). It does not baseline, inspect, or
 alter existing application tables. Apply it explicitly to an isolated local
@@ -15,7 +17,6 @@ psql --username=postgres --file tests/sql/p6_1_contract.sql hidden_dissatisfacti
 dropdb hidden_dissatisfaction_p61_test
 ```
 
-The migration is intentionally not wired into container startup. This prevents
-an existing production-like volume from being changed unintentionally. A later
-runner may record applied filenames in a dedicated migration ledger; it must
-not auto-baseline an existing database.
+The runner never auto-baselines an existing database: a database that already
+contains tables but has no `app.schema_migrations` ledger must be migrated only
+after an explicit operator review.

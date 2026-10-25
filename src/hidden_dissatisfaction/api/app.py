@@ -1,17 +1,54 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Annotated
+from datetime import UTC, datetime
+from typing import Annotated, Any, Protocol
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from hidden_dissatisfaction.application.auth import AuthService
-from hidden_dissatisfaction.domain.auth import InvalidCredentials, InvalidToken, User, UserNotFound
+from hidden_dissatisfaction.application.claim import ClaimCase
+from hidden_dissatisfaction.application.parameters import (
+    CreateParameterVersionCommand,
+    ParameterVersion,
+)
+from hidden_dissatisfaction.application.queue import QueuePage, RiskOrderQueryPort
+from hidden_dissatisfaction.domain.auth import (
+    AccessToken,
+    InvalidCredentials,
+    InvalidToken,
+    Role,
+    User,
+    UserNotFound,
+)
+from hidden_dissatisfaction.domain.parameters import ParameterValidationError
+from hidden_dissatisfaction.domain.queue import QueueFilters, QueueQueryValidationError
+from hidden_dissatisfaction.domain.workflow import WorkflowPolicyError
+from hidden_dissatisfaction.infrastructure.postgres_claim_case import (
+    ClaimConflictError,
+    ClaimNotFoundError,
+)
 
+from .authorization import require_manager
 from .config import Settings
-from .schemas import LoginRequest, TokenResponse, UpdateMeRequest, UserResponse
+from .dependencies import (
+    build_auth_service,
+    build_claim_case,
+    build_operational_reads,
+    build_parameter_version_service,
+    build_risk_order_query,
+)
+from .schemas import (
+    CreateParameterVersionRequest,
+    LoginRequest,
+    ParameterVersionResponse,
+    QueueOrderResponse,
+    QueuePageResponse,
+    TokenResponse,
+    UpdateMeRequest,
+    UserResponse,
+)
 
 
 async def readiness_check() -> bool:
@@ -19,8 +56,46 @@ async def readiness_check() -> bool:
     return True
 
 
-def create_app(settings: Settings | None = None, auth: AuthService | None = None) -> FastAPI:
+class AuthenticationService(Protocol):
+    """Minimal authentication port required by the HTTP interface."""
+
+    async def login(self, username: str, password: str) -> AccessToken: ...
+
+    async def identify(self, token: str) -> User: ...
+
+    async def update_preferred_language(self, user: User, language: str) -> User: ...
+
+
+class ParameterVersionService(Protocol):
+    """Minimal parameter command port required by the HTTP interface."""
+
+    def execute(
+        self, command: CreateParameterVersionCommand, now: datetime
+    ) -> ParameterVersion: ...
+
+
+class OperationalReadService(Protocol):
+    """Read projections required by P9.1 routes."""
+
+    def config(self, now: datetime) -> dict[str, object]: ...
+    def parameters(self, now: datetime) -> dict[str, object]: ...
+    def users(self, role: str | None, now: datetime) -> list[dict[str, Any]]: ...
+
+
+def create_app(
+    settings: Settings | None = None,
+    auth: AuthenticationService | None = None,
+    parameter_versions: ParameterVersionService | None = None,
+    risk_orders: RiskOrderQueryPort | None = None,
+    operational_reads: OperationalReadService | None = None,
+    claim_case: ClaimCase | None = None,
+) -> FastAPI:
     settings = settings or Settings(jwt_secret="change-me-in-production")
+    auth = auth or build_auth_service(settings)
+    parameter_versions = parameter_versions or build_parameter_version_service(settings)
+    risk_orders = risk_orders or build_risk_order_query(settings)
+    operational_reads = operational_reads or build_operational_reads(settings)
+    claim_case = claim_case or build_claim_case(settings)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -35,19 +110,27 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
             detail={"code": code, "message": message, "details": details},
         )
 
-    def user_response(user: User, preferred_language: str | None = None) -> UserResponse:
+    def user_response(user: User) -> UserResponse:
         return UserResponse(
-            id=user.id, username=user.username, preferred_language=preferred_language
+            user_id=user.id,
+            username=user.username,
+            full_name=user.full_name,
+            role=user.role,
+            preferred_language=user.preferred_language,
+            created_at=user.created_at,
         )
 
-    def service() -> AuthService:
-        if auth is None:
-            raise RuntimeError("Auth service is not configured")
+    def queue_page_response(page: QueuePage) -> QueuePageResponse:
+        return QueuePageResponse(
+            items=[QueueOrderResponse(**item.__dict__) for item in page.items], total=page.total
+        )
+
+    def service() -> AuthenticationService:
         return auth
 
     async def current_user(
         credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
-        svc: Annotated[AuthService, Depends(service)],
+        svc: Annotated[AuthenticationService, Depends(service)],
     ) -> User:
         try:
             if credentials is None:
@@ -79,7 +162,7 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
 
     @app.post("/api/v1/auth/login", response_model=TokenResponse)
     async def login(
-        body: LoginRequest, svc: Annotated[AuthService, Depends(service)]
+        body: LoginRequest, svc: Annotated[AuthenticationService, Depends(service)]
     ) -> TokenResponse:
         try:
             token = await svc.login(body.username, body.password)
@@ -112,7 +195,164 @@ def create_app(settings: Settings | None = None, auth: AuthService | None = None
                 422,
                 detail={"code": "VALIDATION_ERROR", "message": "Invalid language", "details": None},
             )
-        return user_response(user, body.preferred_language)
+        return user_response(
+            await service().update_preferred_language(user, body.preferred_language)
+        )
+
+    @app.post("/api/v1/parameters", response_model=ParameterVersionResponse, status_code=201)
+    async def create_parameter_version(
+        body: CreateParameterVersionRequest,
+        user: Annotated[User, Depends(current_user)],
+    ) -> ParameterVersionResponse:
+        require_manager(user)
+        try:
+            version = parameter_versions.execute(
+                CreateParameterVersionCommand(
+                    key=body.key,
+                    value=body.value,
+                    effective_at=body.effective_at,
+                    reason=body.reason,
+                    actor_id=user.id,
+                ),
+                datetime.now(UTC),
+            )
+        except ParameterValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={"code": exc.code, "message": str(exc), "details": None},
+            ) from exc
+        return ParameterVersionResponse(**version.__dict__)
+
+    @app.get("/api/v1/config")
+    async def get_config(_: Annotated[User, Depends(current_user)]) -> dict[str, object]:
+        try:
+            return operational_reads.config(datetime.now(UTC))
+        except LookupError as exc:
+            raise HTTPException(503, detail={"code": "NOT_READY", "message": str(exc)}) from exc
+
+    @app.get("/api/v1/parameters")
+    async def list_parameters(user: Annotated[User, Depends(current_user)]) -> dict[str, object]:
+        require_manager(user)
+        return operational_reads.parameters(datetime.now(UTC))
+
+    @app.get("/api/v1/users")
+    async def list_users(
+        _: Annotated[User, Depends(current_user)], role: str | None = None
+    ) -> dict[str, list[dict[str, Any]]]:
+        if role is not None and role not in {"SPECIALIST", "MANAGER"}:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={"code": "VALIDATION_ERROR", "message": "Invalid role", "details": None},
+            )
+        return {"items": operational_reads.users(role, datetime.now(UTC))}
+
+    @app.get("/api/v1/orders", response_model=QueuePageResponse)
+    async def list_orders(
+        q: str | None = None,
+        level: str | None = None,
+        status_filter: Annotated[str, Query(alias="status")] = "OPEN",
+        assignee: str | None = None,
+        smin: float | None = None,
+        smax: float | None = None,
+        from_date: Annotated[datetime | None, Query(alias="from")] = None,
+        to_date: Annotated[datetime | None, Query(alias="to")] = None,
+        seller: str | None = None,
+        category: str | None = None,
+        outcome: str | None = None,
+        sla: str | None = None,
+        needs_decision: bool | None = None,
+        sort: str = "priority",
+        limit: int = 20,
+        offset: int = 0,
+    ) -> QueuePageResponse:
+        try:
+            page = risk_orders.list_orders(
+                QueueFilters(
+                    query=q,
+                    level=level,
+                    status=status_filter,
+                    assignee=assignee,
+                    score_min=smin,
+                    score_max=smax,
+                    queued_from=from_date,
+                    queued_to=to_date,
+                    seller=seller,
+                    category=category,
+                    outcome=outcome,
+                    sla=sla,
+                    needs_decision=needs_decision,
+                    sort=sort,
+                    limit=limit,
+                    offset=offset,
+                )
+            )
+        except QueueQueryValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={"code": "VALIDATION_ERROR", "message": str(exc), "details": None},
+            ) from exc
+        return queue_page_response(page)
+
+    @app.get("/api/v1/orders/filter-options")
+    async def order_filter_options() -> dict[str, tuple[str, ...]]:
+        return risk_orders.filter_options()
+
+    @app.post("/api/v1/orders/{order_id}/claim")
+    async def claim_order(
+        order_id: str, user: Annotated[User, Depends(current_user)]
+    ) -> dict[str, object]:
+        if user.role is not Role.SPECIALIST:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "FORBIDDEN",
+                    "message": "Only Specialists can claim cases",
+                    "details": None,
+                },
+            )
+        try:
+            result = claim_case.execute(order_id, user.id)
+            page = risk_orders.list_orders(QueueFilters(query=order_id, limit=1))
+        except ClaimNotFoundError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "ORDER_NOT_FOUND", "message": "Order not found", "details": None},
+            ) from exc
+        except ClaimConflictError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "ALREADY_CLAIMED",
+                    "message": "Case was already claimed",
+                    "details": None,
+                },
+            ) from exc
+        except WorkflowPolicyError as exc:
+            code = exc.code
+            http_status = (
+                status.HTTP_403_FORBIDDEN
+                if code == "HIGH_RISK_REQUIRES_ASSIGN"
+                else (
+                    status.HTTP_422_UNPROCESSABLE_CONTENT
+                    if code == "CAPACITY_FULL"
+                    else status.HTTP_409_CONFLICT
+                )
+            )
+            raise HTTPException(
+                status_code=http_status,
+                detail={"code": code, "message": str(exc), "details": None},
+            ) from exc
+        if not page.items:
+            raise RuntimeError("Claimed case is absent from the Queue projection")
+        order = QueueOrderResponse(**page.items[0].__dict__)
+        return {
+            "order": order,
+            "me": {
+                "active_count": result.active_count,
+                "capacity": result.capacity,
+                "slots_left": result.capacity - result.active_count,
+            },
+        }
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
