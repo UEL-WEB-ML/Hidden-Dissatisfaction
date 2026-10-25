@@ -16,30 +16,22 @@ class PostgresOperationalReadModel:
     def config(self, now: datetime) -> dict[str, object]:
         """Return the effective parameter bundle and active model thresholds."""
         with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            # Per key, the latest version already effective: bundles also contain
+            # future-scheduled values, so they cannot answer "what applies now".
             parameter_rows = connection.execute(
                 """
-                SELECT p.param_key, p.value, b.revision
-                FROM app.parameter_bundles b
-                JOIN app.parameters p ON p.parameter_id = b.parameter_id
-                WHERE b.revision = (
-                    SELECT max(b2.revision)
-                    FROM app.parameter_bundles b2
-                    JOIN app.parameters p2 ON p2.parameter_id = b2.parameter_id
-                    WHERE p2.effective_at <= %(now)s
-                )
-                ORDER BY p.param_key
+                SELECT DISTINCT ON (p.param_key) p.param_key, p.value,
+                       (SELECT max(b.revision) FROM app.parameter_bundles b
+                        JOIN app.parameters p2 ON p2.parameter_id = b.parameter_id
+                        WHERE p2.effective_at <= %(now)s) AS revision
+                FROM app.parameters p
+                WHERE p.effective_at <= %(now)s
+                ORDER BY p.param_key, p.effective_at DESC, p.version DESC
                 """,
                 {"now": now},
             ).fetchall()
             threshold = connection.execute(
-                """
-                SELECT t.threshold_version, t.medium_from, t.high_from
-                FROM ml.predictions p
-                JOIN ml.model_thresholds t
-                  ON t.model_release_id = p.model_release_id
-                 AND t.threshold_version = p.threshold_version
-                WHERE p.state = 'ACTIVE'
-                """
+                "SELECT threshold_version, medium_from, high_from FROM ml.v_active_thresholds"
             ).fetchone()
         if not parameter_rows:
             raise LookupError("no effective parameter bundle")

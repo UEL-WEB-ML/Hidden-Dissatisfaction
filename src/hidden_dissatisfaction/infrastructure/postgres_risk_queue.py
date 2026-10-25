@@ -29,9 +29,13 @@ class PostgresRiskOrderQuery:
             LEFT JOIN app.assignments a ON a.case_id = c.case_id AND a.released_at IS NULL
             LEFT JOIN app.users u ON u.user_id = a.assignee_id
             LEFT JOIN LATERAL (
-                SELECT cycle_id, started_at, sla_due_at FROM app.review_cycles
-                WHERE case_id = c.case_id AND ended_at IS NULL
-                ORDER BY cycle_no DESC LIMIT 1
+                SELECT y.cycle_id, y.started_at,
+                       COALESCE((SELECT a.sla_due_at FROM app.sla_adjustments a
+                                 WHERE a.cycle_id = y.cycle_id
+                                 ORDER BY a.adjustment_id DESC LIMIT 1), y.sla_due_at) AS sla_due_at
+                FROM app.review_cycles y
+                WHERE y.case_id = c.case_id AND y.ended_at IS NULL
+                ORDER BY y.cycle_no DESC LIMIT 1
             ) cycle ON TRUE
         """
         with psycopg.connect(self._dsn, row_factory=dict_row) as connection:

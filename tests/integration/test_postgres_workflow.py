@@ -15,6 +15,7 @@ from hidden_dissatisfaction.application.workflow_commands import (
     AddDecision,
     EvidenceRef,
 )
+from hidden_dissatisfaction.domain.queue import QueueFilters
 from hidden_dissatisfaction.domain.workflow import WorkflowPolicyError
 from hidden_dissatisfaction.infrastructure.postgres_claim_case import (
     ClaimConflictError,
@@ -493,3 +494,120 @@ def test_audit_events_are_filtered_paginated_and_counted(
         event_type=None, actor_id=None, order_id=order_id, override_only=True, limit=20, offset=0
     )
     assert none["total"] == 0
+
+
+def _set_sla_hours(db: psycopg.Connection[Any], manager: UUID, hours: int) -> datetime:
+    """Insert an already-effective SLA version directly (the writer forbids past times)."""
+    version = _scalar(
+        db, "SELECT coalesce(max(version),0)+1 FROM app.parameters WHERE param_key='sla_hours_low'"
+    )
+    effective = datetime.now(UTC)
+    db.execute(
+        "INSERT INTO app.parameters(param_key, version, value, effective_at, actor_id, reason) "
+        "VALUES ('sla_hours_low', %s, %s, %s, %s, 'it')",
+        (version, str(hours), effective, manager),
+    )
+    return effective
+
+
+def test_sla_recalculation_updates_open_cycles_only_and_is_idempotent(
+    db: psycopg.Connection[Any], make_case: Callable[..., str]
+) -> None:
+    from hidden_dissatisfaction.infrastructure.postgres_risk_queue import PostgresRiskOrderQuery
+    from hidden_dissatisfaction.infrastructure.sla_recalculation import PostgresSlaRecalculator
+
+    assert RUNTIME_DSN
+    manager, specialist = _user(db, "MANAGER"), _user(db, "SPECIALIST")
+    open_id, closed_id = make_case(assignee=specialist), make_case(assignee=specialist)
+    _commands().complete(closed_id, specialist, False, "NO_ISSUE", None)
+    original = _scalar(
+        db,
+        "SELECT sla_due_at FROM app.review_cycles y JOIN app.review_cases c "
+        "USING (case_id) WHERE c.order_id=%s",
+        open_id,
+    )
+    effective = _set_sla_hours(db, manager, 10)
+    recalculator = PostgresSlaRecalculator(RUNTIME_DSN)
+    later = effective + timedelta(seconds=1)
+    assert recalculator.run(later) >= 1
+    assert recalculator.run(later) == 0  # idempotent
+
+    due = (
+        PostgresRiskOrderQuery(RUNTIME_DSN)
+        .list_orders(QueueFilters(query=open_id[:20], limit=5))
+        .items[0]
+        .sla_due_at
+    )
+    started = _scalar(
+        db,
+        "SELECT started_at FROM app.review_cycles y JOIN app.review_cases c "
+        "USING (case_id) WHERE c.order_id=%s",
+        open_id,
+    )
+    assert due == started + timedelta(hours=10) and due != original
+    # history untouched: the stored cycle value and the closed case's cycle never change
+    assert (
+        _scalar(
+            db,
+            "SELECT sla_due_at FROM app.review_cycles y JOIN app.review_cases c "
+            "USING (case_id) WHERE c.order_id=%s",
+            open_id,
+        )
+        == original
+    )
+    assert (
+        _scalar(
+            db,
+            "SELECT count(*) FROM app.sla_adjustments a JOIN app.review_cycles y "
+            "USING (cycle_id) JOIN app.review_cases c USING (case_id) "
+            "WHERE c.order_id=%s",
+            closed_id,
+        )
+        == 0
+    )
+
+
+def test_purge_removes_only_expired_unattached_uploads(
+    db: psycopg.Connection[Any], make_case: Callable[..., str], tmp_path: Any
+) -> None:
+    from hidden_dissatisfaction.infrastructure.evidence_cleanup import purge_unattached_uploads
+
+    assert RUNTIME_DSN
+    tag = uuid4().hex[:8]
+    specialist = _user(db, "SPECIALIST")
+    order_id = make_case(assignee=specialist)
+    old, kept = _upload(db, specialist), _upload(db, specialist)
+    attached = _upload(db, specialist)
+    _commands().add_contact(_contact(order_id, specialist, "REACHED", (attached,)))
+    db.execute("ALTER TABLE app.evidence_uploads DISABLE TRIGGER evidence_uploads_guard")
+    try:
+        for upload_id, key in (
+            (old, f"{tag}-old.png"),
+            (kept, f"{tag}-kept.png"),
+            (attached, f"{tag}-attached.png"),
+        ):
+            (tmp_path / key).write_bytes(PNG)
+            db.execute(
+                "UPDATE app.evidence_uploads SET storage_key=%s WHERE upload_id=%s",
+                (key, upload_id),
+            )
+        db.execute(
+            "UPDATE app.evidence_uploads SET uploaded_at = now() - interval '2 days' "
+            "WHERE upload_id IN (%s, %s)",
+            (old, attached),
+        )
+    finally:
+        db.execute("ALTER TABLE app.evidence_uploads ENABLE TRIGGER evidence_uploads_guard")
+    assert purge_unattached_uploads(RUNTIME_DSN, tmp_path, datetime.now(UTC)) >= 1
+    remaining = {
+        r[0]
+        for r in db.execute(
+            "SELECT upload_id FROM app.evidence_uploads WHERE upload_id IN (%s,%s,%s)",
+            (old, kept, attached),
+        )
+    }
+    assert remaining == {kept, attached}
+    assert not (tmp_path / f"{tag}-old.png").exists()
+    assert (tmp_path / f"{tag}-attached.png").exists()
+    with psycopg.connect(RUNTIME_DSN, autocommit=True) as runtime, pytest.raises(psycopg.Error):
+        runtime.execute("DELETE FROM app.evidence_uploads WHERE upload_id=%s", (attached,))
