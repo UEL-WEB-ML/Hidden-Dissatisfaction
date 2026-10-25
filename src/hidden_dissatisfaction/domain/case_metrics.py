@@ -100,22 +100,21 @@ def build_dashboard(
         return sorted(out.values(), key=lambda b: (-b["high"], -b["total"], b["key"]))[:10]
 
     by_seller = group("seller")
-    workload = []
-    for s in specialists:
-        mine = [
-            (r, m)
-            for r, m in pairs
-            if str(r["assignee_id"]) == str(s["user_id"]) and r["status"] in OPEN
-        ]
-        workload.append(
-            {
-                "user_id": str(s["user_id"]),
-                "full_name": s["full_name"],
-                "active": s["active_count"],
-                "capacity": s["capacity"],
-                "overdue": sum(m["sla_state"] == "over" for _, m in mine),
-            }
-        )
+    overdue_by_assignee: dict[str, int] = {}
+    for r, m in pairs:
+        if r["assignee_id"] is not None and r["status"] in OPEN and m["sla_state"] == "over":
+            key = str(r["assignee_id"])
+            overdue_by_assignee[key] = overdue_by_assignee.get(key, 0) + 1
+    workload = [
+        {
+            "user_id": str(s["user_id"]),
+            "full_name": s["full_name"],
+            "active": s["active_count"],
+            "capacity": s["capacity"],
+            "overdue": overdue_by_assignee.get(str(s["user_id"]), 0),
+        }
+        for s in specialists
+    ]
     first_contacts = [r for r in rows if r["cycle_first_contact_at"] is not None]
     waits = [_hours(r["cycle_first_contact_at"] - r["cycle_started_at"]) for r in first_contacts]
     unassigned_high = [

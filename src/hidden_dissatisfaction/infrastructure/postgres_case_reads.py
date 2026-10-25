@@ -20,14 +20,10 @@ _CASE_ROWS = """
            r.risk_level AS level, r.context ->> 'seller_id' AS seller,
            r.context ->> 'category' AS category,
            cy.cycle_id, cy.started_at AS cycle_started_at, cy.sla_due_at,
-           (SELECT count(*)::int FROM app.contact_attempts a WHERE a.case_id = c.case_id) AS contact_total,
-           EXISTS (SELECT 1 FROM app.contact_attempts a
-                   WHERE a.case_id = c.case_id AND a.contact_result = 'REACHED') AS reached,
-           (SELECT min(a.created_at) FROM app.contact_attempts a
-             WHERE a.case_id = c.case_id AND a.created_at >= cy.started_at) AS cycle_first_contact_at,
-           EXISTS (SELECT 1 FROM app.manager_decisions d
-                   WHERE d.case_id = c.case_id AND d.cycle_id IS NOT DISTINCT FROM cy.cycle_id)
-             AS has_decision
+           COALESCE(ct.contact_total, 0) AS contact_total,
+           COALESCE(ct.reached, FALSE) AS reached,
+           ct.cycle_first_contact_at,
+           (dc.case_id IS NOT NULL) AS has_decision
     FROM app.review_cases c
     JOIN ml.v_risk_orders_for_web r ON r.prediction_id = c.prediction_id AND r.order_id = c.order_id
     LEFT JOIN app.users u ON u.user_id = c.assignee_id
@@ -35,6 +31,16 @@ _CASE_ROWS = """
         SELECT cycle_id, started_at, sla_due_at FROM app.review_cycles
         WHERE case_id = c.case_id ORDER BY cycle_no DESC LIMIT 1
     ) cy ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT count(*)::int AS contact_total,
+               bool_or(a.contact_result = 'REACHED') AS reached,
+               min(a.created_at) FILTER (WHERE a.created_at >= cy.started_at) AS cycle_first_contact_at
+        FROM app.contact_attempts a WHERE a.case_id = c.case_id
+    ) ct ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT d.case_id FROM app.manager_decisions d
+        WHERE d.case_id = c.case_id AND d.cycle_id IS NOT DISTINCT FROM cy.cycle_id LIMIT 1
+    ) dc ON TRUE
 """
 
 
