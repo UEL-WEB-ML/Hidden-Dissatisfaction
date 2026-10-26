@@ -27,3 +27,14 @@ export interface DecisionDto { created_at: string; actor_id: string; actor_name:
 export interface StatusHistoryDto { created_at: string; actor_name: string; event_type: string; old_value: string; new_value: string; }
 export interface ModelNoteDto { created_at: string; author_name: string; note: string; }
 export interface OrderDetailResponseDto { order: OrderDetailDto; cycles: OrderCycleDto[]; contacts: ContactDto[]; comments: CommentDto[]; decisions: DecisionDto[]; next_step: DecisionDto | null; status_history: StatusHistoryDto[]; model_notes: ModelNoteDto[]; audit_events: unknown[] | null; seller_open_count: number; }
+export interface AssignOrderRequest { assignee_id: string; reason: string; override_capacity: boolean; }
+export interface CompleteOrderRequest { outcome: string; note: string; }
+export interface SkipOrderRequest { reason: string; note?: string; }
+export interface ReopenOrderRequest { reason: string; review_confirmed: boolean; }
+export interface CommentRequest { text: string; }
+export interface ModelNoteRequest { note: string; }
+export interface OrderMutationResponse { order: OrderDetailDto; }
+export interface ClaimResponse { order: QueueOrderDto; me: UserDto; }
+export interface AssignResponse { order: OrderDetailDto; previous_assignee_name?: string | null; }
+export interface CommentResponse { comment: CommentDto; }
+export interface ModelNoteResponse { model_note: ModelNoteDto; }

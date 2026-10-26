@@ -12,4 +12,5 @@ export class OrderDetailStore {
   private orderId = '';
   load(orderId: string): void { this.orderId = orderId; this.loading.set(true); this.error.set(null); this.forbidden.set(false); this.api.orderDetail(orderId).pipe(finalize(() => this.loading.set(false))).subscribe({ next: value => this.response.set(value), error: error => { this.response.set(null); if (error?.status === 403) this.forbidden.set(true); else this.error.set(error?.status === 404 ? 'This order could not be found.' : (error?.error?.error?.message ?? 'Unable to load this order.')); } }); }
   reload(): void { if (this.orderId) this.load(this.orderId); }
+  claim(orderId: string, onSuccess: () => void): void { this.loading.set(true); this.error.set(null); this.api.claim(orderId).pipe(finalize(() => this.loading.set(false))).subscribe({ next: () => onSuccess(), error: error => this.error.set(error?.error?.error?.message ?? (error?.status === 409 ? 'This case was claimed by someone else. Refresh to see the latest state.' : 'Unable to claim this case.')) }); }
 }
