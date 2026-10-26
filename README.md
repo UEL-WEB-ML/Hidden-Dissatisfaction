@@ -69,6 +69,16 @@ docker compose up -d
 
 Compose uses the repository-local data path and creates the `app`, `bronze`, `silver`, `gold` and `ml` schemas. See [`docs/local-development.md`](docs/local-development.md) for operations and reset warnings.
 
+### P11 delivery workflow
+
+The delivery graph is deliberately opt-in for data work: API startup never
+ingests the full dataset. Run `make bootstrap` for PostgreSQL and migrations,
+then `make warehouse` when the raw Olist files are present. Training and
+scoring are explicit commands (`TRAIN_COMMAND=... make train` and
+`SCORE_COMMAND=... make score`). `make app-up` starts API and frontend after
+migrations; `make e2e` runs the API smoke checks. Development ports bind to
+localhost only. Evidence files persist in the `evidence_data` volume.
+
 ## Quality gates
 
 ```bash
