@@ -1,4 +1,4 @@
-.PHONY: install quality test format bootstrap warehouse train score demo-seed app-up e2e db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format bootstrap warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -46,6 +46,12 @@ e2e: app-up demo-seed
 	@test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
 	@test -x tests/demo_e2e.sh && tests/demo_e2e.sh
 	@$(COMPOSE) ps --status running api frontend | grep -Eq 'api|frontend'
+
+release-check:
+	scripts/release-check.sh
+
+clean-checkout:
+	scripts/clean-checkout-check.sh
 
 db-down:
 	docker compose down
