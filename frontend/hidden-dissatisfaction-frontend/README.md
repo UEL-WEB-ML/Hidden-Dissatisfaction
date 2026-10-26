@@ -6,3 +6,17 @@ P10 Angular production foundation for Signal Desk. Standalone strict TypeScript,
 npm install
 npm start
 ```
+
+## Acceptance checks
+
+Run these commands from this directory:
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+Unit tests use Karma's `jsdom` launcher, so CI does not require a system Chrome
+installation or a display server. The route acceptance tests cover the public
+login entry point, primary destinations, and manager-only route protection.
