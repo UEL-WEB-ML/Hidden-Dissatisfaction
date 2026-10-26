@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AssignOrderRequest, AssignResponse, ClaimResponse, CommentRequest, CommentResponse, CompleteOrderRequest, LoginRequest, LoginResponse, ModelNoteRequest, ModelNoteResponse, OrderDetailResponseDto, OrderMutationResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, ReopenOrderRequest, SkipOrderRequest, UserDto } from './api-dtos';
+import { AssignOrderRequest, AssignResponse, ClaimResponse, CommentRequest, CommentResponse, CompleteOrderRequest, ContactRequest, ContactResponse, LoginRequest, LoginResponse, ModelNoteRequest, ModelNoteResponse, OrderDetailResponseDto, OrderMutationResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, ReopenOrderRequest, SkipOrderRequest, UploadResponse, UserDto } from './api-dtos';
 
 @Injectable({ providedIn: 'root' })
 export class ApiClient {
@@ -27,4 +27,6 @@ export class ApiClient {
   comment(orderId: string, body: CommentRequest): Observable<CommentResponse> { return this.http.post<CommentResponse>(`${this.baseUrl}/orders/${orderId}/comments`, body); }
   modelNote(orderId: string, body: ModelNoteRequest): Observable<ModelNoteResponse> { return this.http.post<ModelNoteResponse>(`${this.baseUrl}/orders/${orderId}/model-notes`, body); }
   orderDetail(orderId: string): Observable<OrderDetailResponseDto> { return this.http.get<OrderDetailResponseDto>(`${this.baseUrl}/orders/${orderId}`); }
+  uploadEvidence(file: File): Observable<UploadResponse> { const body = new FormData(); body.append('file', file, file.name); return this.http.post<UploadResponse>(`${this.baseUrl}/files`, body); }
+  contact(orderId: string, body: ContactRequest): Observable<ContactResponse> { return this.http.post<ContactResponse>(`${this.baseUrl}/orders/${orderId}/contacts`, body); }
 }
