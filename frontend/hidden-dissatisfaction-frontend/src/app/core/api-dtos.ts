@@ -48,3 +48,16 @@ export interface ClaimResponse { order: QueueOrderDto; me: UserDto; }
 export interface AssignResponse { order: OrderDetailDto; previous_assignee_name?: string | null; }
 export interface CommentResponse { comment: CommentDto; }
 export interface ModelNoteResponse { model_note: ModelNoteDto; }
+
+export type DashboardView = 'order' | 'product';
+export interface DashboardQuery { days?: 1 | 3 | 7; level?: RiskLevel; seller?: string; category?: string; assignee?: string; status?: 'OPEN' | OrderStatus; product_item?: string; view: DashboardView; }
+export interface DashboardTotals { cases: number; open: number; pending: number; in_progress: number; completed: number; skipped: number; overdue: number; escalated: number; stale: number; needs_decision: number; }
+export interface DashboardRates { closed: number | null; overdue: number | null; high: number | null; }
+export interface DashboardBucket { key: string; total: number; high: number; open: number; }
+export interface DashboardScoreBand { from: number; to: number; count: number; }
+export interface DashboardWorkload { user_id: string; full_name: string; active: number; capacity: number | null; overdue: number; }
+export interface DashboardAction { code: string; severity: 'danger' | 'warn' | 'info'; count?: number; overdue?: number; suggest?: string | null; user_id?: string; full_name?: string; active?: number; capacity?: number | null; high?: number; total?: number; high_total?: number; hours?: number; seller_id?: string; }
+export interface DashboardTrendPoint { date: string; HIGH: number; MEDIUM: number; LOW: number; }
+export interface DashboardProductItem { product_item_id: string; order_id: string; category: string | null; risk_score: number; risk_level: RiskLevel; synthetic_data_flag: boolean; order_status: OrderStatus; top_factor: string | null; }
+export interface DashboardProduct { totals: { total_items: number; HIGH: number; MEDIUM: number; LOW: number; synthetic: number; orders: number }; by_category: DashboardBucket[]; top_items: DashboardProductItem[]; }
+export interface DashboardResponse { as_of: string; from: string | null; view: DashboardView; totals: DashboardTotals; rates: DashboardRates; by_level: Record<RiskLevel, number>; score_bands: DashboardScoreBand[]; by_seller: DashboardBucket[]; by_category: DashboardBucket[]; workload: DashboardWorkload[]; attention: { high_unassigned: number; overdue: number; stale: number; needs_decision: number }; recent_overrides: Array<{ created_at: string; event_type: string; order_id: string; actor_name: string | null; reason: string | null }>; service: { cases: number; contacted: number; reached: number; with_first_contact: number; first_in_sla: number; median_first_contact_hours: number | null; issue_found: number; issue_followed_up: number; high_open_not_contacted: number }; actions: DashboardAction[]; trend: DashboardTrendPoint[]; product?: DashboardProduct; }
