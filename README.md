@@ -114,3 +114,7 @@ repository secrets before dispatching it.
 The existing Python training pipeline and historical generated artifact are still order-level. The product-item contract is now authoritative, but the notebook, schema code, CLI and tests must complete that migration before product-item outputs are considered final results. The checklist is maintained in [`docs/modeling-training-plan.md`](docs/modeling-training-plan.md).
 
 The former `ML_docs` and `Docker_Environment` repositories are retained only as backups. New project changes belong here.
+
+## Release boundary
+
+P12 Gate 0 is documented in [`docs/evidence/P12-gate-0-release-boundary.md`](docs/evidence/P12-gate-0-release-boundary.md). The current scope is demo-only and non-confirmatory; confirmatory claims remain blocked pending the explicit P5 replacement-holdout gate.

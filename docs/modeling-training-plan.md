@@ -3,6 +3,9 @@
 P5 v1 is frozen by [ADR-010](adr/ADR-010-p5-training-protocol.md). This plan is
 implementation scope only; empirical completion is recorded only after the relevant
 artifact exists. P4 release-gate evidence is a prerequisite for starting P5.
+P5 artifacts remain exploratory-only until the explicit replacement-holdout
+gate in [`evidence/P12-gate-0-release-boundary.md`](evidence/P12-gate-0-release-boundary.md)
+passes.
 
 This document is the execution checklist for the first reproducible modeling pipeline. It is
 derived from `research-design.md`, `data-contract.md`, and `architecture.md`. External capstone
