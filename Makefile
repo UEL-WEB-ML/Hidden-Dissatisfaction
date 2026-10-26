@@ -1,4 +1,4 @@
-.PHONY: install quality test format bootstrap warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format clean-cache bootstrap bronze-manifest ingest warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -20,10 +20,25 @@ format:
 	ruff check --fix .
 	black .
 
+# Remove only reproducible local tool output. Raw data, experiments, evidence,
+# artifacts and Docker volumes are intentionally preserved.
+clean-cache:
+	rm -rf .mypy_cache .pytest_cache .ruff_cache dbt/target dbt/logs src/hidden_dissatisfaction.egg-info
+	find src tests -type d -name __pycache__ -prune -exec rm -rf {} +
+	find . -type f \( -name '*.pyc' -o -name '.coverage' \) -delete
+
 db-up:
 	$(COMPOSE) up -d postgres
 
 bootstrap: db-up migrate
+
+bronze-manifest:
+	uv run --frozen --extra db hidden-dissatisfaction build-bronze-manifest --output data/interim/bronze-manifest.json
+
+ingest:
+	@test -n "$(BRONZE_DSN)" || (echo "BRONZE_DSN is required" >&2; exit 1)
+	@test -f data/interim/bronze-manifest.json || (echo "run make bronze-manifest first" >&2; exit 1)
+	uv run --frozen --extra db hidden-dissatisfaction ingest --manifest data/interim/bronze-manifest.json
 
 warehouse: bootstrap
 	$(COMPOSE) --profile jobs run --rm warehouse

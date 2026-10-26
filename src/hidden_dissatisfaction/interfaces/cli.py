@@ -33,6 +33,16 @@ def _build_parser() -> argparse.ArgumentParser:
     assess.add_argument("--estimated-at", required=True, type=_parse_datetime)
     assess.add_argument("--review-score", type=int)
     assess.add_argument("--review-created-at", type=_parse_datetime)
+    bronze_manifest = subparsers.add_parser(
+        "build-bronze-manifest",
+        help="Validate raw Olist CSV files and write their checksum manifest.",
+    )
+    bronze_manifest.add_argument("--raw-dir", type=Path, default=Path("data/raw/olist"))
+    bronze_manifest.add_argument("--output", type=Path, required=True)
+    ingest = subparsers.add_parser("ingest", help="Load one validated Olist snapshot into Bronze.")
+    ingest.add_argument("--dsn", default=None, help="Postgres DSN (or BRONZE_DSN)")
+    ingest.add_argument("--raw-dir", type=Path, default=Path("data/raw/olist"))
+    ingest.add_argument("--manifest", type=Path, required=True)
     train = subparsers.add_parser(
         "train",
         help="Run temporal model selection, calibration, and final evaluation.",
@@ -110,6 +120,34 @@ def main(argv: Sequence[str] | None = None) -> int:
                 }
             )
         )
+        return 0
+
+    if args.command == "build-bronze-manifest":
+        from hidden_dissatisfaction.application.bronze_ingestion import build_manifest
+
+        manifest = build_manifest(args.raw_dir)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        print(str(args.output))
+        return 0
+
+    if args.command == "ingest":
+        from hidden_dissatisfaction.infrastructure.postgres_bronze_ingestion import (
+            PostgresBronzeLoader,
+        )
+
+        dsn = args.dsn or os.environ.get("BRONZE_DSN")
+        if not dsn:
+            _build_parser().error("--dsn or BRONZE_DSN is required")
+        try:
+            manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise SystemExit(f"unable to read Bronze manifest: {error}") from error
+        if not isinstance(manifest, dict):
+            raise SystemExit("Bronze manifest must contain a JSON object")
+        print(PostgresBronzeLoader(dsn).load(args.raw_dir, manifest))
         return 0
 
     if args.command == "train":

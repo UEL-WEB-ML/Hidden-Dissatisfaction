@@ -33,4 +33,4 @@ after an explicit operator review.
 | V016 | `ml.v_active_thresholds` so `/config` needs no raw `ml.*` grant |
 | V017 | `app.sla_adjustments` (append-only) for recalculated open-cycle SLA |
 | V018 | Retention purge of unattached uploads; attached evidence stays protected |
-
+| V019 | Bronze raw CSV tables and run-scoped ingestion contract |
