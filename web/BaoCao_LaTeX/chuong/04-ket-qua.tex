@@ -8,6 +8,9 @@
 \section{KẾT QUẢ VÀ PHÂN TÍCH}
 
 \subsection{Kết quả phân tích và thiết kế hệ thống}
+\textbf{Trạng thái bằng chứng: ready cho mô tả thiết kế; exploratory-only cho ML.} Kết quả Gate 1 là bộ contract và workflow có thể truy vết: product-item output gắn với order case; Risk Queue hiển thị mức ưu tiên và context; Order Detail cho phép xem item; Action Tracking ghi Attempt/Decision; Data Quality cung cấp nguồn và trạng thái dữ liệu. Thay đổi quan trọng có actor, thời gian, reason và audit event theo ERD/API.
+
+Các đường dẫn artifact reproducible được giữ nguyên: `data/processed/`, `reports/experiments/`, `reports/figures/` và `reports/tables/`. Chỉ trích dẫn file tồn tại trong run tương ứng; không dùng đường dẫn để khẳng định metric.
 
 \subsection{Khoảng trống của các phương pháp hiện có và cách hệ thống giải quyết}
-
+Khoảng trống chính là chuyển tín hiệu rủi ro thành quy trình có người chịu trách nhiệm, thay vì xem một score là quyết định. Kiến trúc giải quyết bằng phân tách ML grain và workflow grain, kiểm soát quyền, trạng thái, tham số có hiệu lực và audit append-only. Hệ thống vẫn không giải quyết selection bias, weak label, drift hay câu hỏi item nào gây trải nghiệm xấu. Vì vậy output chỉ để ưu tiên human review, không sanction seller, hoàn tiền tự động hay tuyên bố nhân quả.
