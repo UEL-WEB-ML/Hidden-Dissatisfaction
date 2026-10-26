@@ -44,7 +44,8 @@ services:
       context: .
       dockerfile: infra/api/Dockerfile
     environment:
-      HD_DATABASE_URL: ${HD_DATABASE_URL}
+      # Container-to-container DNS is used here; the host URL in .env is for local tools.
+      HD_DATABASE_URL: postgresql+asyncpg://app_api:${HD_APP_RUNTIME_PASSWORD}@postgres:5432/${POSTGRES_DB}
       HD_JWT_SECRET: ${HD_JWT_SECRET}
       HD_EVIDENCE_DIR: /var/lib/hidden-dissatisfaction/evidence
       HD_CORS_ORIGINS: ${HD_CORS_ORIGINS:-[]}
@@ -71,6 +72,11 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:${FRONTEND_PORT:-4200}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   warehouse:
     build:

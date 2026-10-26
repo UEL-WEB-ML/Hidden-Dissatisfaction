@@ -41,6 +41,7 @@ app-up: bootstrap
 
 e2e: app-up
 	@test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
+	@$(COMPOSE) ps --status running api frontend | grep -Eq 'api|frontend'
 
 db-down:
 	docker compose down

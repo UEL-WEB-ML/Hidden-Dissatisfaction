@@ -76,8 +76,11 @@ ingests the full dataset. Run `make bootstrap` for PostgreSQL and migrations,
 then `make warehouse` when the raw Olist files are present. Training and
 scoring are explicit commands (`TRAIN_COMMAND=... make train` and
 `SCORE_COMMAND=... make score`). `make app-up` starts API and frontend after
-migrations; `make e2e` runs the API smoke checks. Development ports bind to
-localhost only. Evidence files persist in the `evidence_data` volume.
+migrations; `make e2e` probes API live/readiness and the frontend shell, and
+verifies the containers are running. The smoke stack uses only schema/bootstrap
+fixtures and does not load the full Olist dataset. Development ports bind to
+localhost only. Evidence files persist in the `evidence_data` volume and are
+mounted read-write only by the API container.
 
 ## Quality gates
 
