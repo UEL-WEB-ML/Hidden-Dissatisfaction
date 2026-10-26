@@ -1,4 +1,6 @@
-.PHONY: install quality test format db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format bootstrap warehouse train score app-up e2e db-up db-down db-logs migrate migrate-info p4-release-verify
+
+COMPOSE ?= docker compose
 
 install:
 	python -m pip install -e ".[ml,notebook,dev]"
@@ -19,7 +21,26 @@ format:
 	black .
 
 db-up:
-	docker compose up -d
+	$(COMPOSE) up -d postgres
+
+bootstrap: db-up migrate
+
+warehouse: bootstrap
+	$(COMPOSE) --profile jobs run --rm warehouse
+
+train:
+	@test -n "$(TRAIN_COMMAND)" || (echo "TRAIN_COMMAND is required (opt-in)" >&2; exit 1)
+	$(TRAIN_COMMAND)
+
+score:
+	@test -n "$(SCORE_COMMAND)" || (echo "SCORE_COMMAND is required (opt-in)" >&2; exit 1)
+	$(SCORE_COMMAND)
+
+app-up: bootstrap
+	$(COMPOSE) up -d api frontend
+
+e2e: app-up
+	@test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
 
 db-down:
 	docker compose down

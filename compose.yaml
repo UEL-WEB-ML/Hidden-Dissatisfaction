@@ -39,5 +39,55 @@ services:
     entrypoint: ["bash", "/usr/local/bin/hd-migrate"]
     restart: "no"
 
+  api:
+    build:
+      context: .
+      dockerfile: infra/api/Dockerfile
+    environment:
+      HD_DATABASE_URL: ${HD_DATABASE_URL}
+      HD_JWT_SECRET: ${HD_JWT_SECRET}
+      HD_EVIDENCE_DIR: /var/lib/hidden-dissatisfaction/evidence
+      HD_CORS_ORIGINS: ${HD_CORS_ORIGINS:-[]}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    volumes:
+      - evidence_data:/var/lib/hidden-dissatisfaction/evidence
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend/hidden-dissatisfaction-frontend
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-4200}:8080"
+
+  warehouse:
+    build:
+      context: .
+      dockerfile: infra/jobs/Dockerfile
+    profiles: [jobs]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DBT_HOST: postgres
+      DBT_PORT: 5432
+      DBT_USER: ${DBT_USER:-postgres}
+      DBT_PASSWORD: ${DBT_PASSWORD:-${POSTGRES_SUPERUSER_PASSWORD}}
+      DBT_DATABASE: ${POSTGRES_DB}
+    command: ["dbt", "build", "--project-dir", "dbt", "--profiles-dir", "dbt"]
+
 volumes:
   postgres_data:
+  evidence_data:
