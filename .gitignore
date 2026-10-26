@@ -55,3 +55,9 @@ reports/tables/
 
 # Uploaded contact evidence (local dev adapter)
 data/evidence/
+
+# Angular generated dependencies and build artifacts
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/coverage/
+frontend/**/.angular/
