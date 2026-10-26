@@ -1,0 +1,14 @@
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+frontend/hidden-dissatisfaction-frontend/node_modules
+frontend/hidden-dissatisfaction-frontend/dist
+data
+reports
+logs
+dbt/target

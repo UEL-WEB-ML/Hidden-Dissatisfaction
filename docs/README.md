@@ -21,6 +21,8 @@ This repository is the single source of truth for the Hidden Dissatisfaction pro
 ## Operations and evidence
 
 - [`local-development.md`](local-development.md) — Python, data and PostgreSQL setup.
+- [`evidence/P12-gate-0-release-boundary.md`](evidence/P12-gate-0-release-boundary.md) — evidence statuses, demo scope, provenance rules, and the P5 replacement-holdout gate.
+- [`evidence/P5-development-gate-2026-10-23.md`](evidence/P5-development-gate-2026-10-23.md) — development-only evidence record.
 - [`consolidation-manifest.md`](consolidation-manifest.md) — imported sources, exclusions and migration boundary.
 - [`report-olist-hidden-dissatisfaction-literature-review-2026-09-26.md`](report-olist-hidden-dissatisfaction-literature-review-2026-09-26.md) — literature review.
 - [`../references/`](../references/) — dated research-source snapshots.
