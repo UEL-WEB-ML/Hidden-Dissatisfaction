@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AssignOrderRequest, AssignResponse, ClaimResponse, CommentRequest, CommentResponse, CompleteOrderRequest, ContactRequest, ContactResponse, DashboardQuery, DashboardResponse, DecisionListPageDto, DecisionRequest, DecisionResponse, LoginRequest, LoginResponse, ModelNoteRequest, ModelNoteResponse, OrderDetailResponseDto, OrderMutationResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, ReopenOrderRequest, SkipOrderRequest, UploadResponse, UserDto } from './api-dtos';
+import { AssignOrderRequest, AssignResponse, AuditEventsResponse, AuditQuery, ClaimResponse, CommentRequest, CommentResponse, CompleteOrderRequest, ContactRequest, ContactResponse, CreateParameterRequest, DashboardQuery, DashboardResponse, DecisionListPageDto, DecisionRequest, DecisionResponse, LoginRequest, LoginResponse, ModelNoteRequest, ModelNoteResponse, OrderDetailResponseDto, OrderMutationResponse, ParametersResponse, ParameterVersionResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, ReopenOrderRequest, SkipOrderRequest, UploadResponse, UserDto } from './api-dtos';
 
 @Injectable({ providedIn: 'root' })
 export class ApiClient {
@@ -34,5 +34,11 @@ export class ApiClient {
   dashboard(params: DashboardQuery): Observable<DashboardResponse> {
     let query = new HttpParams(); Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== '') query = query.set(key, String(value)); });
     return this.http.get<DashboardResponse>(`${this.baseUrl}/dashboard`, { params: query });
+  }
+  parameters(): Observable<ParametersResponse> { return this.http.get<ParametersResponse>(`${this.baseUrl}/parameters`); }
+  createParameter(body: CreateParameterRequest): Observable<ParameterVersionResponse> { return this.http.post<ParameterVersionResponse>(`${this.baseUrl}/parameters`, body); }
+  auditEvents(params: AuditQuery): Observable<AuditEventsResponse> {
+    let query = new HttpParams(); Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== '') query = query.set(key, String(value)); });
+    return this.http.get<AuditEventsResponse>(`${this.baseUrl}/audit-events`, { params: query });
   }
 }
