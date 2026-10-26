@@ -9,4 +9,6 @@ hidden_dissatisfaction:
       password: "{{ env_var('DBT_PASSWORD') }}"
       dbname: "{{ env_var('DBT_DATABASE', 'hidden_dissatisfaction') }}"
       schema: "{{ env_var('DBT_TARGET_SCHEMA', 'public') }}"
-      threads: "{{ env_var('DBT_THREADS', '4') | int }}"
+      # Keep local/WSL execution conservative; production runners can opt in
+      # to additional parallelism through DBT_THREADS after capacity review.
+      threads: "{{ env_var('DBT_THREADS', '1') | int }}"

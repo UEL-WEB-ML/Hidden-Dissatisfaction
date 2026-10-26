@@ -14,13 +14,57 @@ jobs:
         with:
           enable-cache: true
           python-version: "3.11"
-      - run: uv sync --frozen --extra dev --extra ml
+      - run: uv sync --frozen --extra dev --extra ml --extra api
       - run: uv run ruff check .
       - run: uv run black --check .
       - run: uv run mypy src tests
       - run: uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
       - name: Domain and application coverage gate
         run: uv run pytest tests/unit tests/contract -q --cov=hidden_dissatisfaction.domain --cov=hidden_dissatisfaction.application --cov-fail-under=100
+
+  frontend-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/hidden-dissatisfaction-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/hidden-dissatisfaction-frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.11"
+      - run: uv sync --frozen --extra db --extra api --extra dev
+      - run: cp .env.example .env
+      - run: docker compose up -d postgres
+      - run: make migrate
+      - name: Run PostgreSQL adapter integration tests
+        run: |
+          set -a
+          . ./.env
+          set +a
+          export SETUP_DSN="host=127.0.0.1 port=$POSTGRES_PORT dbname=$POSTGRES_DB user=$POSTGRES_SUPERUSER password=$POSTGRES_SUPERUSER_PASSWORD"
+          export RUNTIME_DSN="host=127.0.0.1 port=$POSTGRES_PORT dbname=$POSTGRES_DB user=app_api password=$HD_APP_RUNTIME_PASSWORD"
+          export BRONZE_TEST_DSN="$SETUP_DSN"
+          export P6_TEST_POSTGRES_DSN="$SETUP_DSN"
+          export P9_TEST_POSTGRES_DSN="$SETUP_DSN"
+          export P9_APP_RUNTIME_DSN="$RUNTIME_DSN"
+          uv run pytest tests/integration/test_postgres_bronze_ingestion.py tests/integration/test_postgres_release_scoring.py tests/integration/test_postgres_parameters.py tests/integration/test_postgres_workflow.py -q
+      - if: always()
+        run: docker compose down -v
 
   p4-release-verify:
     name: P4 release verification

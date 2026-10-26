@@ -8,7 +8,7 @@ Python 3.11 and `uv` are required:
 
 ```bash
 uv python install 3.11
-uv sync --frozen --extra db --extra ml --extra notebook --extra dev
+uv sync --frozen --extra db --extra api --extra ml --extra notebook --extra dev
 uv run pytest
 ```
 
@@ -70,6 +70,45 @@ docker compose down
 
 Use `docker compose down -v` only when a full local database reset is intended.
 
+## Bronze ingestion
+
+Create a checksum manifest before loading the local, immutable CSV files. The
+manifest is ignored by Git and must be regenerated if any source file changes.
+
+```bash
+make bronze-manifest
+BRONZE_DSN='postgresql://…' make ingest
+```
+
+The loader accepts only the nine filenames and exact headers in
+`docs/data-contract.md`, takes a transaction-scoped PostgreSQL advisory lock,
+and creates a new historical `bronze.ingestion_runs` record for each load.
+
+## Resource-aware dbt runs
+
+The default dbt profile uses one thread so a WSL laptop does not run large
+warehouse models concurrently with PostgreSQL. Start with a narrow selection
+and only raise `DBT_THREADS` after checking available RAM and swap:
+
+```bash
+DBT_THREADS=1 dbt build --select silver --vars '{source_run_id: "<run-id>"}'
+```
+
+`intermediate.int_p4_history` and its downstream product-item mart operate on
+the full history and should run on the project server or a machine with enough
+free memory. Do not combine that job with training, scoring, or Compose UI
+builds on a constrained laptop.
+
+## Optional PostgreSQL ingestion integration test
+
+Point `BRONZE_TEST_DSN` at an isolated database that has already received the
+migrations, then run the small-fixture integration test. It does not load the
+full Olist CSV files:
+
+```bash
+BRONZE_TEST_DSN='postgresql://…' uv run pytest tests/integration/test_postgres_bronze_ingestion.py
+```
+
 ## Quality checks
 
 ```bash
@@ -78,6 +117,12 @@ uv run black --check .
 uv run mypy src tests
 uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
 ```
+
+## Safe local cleanup
+
+Use `make clean-cache` to remove only reproducible Python/dbt caches and build
+metadata. It deliberately preserves raw data, processed datasets, artifacts,
+experiment runs, evidence files, and Docker volumes.
 
 ## Current migration state
 
