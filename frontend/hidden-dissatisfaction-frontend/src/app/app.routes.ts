@@ -7,6 +7,8 @@ export const routes: Routes = [
   { path: '', component: AppShellComponent, canActivate: [authGuard], children: [
     { path: '', pathMatch: 'full', redirectTo: 'queue' },
     { path: 'queue', loadComponent: () => import('./features/queue/queue.component').then(m => m.QueueComponent) },
+    { path: 'decisions', canActivate: [managerGuard], loadComponent: () => import('./features/decision/decision-list.component').then(m => m.DecisionListComponent) },
+    { path: 'orders/:orderId/decision', canActivate: [managerGuard], loadComponent: () => import('./features/decision/decision.component').then(m => m.DecisionComponent), data: { title: 'Manager decision', eyebrow: 'DECISION WORKSPACE' } },
     { path: 'orders/:orderId/attempt', loadComponent: () => import('./features/attempt/attempt.component').then(m => m.AttemptComponent), data: { title: 'Add attempt', eyebrow: 'REVIEW ACTIVITY' } },
     { path: 'orders/:orderId', loadComponent: () => import('./features/order-detail/order-detail.component').then(m => m.OrderDetailComponent), data: { title: 'Order detail', eyebrow: 'CASE CONTEXT' } },
     { path: 'dashboard', canActivate: [managerGuard], loadComponent: () => import('./features/placeholder/placeholder.component').then(m => m.PlaceholderComponent), data: { title: 'Risk overview', eyebrow: 'MANAGER VIEW' } },
