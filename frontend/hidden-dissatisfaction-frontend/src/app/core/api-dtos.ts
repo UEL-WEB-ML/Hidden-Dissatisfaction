@@ -30,6 +30,10 @@ export interface ContactRequest { contacted_at: string; method: ContactMethod; r
 export interface ContactResponse { contact: ContactDto; order: OrderDetailDto; }
 export interface CommentDto { created_at: string; author_id: string; author_name: string; author_role: Role; text: string; }
 export interface DecisionDto { created_at: string; actor_id: string; actor_name: string; cycle_no: number; decision: string; reason: string; next_step: string; next_step_assignee_name?: string | null; due_date?: string | null; note?: string | null; }
+export type ManagerDecision = 'NO_FURTHER_ACTION' | 'FOLLOW_UP_CUSTOMER' | 'WORK_WITH_SELLER' | 'REFER_AFTER_SALES';
+export interface DecisionRequest { decision: ManagerDecision; reason: string; next_step: string; next_step_assignee_id?: string | null; due_date?: string | null; note?: string | null; }
+export interface DecisionResponse { decision: DecisionDto; order: OrderDetailDto; }
+export interface DecisionListPageDto extends QueuePageDto {}
 export interface StatusHistoryDto { created_at: string; actor_name: string; event_type: string; old_value: string; new_value: string; }
 export interface ModelNoteDto { created_at: string; author_name: string; note: string; }
 export interface OrderDetailResponseDto { order: OrderDetailDto; cycles: OrderCycleDto[]; contacts: ContactDto[]; comments: CommentDto[]; decisions: DecisionDto[]; next_step: DecisionDto | null; status_history: StatusHistoryDto[]; model_notes: ModelNoteDto[]; audit_events: unknown[] | null; seller_open_count: number; }

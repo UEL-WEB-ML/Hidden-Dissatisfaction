@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AssignOrderRequest, AssignResponse, ClaimResponse, CommentRequest, CommentResponse, CompleteOrderRequest, ContactRequest, ContactResponse, LoginRequest, LoginResponse, ModelNoteRequest, ModelNoteResponse, OrderDetailResponseDto, OrderMutationResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, ReopenOrderRequest, SkipOrderRequest, UploadResponse, UserDto } from './api-dtos';
+import { AssignOrderRequest, AssignResponse, ClaimResponse, CommentRequest, CommentResponse, CompleteOrderRequest, ContactRequest, ContactResponse, DecisionListPageDto, DecisionRequest, DecisionResponse, LoginRequest, LoginResponse, ModelNoteRequest, ModelNoteResponse, OrderDetailResponseDto, OrderMutationResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, ReopenOrderRequest, SkipOrderRequest, UploadResponse, UserDto } from './api-dtos';
 
 @Injectable({ providedIn: 'root' })
 export class ApiClient {
@@ -29,4 +29,6 @@ export class ApiClient {
   orderDetail(orderId: string): Observable<OrderDetailResponseDto> { return this.http.get<OrderDetailResponseDto>(`${this.baseUrl}/orders/${orderId}`); }
   uploadEvidence(file: File): Observable<UploadResponse> { const body = new FormData(); body.append('file', file, file.name); return this.http.post<UploadResponse>(`${this.baseUrl}/files`, body); }
   contact(orderId: string, body: ContactRequest): Observable<ContactResponse> { return this.http.post<ContactResponse>(`${this.baseUrl}/orders/${orderId}/contacts`, body); }
+  decisions(params: Record<string, string | number | undefined> = {}): Observable<DecisionListPageDto> { let query = new HttpParams().set('needs_decision', 'true'); Object.entries(params).forEach(([key, value]) => { if (value !== undefined) query = query.set(key, String(value)); }); return this.http.get<DecisionListPageDto>(`${this.baseUrl}/orders`, { params: query }); }
+  createDecision(orderId: string, body: DecisionRequest): Observable<DecisionResponse> { return this.http.post<DecisionResponse>(`${this.baseUrl}/orders/${orderId}/decisions`, body); }
 }
