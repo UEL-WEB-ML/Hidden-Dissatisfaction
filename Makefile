@@ -1,4 +1,4 @@
-.PHONY: install quality test format bootstrap warehouse train score app-up e2e db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format bootstrap warehouse train score demo-seed app-up e2e db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -36,11 +36,15 @@ score:
 	@test -n "$(SCORE_COMMAND)" || (echo "SCORE_COMMAND is required (opt-in)" >&2; exit 1)
 	$(SCORE_COMMAND)
 
+demo-seed:
+	DEMO_EVIDENCE_DIR=$${DEMO_EVIDENCE_DIR:-data/evidence} scripts/demo-seed.sh
+
 app-up: bootstrap
 	$(COMPOSE) up -d api frontend
 
-e2e: app-up
+e2e: app-up demo-seed
 	@test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
+	@test -x tests/demo_e2e.sh && tests/demo_e2e.sh
 	@$(COMPOSE) ps --status running api frontend | grep -Eq 'api|frontend'
 
 db-down:
