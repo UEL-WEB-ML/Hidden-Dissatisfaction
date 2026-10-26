@@ -21,7 +21,13 @@ export interface OrderDetailDto extends QueueOrderDto {
   cycle_no: number; queued_at: string; original_queued_at: string; total_aging_hours?: number; stale_hours?: number | null; outcome?: string | null; skip_reason?: string | null; updated_at?: string; closed_at?: string | null; reopen_count?: number; parameter_version?: string; sla_due_at?: string | null;
 }
 export interface OrderCycleDto { cycle_no: number; started_at: string; ended_at?: string | null; contact_count: number; parameter_version: string; }
-export interface ContactDto { contact_id: string; cycle_no: number; attempt_no: number; contacted_at: string; method: string; result: string; note?: string | null; next_contact_date?: string | null; created_by_name: string; }
+export type ContactMethod = 'PHONE' | 'EMAIL' | 'CHAT' | 'OTHER';
+export type ContactResult = 'REACHED' | 'NO_ANSWER' | 'CALLBACK' | 'WRONG_NUMBER';
+export interface EvidenceDto { file_id: string; file_name: string; file_type: string; file_size: number; url?: string | null; }
+export interface UploadResponse extends EvidenceDto {}
+export interface ContactDto { contact_id: string; cycle_no: number; attempt_no: number; contacted_at: string; method: string; result: string; note?: string | null; next_contact_date?: string | null; evidence?: EvidenceDto[]; evidence_ref?: string | null; created_by_name: string; }
+export interface ContactRequest { contacted_at: string; method: ContactMethod; result: ContactResult; note?: string; next_contact_date?: string | null; evidence: Array<Pick<EvidenceDto, 'file_id' | 'file_name' | 'file_type' | 'file_size'>>; evidence_ref?: string; }
+export interface ContactResponse { contact: ContactDto; order: OrderDetailDto; }
 export interface CommentDto { created_at: string; author_id: string; author_name: string; author_role: Role; text: string; }
 export interface DecisionDto { created_at: string; actor_id: string; actor_name: string; cycle_no: number; decision: string; reason: string; next_step: string; next_step_assignee_name?: string | null; due_date?: string | null; note?: string | null; }
 export interface StatusHistoryDto { created_at: string; actor_name: string; event_type: string; old_value: string; new_value: string; }

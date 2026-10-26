@@ -13,7 +13,7 @@ import { OrderDetailStore } from './order-detail.store';
   <div class="detail-banner"><div><span class="pill" [class]="vm.order.risk_level.toLowerCase()">{{ vm.riskLabel }}</span><strong>{{ vm.score }}</strong><small>model score · {{ vm.order.aggregation_rule }}</small></div><div class="detail-status"><span class="summary-label">STATUS</span><b>{{ vm.status }}</b><small>{{ vm.order.assignee_name || 'Unassigned' }}</small></div><div class="detail-actions">
     <button *ngIf="canClaim(vm.order)" class="button primary" type="button" (click)="claim()">Claim case</button>
     <button *ngIf="canAssign(vm.order)" class="button secondary" type="button" (click)="actions.open('assign')">{{ vm.order.assignee_id ? 'Reassign' : 'Assign' }}</button>
-    <button *ngIf="canReview(vm.order)" class="button secondary" type="button" (click)="actions.open('complete')">Complete</button>
+    <a *ngIf="canReview(vm.order)" class="button primary" [routerLink]="['/orders', vm.order.order_id, 'attempt']">Add attempt</a><button *ngIf="canReview(vm.order)" class="button secondary" type="button" (click)="actions.open('complete')">Complete</button>
     <button *ngIf="canReview(vm.order)" class="button ghost-on-dark" type="button" (click)="actions.open('skip')">Skip</button>
     <button *ngIf="canReopen(vm.order)" class="button secondary" type="button" (click)="actions.open('reopen')">Reopen</button>
   </div></div>
