@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { LoginRequest, LoginResponse, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, UserDto } from './api-dtos';
+import { LoginRequest, LoginResponse, OrderDetailResponseDto, QueueFilterOptionsDto, QueuePageDto, QueueSummaryDto, UserDto } from './api-dtos';
 
 @Injectable({ providedIn: 'root' })
 export class ApiClient {
@@ -19,4 +19,5 @@ export class ApiClient {
   queueSummary(): Observable<QueueSummaryDto> { return this.http.get<QueueSummaryDto>(`${this.baseUrl}/orders/summary`); }
   queueFilterOptions(): Observable<QueueFilterOptionsDto> { return this.http.get<QueueFilterOptionsDto>(`${this.baseUrl}/orders/filter-options`); }
   claim(orderId: string): Observable<{ order: QueuePageDto['items'][number]; me: UserDto }> { return this.http.post<{ order: QueuePageDto['items'][number]; me: UserDto }>(`${this.baseUrl}/orders/${orderId}/claim`, {}); }
+  orderDetail(orderId: string): Observable<OrderDetailResponseDto> { return this.http.get<OrderDetailResponseDto>(`${this.baseUrl}/orders/${orderId}`); }
 }
