@@ -5,5 +5,8 @@
 
 \section{KẾT LUẬN VÀ ĐỀ XUẤT}
 
-\placeholder{Tổng kết các nội dung chính; ý nghĩa thực tiễn của hệ thống; hướng phát triển;
-kiến nghị (nếu có).}
+\subsection{Kết luận}
+\textbf{Trạng thái: exploratory-only.} Báo cáo đã chuẩn hóa bài toán hidden dissatisfaction thành hệ thống hỗ trợ quyết định: product item là đơn vị tín hiệu, order là đơn vị workflow, còn review cấp order là weak label. Kiến trúc web kết nối hàng đợi, chi tiết, xử lý và audit; score chỉ được diễn giải là ưu tiên/ranking trong bối cảnh dữ liệu, không phải nguyên nhân.
+
+\subsection{Hướng phát triển có kiểm soát}
+Trước khi công bố metric hoặc triển khai thực tế, cần hoàn tất product-item migration, khóa protocol, tạo replacement holdout độc lập, chạy đánh giá theo gate, và lưu manifest/code/config cùng artifact. Sau đó mới xem xét calibration, subgroup audit, monitoring drift và đánh giá tác động của human review. Mọi mở rộng phải giữ provenance, quyền can thiệp của con người và giới hạn không-causal.
