@@ -12,11 +12,17 @@ make e2e
 ```
 
 `make e2e` probes API live/readiness, the frontend shell, and writes a clearly
-labelled `data/evidence/P12-SYNTHETIC.txt` marker. If `DEMO_USERNAME` and
-`DEMO_PASSWORD` are supplied, it additionally exercises queue, queue summary,
-filter options, configuration, users, and parameters. Specialist claim/case
-actions can be demonstrated manually with a seeded account; the script never
-guesses credentials or mutates production data.
+labelled `data/evidence/P12-SYNTHETIC.txt` marker. On its first local run, it
+generates random Specialist and Manager credentials in the Git-ignored,
+owner-readable `data/evidence/P12-DEMO-CREDENTIALS.env`. You may instead set
+both `DEMO_USERNAME` and `DEMO_PASSWORD` in the ignored local `.env`. The seed
+step creates or refreshes both accounts with Argon2 password hashes, an
+explicitly `SYNTHETIC_DEMO` active prediction snapshot, five synthetic cases,
+and a small amount of workflow history. The walkthrough exercises Specialist
+queue/summary/filter/user APIs and Manager config/parameters/dashboard/audit
+APIs. Specialist claim/case actions can be demonstrated
+manually with that account; the script never creates Olist rows or mutates
+production data.
 
 ## Capture fallback
 

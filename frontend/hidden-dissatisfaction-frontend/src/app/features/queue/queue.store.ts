@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { ApiClient } from '../../core/api-client.service';
-import { QueueFilterOptionsDto, QueueOrderDto, QueuePageDto, QueueSummaryDto } from '../../core/api-dtos';
+import { QueueFilterOptionsDto, QueueOrderDto, QueueSummaryDto } from '../../core/api-dtos';
 import { QueueQuery } from './queue.models';
 
 @Injectable()

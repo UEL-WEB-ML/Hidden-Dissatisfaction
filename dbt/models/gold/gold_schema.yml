@@ -21,5 +21,14 @@ models:
       - name: feature_schema_version
         tests:
           - accepted_values:
-              values: ['ml-modelling-items-v1']
+              values: ['p5-item-v11-interactions']
+      - name: seller_smoothed_negative_rate
+        description: "Bayesian seller negative-review rate using only labels observed before prediction_at."
+        tests: [not_null]
+      - name: category_smoothed_negative_rate
+        description: "Bayesian category negative-review rate using only labels observed before prediction_at."
+        tests: [not_null]
+      - name: target_history_prior_strength
+        description: "Frozen Bayesian prior strength used to build this dataset snapshot."
+        tests: [not_null]
       - name: observation_window_version

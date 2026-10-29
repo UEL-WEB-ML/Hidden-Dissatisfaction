@@ -29,11 +29,13 @@ from hidden_dissatisfaction.modeling.evaluation import (
     order_classification_metrics,
 )
 from hidden_dissatisfaction.modeling.schema import (
+    BINARY_FEATURES,
     CATEGORICAL_FEATURES,
-    FEATURES,
     MODEL_INPUT_SCHEMA_VERSION,
+    NUMERIC_FEATURES,
     TARGET,
     VALUE_COLUMN,
+    feature_columns_for_groups,
     validate_modeling_table,
 )
 from hidden_dissatisfaction.modeling.splitting import (
@@ -60,7 +62,17 @@ class TrainingConfig:
     budgets: tuple[float, ...] = (0.05, 0.10, 0.20)
     bootstrap_iterations: int = 1_000
     rolling_folds: int = 3
-    regimes: tuple[str, ...] = ("item_unweighted", "order_weight", "order_reference")
+    regimes: tuple[str, ...] = (
+        "item_unweighted",
+        "order_weight",
+        "order_reference",
+        "order_aggregate",
+    )
+    protocol_version: str = "p5-v1"
+    include_gpu_candidate: bool = False
+    gpu_device: str = "0"
+    feature_groups: tuple[str, ...] = ("baseline",)
+    candidate_variants: tuple[str, ...] | None = None
 
     @classmethod
     def from_toml(cls, path: Path) -> TrainingConfig:
@@ -70,6 +82,7 @@ class TrainingConfig:
         validation = raw["validation"]
         evaluation = raw["evaluation"]
         project = raw["project"]
+        models = raw.get("models", {})
         return cls(
             train_end=datetime.fromisoformat(validation["train_end"]),
             selection_end=datetime.fromisoformat(validation["selection_end"]),
@@ -81,6 +94,14 @@ class TrainingConfig:
             budgets=tuple(float(value) for value in evaluation["budgets"]),
             bootstrap_iterations=int(evaluation["bootstrap_iterations"]),
             rolling_folds=int(validation["rolling_folds"]),
+            protocol_version=str(models.get("protocol_version", "p5-v1")),
+            include_gpu_candidate=bool(models.get("include_gpu_candidate", False)),
+            gpu_device=str(models.get("gpu_device", "0")),
+            regimes=tuple(str(value) for value in models.get("regimes", cls().regimes)),
+            feature_groups=tuple(
+                str(value) for value in raw.get("features", {}).get("enabled_groups", ["baseline"])
+            ),
+            candidate_variants=tuple(str(value) for value in models.get("variants", ())) or None,
         )
 
 
@@ -96,6 +117,27 @@ def run_training(
     """Run the declared experiment and persist auditable local artifacts."""
     settings = config or TrainingConfig()
     frame = validate_modeling_table(_read_table(data_path))
+    numeric_features, binary_features, categorical_features = feature_columns_for_groups(
+        settings.feature_groups
+    )
+    active_features = numeric_features + binary_features + categorical_features
+
+    def candidates_for_experiment() -> dict[str, BaseEstimator]:
+        available = build_candidates(
+            settings.seed,
+            include_gpu_candidate=settings.include_gpu_candidate,
+            gpu_device=settings.gpu_device,
+            numeric_features=numeric_features,
+            binary_features=binary_features,
+            categorical_features=categorical_features,
+        )
+        if settings.candidate_variants is None:
+            return available
+        missing = sorted(set(settings.candidate_variants).difference(available))
+        if missing:
+            raise ValueError(f"Unavailable candidate variants: {', '.join(missing)}")
+        return {name: available[name] for name in settings.candidate_variants}
+
     partitions = grouped_temporal_split(
         frame,
         boundaries={
@@ -110,7 +152,7 @@ def run_training(
 
     development = partitions.train
     folds = rolling_origin_splits(development, n_splits=settings.rolling_folds)
-    candidates = build_candidates(settings.seed)
+    candidates = candidates_for_experiment()
     candidate_names = list(candidates)
     simplicity = {name: index for index, name in enumerate(candidate_names)}
     fold_scores: dict[str, list[dict[str, object]]] = {}
@@ -125,30 +167,39 @@ def run_training(
             order_brier[key] = []
             order_average_precision[key] = []
     for fold_number, (fold_train, fold_validation) in enumerate(folds, start=1):
-        X_train, y_train = fold_train.loc[:, FEATURES], fold_train[TARGET]
-        X_validation = fold_validation.loc[:, FEATURES]
-        y_validation = fold_validation[TARGET]
         for regime in settings.regimes:
+            regime_train = _regime_frame(fold_train, regime)
+            regime_validation = _regime_frame(fold_validation, regime)
+            X_train, y_train = regime_train.loc[:, active_features], regime_train[TARGET]
+            X_validation = regime_validation.loc[:, active_features]
+            y_validation = regime_validation[TARGET]
             for name in candidate_names:
                 key = f"{regime}:{name}"
-                estimator = build_candidates(settings.seed)[name]
-                estimator.fit(X_train, y_train, **_fit_kwargs(fold_train, regime))
+                estimator = candidates_for_experiment()[name]
+                estimator.fit(X_train, y_train, **_fit_kwargs(regime_train, regime))
                 probability = estimator.predict_proba(X_validation)[:, 1]
                 average_precision = float(average_precision_score(y_validation, probability))
-                y_metric, order_probability = _order_max(fold_validation, probability)
-                fold_average_precision[key].append(average_precision)
-                order_average_precision[key].append(
-                    float(average_precision_score(y_metric, order_probability))
+                y_metric, order_probability = _order_max(regime_validation, probability)
+                order_fold_average_precision = float(
+                    average_precision_score(y_metric, order_probability)
                 )
-                order_brier[key].append(float(brier_score_loss(y_metric, order_probability)))
+                order_fold_brier = float(brier_score_loss(y_metric, order_probability))
+                fold_average_precision[key].append(average_precision)
+                order_average_precision[key].append(order_fold_average_precision)
+                order_brier[key].append(order_fold_brier)
                 fold_scores[key].append(
                     {
                         "fold": fold_number,
-                        "train_rows": len(fold_train),
-                        "validation_rows": len(fold_validation),
-                        "validation_start": fold_validation["prediction_at"].min().isoformat(),
-                        "validation_end": fold_validation["prediction_at"].max().isoformat(),
+                        "train_rows": len(regime_train),
+                        "validation_rows": len(regime_validation),
+                        "validation_start": regime_validation["prediction_at"].min().isoformat(),
+                        "validation_end": regime_validation["prediction_at"].max().isoformat(),
                         "average_precision": average_precision,
+                        "order_max_v1_pr_auc": order_fold_average_precision,
+                        "order_brier_score": order_fold_brier,
+                        "order_recall_at_5pct": _recall_at_fraction(
+                            y_metric, order_probability, 0.05
+                        ),
                         "regime": regime,
                     }
                 )
@@ -165,13 +216,16 @@ def run_training(
     for regime in settings.regimes:
         for name in candidate_names:
             key = f"{regime}:{name}"
-            estimator = build_candidates(settings.seed)[name]
-            fit_frame = _training_frame(development, regime)
+            estimator = candidates_for_experiment()[name]
+            fit_frame = _regime_frame(development, regime)
+            selection_frame = _regime_frame(partitions.selection, regime)
             estimator.fit(
-                fit_frame.loc[:, FEATURES], fit_frame[TARGET], **_fit_kwargs(fit_frame, regime)
+                fit_frame.loc[:, active_features],
+                fit_frame[TARGET],
+                **_fit_kwargs(fit_frame, regime),
             )
-            probability = estimator.predict_proba(partitions.selection.loc[:, FEATURES])[:, 1]
-            labels, order_probability = _order_max(partitions.selection, probability)
+            probability = estimator.predict_proba(selection_frame.loc[:, active_features])[:, 1]
+            labels, order_probability = _order_max(selection_frame, probability)
             selection_order_pr_auc[key] = float(average_precision_score(labels, order_probability))
             selection_order_brier[key] = float(brier_score_loss(labels, order_probability))
 
@@ -184,19 +238,21 @@ def run_training(
         ),
     )
     selected_regime, selected_name = selected_key.split(":", 1)
-    selected = build_candidates(settings.seed)[selected_name]
-    fit_frame = _training_frame(
+    selected = candidates_for_experiment()[selected_name]
+    fit_frame = _regime_frame(
         pd.concat([development, partitions.selection], ignore_index=True), selected_regime
     )
     selected.fit(
-        fit_frame.loc[:, FEATURES], fit_frame[TARGET], **_fit_kwargs(fit_frame, selected_regime)
+        fit_frame.loc[:, active_features],
+        fit_frame[TARGET],
+        **_fit_kwargs(fit_frame, selected_regime),
     )
 
-    calibration_fit = partitions.calibration_fit
-    calibration_evaluation = partitions.calibration_compare
-    X_calibration_fit = calibration_fit.loc[:, FEATURES]
+    calibration_fit = _regime_frame(partitions.calibration_fit, selected_regime)
+    calibration_evaluation = _regime_frame(partitions.calibration_compare, selected_regime)
+    X_calibration_fit = calibration_fit.loc[:, active_features]
     y_calibration_fit = cast(pd.Series, calibration_fit[TARGET])
-    X_calibration_evaluation = calibration_evaluation.loc[:, FEATURES]
+    X_calibration_evaluation = calibration_evaluation.loc[:, active_features]
     y_calibration_evaluation = cast(pd.Series, calibration_evaluation[TARGET])
     selected, calibration_method, calibration_scores = _select_calibration(
         selected,
@@ -205,21 +261,27 @@ def run_training(
         X_calibration_evaluation,
         y_calibration_evaluation,
     )
-    threshold_probability = selected.predict_proba(partitions.threshold.loc[:, FEATURES])[:, 1]
-    threshold = _capacity_thresholds(partitions.threshold, threshold_probability)
+    threshold_frame = _regime_frame(partitions.threshold, selected_regime)
+    threshold_probability = selected.predict_proba(threshold_frame.loc[:, active_features])[:, 1]
+    threshold = _capacity_thresholds(threshold_frame, threshold_probability)
 
     selection_record = {
+        "protocol_version": settings.protocol_version,
         "selected_key": selected_key,
         "variant_id": selected_name,
         "variant_parameters": {
             str(k): str(v)
-            for k, v in sorted(selected.get_params(deep=True).items())
+            for k, v in sorted(candidates[selected_name].get_params(deep=True).items())
             if k.startswith("model__")
         },
         "selection_rule": "max order_max_v1_pr_auc, then min Brier, then declared simplicity",
+        "feature_groups": list(settings.feature_groups),
+        "feature_schema": list(active_features),
         "calibration_method": calibration_method,
         "threshold_policy": threshold,
-        "lock": _selection_lock(selected_key, calibration_method, threshold),
+        "lock": _selection_lock(
+            selected_key, calibration_method, threshold, settings.feature_groups, active_features
+        ),
     }
     if finalize_test and (
         frozen_selection_record != selection_record
@@ -245,7 +307,7 @@ def run_training(
         checkpoint = _read_recovery_checkpoint(
             output_root, _dataset_hashes(data_path), cast(str, selection_record["lock"])
         )
-        X_test = partitions.test.loc[:, FEATURES]
+        X_test = partitions.test.loc[:, active_features]
         y_test = cast(pd.Series, partitions.test[TARGET])
         test_probability = (
             np.asarray(checkpoint["item_predictions"]["priority_score"], dtype=float)
@@ -319,6 +381,8 @@ def run_training(
         "partitions": partition_summary(partitions, expose_test_outcomes=finalize_test),
         "selection_average_precision": selection_scores,
         "selection_average_precision_std": selection_standard_deviation,
+        "selection_holdout_order_pr_auc": selection_order_pr_auc,
+        "selection_holdout_order_brier": selection_order_brier,
         "rolling_validation": fold_scores,
         "selected_model": selected_name.split("-", 1)[0],
         "selected_variant": selected_name,
@@ -332,7 +396,8 @@ def run_training(
         ),
         "dataset_hashes": _dataset_hashes(data_path),
         "reproducibility": _reproducibility_metadata(),
-        "feature_schema": list(FEATURES),
+        "feature_schema": list(active_features),
+        "feature_groups": list(settings.feature_groups),
     }
     if finalize_test:
         # The sealed test partition is deliberately absent from development
@@ -363,15 +428,47 @@ def _fit_kwargs(frame: pd.DataFrame, regime: str) -> dict[str, Any]:
     return {}
 
 
-def _training_frame(frame: pd.DataFrame, regime: str) -> pd.DataFrame:
-    """Fit order_reference on one stable product representative per order."""
-    if regime != "order_reference":
+def _regime_frame(frame: pd.DataFrame, regime: str) -> pd.DataFrame:
+    """Return the declared item, reference-item, or aggregated-order model grain."""
+    if regime not in {"order_reference", "order_aggregate"}:
         return frame
-    return (
-        frame.sort_values(["order_id", "product_item_id"], kind="mergesort")
-        .drop_duplicates("order_id", keep="first")
-        .reset_index(drop=True)
+    ordered = frame.sort_values(["order_id", "product_item_id"], kind="mergesort")
+    if regime == "order_reference":
+        return ordered.drop_duplicates("order_id", keep="first").reset_index(drop=True)
+
+    grouped = ordered.groupby("order_id", sort=True, observed=True)
+    result = ordered.drop_duplicates("order_id", keep="first").set_index("order_id")
+    result["product_item_id"] = result.index.astype(str) + "::order"
+    result["order_weight"] = 1.0
+    result["price"] = grouped["price"].sum()
+    result["freight_value"] = grouped["freight_value"].sum()
+    result["item_value_share"] = grouped["item_value_share"].max()
+    average_features = [
+        name
+        for name in NUMERIC_FEATURES
+        if name
+        not in {
+            "price",
+            "freight_value",
+            "payment_count",
+            "payment_amount",
+            "max_payment_installments",
+            "estimated_delivery_buffer_days",
+            "purchase_to_delivery_days",
+            "carrier_to_delivery_days",
+            "order_item_count",
+            "order_item_value_total",
+            "item_value_share",
+        }
+    ]
+    for name in average_features:
+        result[name] = grouped[name].mean()
+    for name in BINARY_FEATURES:
+        result[name] = grouped[name].max()
+    result["product_category"] = grouped["product_category"].agg(
+        lambda values: "|".join(sorted(set(map(str, values))))
     )
+    return result.reset_index()
 
 
 def _candidate_comparison(
@@ -407,6 +504,14 @@ def _order_max(frame: pd.DataFrame, probability: np.ndarray) -> tuple[pd.Series,
     labels = cast(pd.Series, grouped[TARGET].max())
     probabilities = np.asarray(grouped["p"].max(), dtype=float)
     return labels, probabilities
+
+
+def _recall_at_fraction(labels: pd.Series, scores: np.ndarray, fraction: float) -> float:
+    """Return positive-order recall in the highest-scored capacity fraction."""
+    count = max(1, int(np.ceil(len(scores) * fraction)))
+    ranked = np.argsort(-scores, kind="stable")[:count]
+    positives = float(labels.sum())
+    return 0.0 if positives == 0 else float(np.asarray(labels)[ranked].sum() / positives)
 
 
 def _capacity_thresholds(frame: pd.DataFrame, probability: np.ndarray) -> dict[str, Any]:
@@ -489,7 +594,7 @@ def _write_artifacts(
             "kind": "HIDDEN_DISSATISFACTION_MODEL",
             "artifact_format_version": 1,
             "model_input_schema_version": MODEL_INPUT_SCHEMA_VERSION,
-            "feature_names": list(FEATURES),
+            "feature_names": list(report["feature_schema"]),
             "estimator": estimator,
         },
         model_path,

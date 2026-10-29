@@ -258,7 +258,7 @@ def create_app(
             )
         except ParameterValidationError as exc:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={"code": exc.code, "message": str(exc), "details": None},
             ) from exc
         return ParameterVersionResponse(**version.__dict__)
@@ -281,7 +281,7 @@ def create_app(
     ) -> dict[str, list[dict[str, Any]]]:
         if role is not None and role not in {"SPECIALIST", "MANAGER"}:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={"code": "VALIDATION_ERROR", "message": "Invalid role", "details": None},
             )
         return {"items": operational_reads.users(role, datetime.now(UTC))}
@@ -328,7 +328,7 @@ def create_app(
             )
         except QueueQueryValidationError as exc:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={"code": "VALIDATION_ERROR", "message": str(exc), "details": None},
             ) from exc
         return queue_page_response(page)
@@ -396,7 +396,7 @@ def create_app(
                 status.HTTP_403_FORBIDDEN
                 if code == "HIGH_RISK_REQUIRES_ASSIGN"
                 else (
-                    status.HTTP_422_UNPROCESSABLE_CONTENT
+                    status.HTTP_422_UNPROCESSABLE_ENTITY
                     if code == "CAPACITY_FULL"
                     else status.HTTP_409_CONFLICT
                 )

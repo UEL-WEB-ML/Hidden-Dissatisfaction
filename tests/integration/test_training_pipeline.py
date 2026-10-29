@@ -38,7 +38,13 @@ def test_training_pipeline_writes_auditable_artifacts(tmp_path: Path) -> None:
         }
     )
     for feature in NUMERIC_FEATURES:
-        frame[feature] = rng.lognormal(mean=1.0, sigma=0.5, size=rows)
+        frame[feature] = (
+            rng.random(size=rows)
+            if "negative_rate" in feature
+            or feature.startswith("seller_prior_late_delivery_rate")
+            or feature == "seller_prior_late_shipping_rate"
+            else rng.lognormal(mean=1.0, sigma=0.5, size=rows)
+        )
     for feature in BINARY_FEATURES:
         frame[feature] = rng.integers(0, 2, size=rows)
     for feature in CATEGORICAL_FEATURES:

@@ -46,12 +46,31 @@ Minimum checks:
 
 Each generated dataset should be accompanied by a manifest containing source hashes, row count, column schema, creation code version, and feature cutoff policy.
 
-## Unresolved contract decisions
+## Decision status and remaining research limits
 
-Resolve and record these before producing final results:
+The operational modelling decisions that gate the current product-item pipeline
+are resolved and versioned:
 
-1. How multiple reviews for one order map to the shared label inherited by its product items.
-2. Whether same-timestamp delivery/review observations provide a meaningful intervention window.
-3. Whether split delivery can be observed directly or only proxied by item/seller counts.
-4. Which historical seller/category aggregates have sufficient prior support.
-5. Whether a future item-specific label can replace the inherited order-review label.
+1. Multiple reviews use the latest answered review with deterministic
+   tie-breaks (ADR-001).
+2. A review created at the same timestamp as delivery is excluded; the primary
+   cohort requires `review_creation_date > prediction_at` (ADR-008).
+3. Olist does not provide an item-level delivery timestamp. Split delivery is
+   therefore not asserted as an observed fact; item and seller counts are only
+   non-causal proxies.
+4. Legacy historical mean-review features require both strict event-time
+   cutoffs and at least five prior observations; otherwise they are null with a
+   low-support flag (ADR-008).
+5. Schema `p5-item-v3-target-history` adds Bayesian negative-review history.
+   An historical order contributes only when both its delivery prediction event
+   and its review creation event are strictly earlier than the current
+   `prediction_at`. Order/entity events are deduplicated before aggregation.
+   Seller, category, and seller-category rates use prior strength `25`, expose
+   their support, and fall back to the expanding global prior. Before any label
+   exists globally, that prior is the neutral value `0.5`. The 30/90-day windows
+   are inclusive at their lower time boundary and strict at `prediction_at`.
+
+Olist reviews remain order-level weak labels. A future item-specific label is
+research outside the current dataset contract, not a prerequisite for this
+release. It would require a new data contract and evaluation protocol before it
+could replace the inherited label.

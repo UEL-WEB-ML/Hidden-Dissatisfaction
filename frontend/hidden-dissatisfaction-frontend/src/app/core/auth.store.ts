@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiClient } from './api-client.service';
 import { Language, LoginRequest, Role, UserDto } from './api-dtos';
@@ -9,6 +10,7 @@ const LANGUAGE_KEY = 'hd_language';
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
   private readonly api = inject(ApiClient);
+  private readonly router = inject(Router);
   readonly user = signal<UserDto | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -23,7 +25,11 @@ export class AuthStore {
   }
   restore(): void { if (!this.token()) return; this.api.me().subscribe({ next: user => { this.user.set(user); this.persistLanguage(user.preferred_language ?? this.language()); }, error: () => this.clearSession() }); }
   setLanguage(language: Language): void { this.persistLanguage(language); if (this.user()) this.api.updateLanguage(language).subscribe({ next: user => this.user.set(user) }); }
-  logout(): void { this.api.logout().subscribe({ complete: () => this.clearSession(), error: () => this.clearSession() }); }
+  logout(): void {
+    this.api.logout().subscribe({ error: () => undefined });
+    this.clearSession();
+    void this.router.navigateByUrl('/login');
+  }
   clearSession(): void { localStorage.removeItem(TOKEN_KEY); this.token.set(null); this.user.set(null); }
   private persistLanguage(language: Language): void { localStorage.setItem(LANGUAGE_KEY, language); this.language.set(language); }
 }

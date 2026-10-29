@@ -1,4 +1,7 @@
-import { Component, input, output } from '@angular/core';
-@Component({ selector: 'hd-loading', standalone: true, template: '<div class="state-card loading-state" role="status"><span class="spinner"></span><span>{{ label() }}</span></div>' }) export class LoadingComponent { readonly label = input('Loading workspace…'); }
-@Component({ selector: 'hd-empty', standalone: true, template: '<div class="state-card"><div class="state-icon">○</div><h3>{{ title() }}</h3><p>{{ message() }}</p></div>' }) export class EmptyComponent { readonly title = input('Nothing here yet'); readonly message = input('Try adjusting your filters.'); }
-@Component({ selector: 'hd-error', standalone: true, template: '<div class="state-card error-state" role="alert"><div class="state-icon">!</div><h3>{{ title() }}</h3><p>{{ message() }}</p><button class="button secondary" (click)="retry.emit()">Try again</button></div>' }) export class ErrorComponent { readonly title = input('Something went wrong'); readonly message = input('We could not load this view.'); readonly retry = output<void>(); }
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+@Component({ selector: 'hd-loading', standalone: true, changeDetection: ChangeDetectionStrategy.Eager,
+ template: '<div class="state-card loading-state" role="status"><span class="spinner"></span><span>{{ label() }}</span></div>' }) export class LoadingComponent { readonly label = input('Loading workspace…'); }
+@Component({ selector: 'hd-empty', standalone: true, changeDetection: ChangeDetectionStrategy.Eager,
+ template: '<div class="state-card"><div class="state-icon">○</div><h3>{{ title() }}</h3><p>{{ message() }}</p></div>' }) export class EmptyComponent { readonly title = input('Nothing here yet'); readonly message = input('Try adjusting your filters.'); }
+@Component({ selector: 'hd-error', standalone: true, changeDetection: ChangeDetectionStrategy.Eager,
+ template: '<div class="state-card error-state" role="alert"><div class="state-icon">!</div><h3>{{ title() }}</h3><p>{{ message() }}</p><button class="button secondary" (click)="retry.emit()">Try again</button></div>' }) export class ErrorComponent { readonly title = input('Something went wrong'); readonly message = input('We could not load this view.'); readonly retry = output<void>(); }

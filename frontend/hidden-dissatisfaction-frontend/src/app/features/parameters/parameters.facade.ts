@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { ApiClient } from '../../core/api-client.service';
-import { CreateParameterRequest, ParameterDto, ParametersResponse } from '../../core/api-dtos';
+import { CreateParameterRequest, ParametersResponse } from '../../core/api-dtos';
 
 @Injectable()
 export class ParametersFacade {

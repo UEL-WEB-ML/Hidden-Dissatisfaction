@@ -14,5 +14,5 @@ describe('DashboardFacade', () => {
     request.flush({ totals: { cases: 0 }, view: 'product' });
     expect(facade.loading()).toBeFalse(); expect(facade.data()?.view).toBe('product'); expect(facade.isEmpty()).toBeTrue();
   });
-  it('turns API failures into an actionable error state', () => { facade.load(); http.expectOne('/api/v1/dashboard').flush({ error: { message: 'No access' } }, { status: 403, statusText: 'Forbidden' }); expect(facade.error()).toBe('No access'); });
+  it('turns API failures into an actionable error state', () => { facade.load(); http.expectOne(request => request.url === '/api/v1/dashboard').flush({ error: { message: 'No access' } }, { status: 403, statusText: 'Forbidden' }); expect(facade.error()).toBe('No access'); });
 });

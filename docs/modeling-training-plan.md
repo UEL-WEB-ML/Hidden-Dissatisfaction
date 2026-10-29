@@ -1,6 +1,9 @@
 # Modeling and training implementation plan
 
-P5 v1 is frozen by [ADR-010](adr/ADR-010-p5-training-protocol.md). This plan is
+P5 v3 native-categorical tuning is governed by
+[ADR-012](adr/ADR-012-p5-native-categorical-tuning.md), which supersedes the GPU
+candidate-set decision in [ADR-011](adr/ADR-011-p5-gpu-candidate.md).
+This plan is
 implementation scope only; empirical completion is recorded only after the relevant
 artifact exists. P4 release-gate evidence is a prerequisite for starting P5.
 P5 artifacts remain exploratory-only until the explicit replacement-holdout
@@ -28,8 +31,8 @@ and pass unit tests plus the repository quality workflow.
 - [x] Forbidden model inputs: identifiers, review fields, label-quality fields, and split metadata.
 - [x] Primary selection order: maximum v1 order-level PR-AUC; item-level PR-AUC is reported and
   used as a diagnostic.
-- [x] Fixed candidates: prevalence baseline, Logistic Regression, Random Forest, and histogram
-  gradient boosting. CatBoost is excluded from P5 v1.
+- [x] Fixed v2 candidate set: the retained CPU baselines (prevalence, Logistic Regression,
+  Random Forest, histogram gradient boosting) plus one bounded CatBoost GPU candidate.
 - [x] Imbalance treatment in the first run: class weights; threshold selection is separate.
 - [x] Final test data remains untouched until model and calibration method have been selected.
 - [x] Seed: 42.
@@ -71,8 +74,8 @@ and pass unit tests plus the repository quality workflow.
 - [x] Fit each transformer only as part of its estimator pipeline on training data.
 - [x] Implement the prevalence baseline as a real estimator with `predict_proba`.
 - [x] Use deterministic seeds and bounded parallelism.
-- [x] Keep the candidate set fixed to prevalence, Logistic Regression, Random Forest, and histogram
-  gradient boosting; do not add CatBoost in P5 v1.
+- [x] Keep the v2 candidate set fixed to the retained CPU baselines plus the single CatBoost GPU
+  candidate specified in ADR-011.
 - [x] Add deterministic multi-item/multi-seller flags and per-item/per-seller ratio features.
 - [ ] Add LightGBM/XGBoost only if CatBoost and corrected sklearn baselines justify wider search.
 - [ ] Treat SMOTE as a later ablation and recalibrate probabilities if it is introduced.
