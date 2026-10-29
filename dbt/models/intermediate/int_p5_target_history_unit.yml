@@ -1,0 +1,80 @@
+version: 2
+
+unit_tests:
+  - name: p5_target_history_strict_cutoff_and_window_fixture
+    description: >-
+      An order is counted once despite multiple items; same-time and
+      not-yet-observed reviews are excluded; the exact 30-day boundary is included.
+    model: int_p5_target_history
+    overrides:
+      vars:
+        target_history_prior_strength: 25
+    given:
+      - input: ref('int_p4_cohort')
+        rows:
+          - {source_run_id: 00000000-0000-0000-0000-000000000005, product_item_id: prior_a, order_id: prior, seller_id: seller, product_category: category, prediction_at: '2024-01-01 00:00:00', review_created_at: '2024-01-02 00:00:00', review_score: 1, negative_label: 1}
+          - {source_run_id: 00000000-0000-0000-0000-000000000005, product_item_id: prior_b, order_id: prior, seller_id: seller, product_category: category, prediction_at: '2024-01-01 00:00:00', review_created_at: '2024-01-02 00:00:00', review_score: 1, negative_label: 1}
+          - {source_run_id: 00000000-0000-0000-0000-000000000005, product_item_id: delayed, order_id: delayed, seller_id: seller, product_category: category, prediction_at: '2024-01-02 00:00:00', review_created_at: '2024-02-01 00:00:00', review_score: 1, negative_label: 1}
+          - {source_run_id: 00000000-0000-0000-0000-000000000005, product_item_id: same_time, order_id: same_time, seller_id: seller, product_category: category, prediction_at: '2024-01-31 00:00:00', review_created_at: '2024-02-01 00:00:00', review_score: 1, negative_label: 1}
+          - {source_run_id: 00000000-0000-0000-0000-000000000005, product_item_id: current, order_id: current, seller_id: seller, product_category: category, prediction_at: '2024-01-31 00:00:00', review_created_at: '2024-02-02 00:00:00', review_score: 5, negative_label: 0}
+    expect:
+      format: sql
+      rows: |
+        select
+          '00000000-0000-0000-0000-000000000005'::uuid as source_run_id,
+          product_item_id,
+          history_count as global_prior_order_count,
+          history_count as global_prior_negative_count,
+          global_rate as global_prior_negative_rate,
+          history_count as global_prior_order_count_30d,
+          global_rate as global_prior_negative_rate_30d,
+          history_count as global_prior_order_count_90d,
+          global_rate as global_prior_negative_rate_90d,
+          history_count as seller_negative_history_count,
+          history_count as seller_negative_history_negative_count,
+          ln(1 + history_count) as seller_negative_history_support_log1p,
+          (history_count = 0)::int as seller_negative_history_cold_start_flag,
+          (history_count between 1 and 4)::int as seller_negative_history_low_support_flag,
+          smoothed_rate as seller_smoothed_negative_rate,
+          score_mean as seller_negative_history_score_mean,
+          history_count as seller_negative_history_count_30d,
+          smoothed_rate as seller_smoothed_negative_rate_30d,
+          score_mean as seller_negative_history_score_mean_30d,
+          history_count as seller_negative_history_count_90d,
+          smoothed_rate as seller_smoothed_negative_rate_90d,
+          score_mean as seller_negative_history_score_mean_90d,
+          history_count as category_negative_history_count,
+          history_count as category_negative_history_negative_count,
+          ln(1 + history_count) as category_negative_history_support_log1p,
+          (history_count = 0)::int as category_negative_history_cold_start_flag,
+          (history_count between 1 and 4)::int as category_negative_history_low_support_flag,
+          smoothed_rate as category_smoothed_negative_rate,
+          history_count as category_negative_history_count_30d,
+          smoothed_rate as category_smoothed_negative_rate_30d,
+          history_count as category_negative_history_count_90d,
+          smoothed_rate as category_smoothed_negative_rate_90d,
+          history_count as seller_category_negative_history_count,
+          ln(1 + history_count) as seller_category_negative_history_support_log1p,
+          (history_count = 0)::int as seller_category_negative_history_cold_start_flag,
+          (history_count between 1 and 4)::int as seller_category_negative_history_low_support_flag,
+          smoothed_rate as seller_category_smoothed_negative_rate,
+          25::int as target_history_prior_strength,
+          'p5-target-history-bayesian-v1' as target_history_version
+        from (
+          select product_item_id, history_count,
+            case when history_count = 0 then 0.5::numeric
+                 else history_count::numeric / history_count end as global_rate,
+            (history_count + 25 * (
+              case when history_count = 0 then 0.5::numeric
+                   else history_count::numeric / history_count end
+            )) / (history_count + 25) as smoothed_rate,
+            case when history_count > 0
+                 then history_count::numeric / history_count end as score_mean
+          from (values
+            ('prior_a', 0),
+            ('prior_b', 0),
+            ('delayed', 0),
+            ('same_time', 1),
+            ('current', 1)
+          ) as fixture(product_item_id, history_count)
+        ) as expected

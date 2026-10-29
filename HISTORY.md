@@ -127,6 +127,74 @@ Phần này giúp nhóm thấy việc đang chờ review nhưng không được 
 Khi nhánh được merge, hãy chuyển nội dung tương ứng vào lịch sử theo thời gian và cập nhật commit
 phạm vi ở đầu tài liệu.
 
+## Checkpoint local chưa commit — 2026-10-28
+
+Phần này là checkpoint để tiếp tục phiên làm việc, không phải lịch sử đã merge và không gán đóng
+góp cho thành viên cho đến khi thay đổi được review/commit.
+
+### Môi trường và dữ liệu
+
+- PostgreSQL/Flyway đã được khởi tạo; migrations V001–V019 đã chạy thành công.
+- Bronze source run: `6f13bf55-5ce3-4a58-807e-e1c31ff76eaa`.
+- dbt build mặc định loại `tag:release_only`; lần rebuild gần nhất pass 85/85 resources.
+- Dataset `data/processed/modelling_items.parquet` có 97.884 item thuộc 85.425 order và dùng feature
+  schema `p5-item-v2-delivery-product`. Parquet, manifest và model checkpoints là local/ignored.
+
+### Modeling development-only đã thực hiện
+
+- Protocol v2 bổ sung CatBoost GPU nhưng không mở sealed final test. Development winner khi đó là
+  `order_reference:catboost-gpu-depth8-v1`, PR-AUC dao động quanh 0,199–0,204 giữa các GPU run.
+- Protocol v3 thử CatBoost native categorical; candidate mới không cải thiện và winner vẫn là
+  CatBoost ordinal cũ.
+- Protocol v4 bổ sung feature hợp lệ tại `prediction_at`: ETA buffer, purchase/carrier-to-delivery
+  duration, order size/value concentration và physical product attributes.
+- V4 development winner là `order_weight:random_forest-depth8-leaf5-v1`, holdout order PR-AUC
+  `0.210955`, Brier `0.205759`, calibration `sigmoid`. Đây là cải thiện so với v3 nhưng chưa đạt
+  stop gate PR-AUC 0,25.
+- Strategy 1 (ADR-014) đã thêm challenger `order_aggregate`. Aggregation thật cho kết quả đúng một
+  row/order, không duplicate, order weight bằng 1 và category-set có thứ tự ổn định.
+- CPU precheck v5: order-level tốt nhất là
+  `order_aggregate:random_forest-depth12-leaf10-v1`, PR-AUC `0.202278`, Brier `0.190912`; chưa thắng
+  v4 item/order-weight winner `0.210955`.
+- Ruff, Black, Mypy và 11 schema/aggregation/training tests pass. Sealed final test chưa chạy.
+
+### Accuracy plan S1–S10 — 2026-10-29
+
+- Hoàn thành các ablation S1–S10 trên temporal development partitions và giữ seller operations,
+  order composition, product morphology/content trong feature set cuối.
+- Retained Random Forest đạt rolling order PR-AUC `0.146502`, tăng `0.010176` so với baseline
+  `0.136326`; bounded CatBoost GPU depth 6 đạt holdout `0.223873` nhưng rolling PR-AUC thấp hơn ở
+  `0.145813`, nên không thay winner theo metric chính.
+- Accuracy plan đóng theo nhánh dừng có chủ đích vì chưa đạt target `0.25`. Historical final-test
+  không được mở lại; P12 tiếp tục block confirmatory claim khi chưa có replacement holdout.
+
+### Sửa pipeline đáng chú ý
+
+- Regime transformation nay được áp dụng nhất quán cho fit, rolling validation, selection,
+  calibration và threshold; trước đó một số bước vẫn dùng item rows dù fit theo reference regime.
+- `TrainingConfig.from_toml` nay đọc danh sách `models.regimes` thay vì âm thầm dùng default.
+- ADR-011 đến ADR-014 ghi lại GPU candidate, native categorical tuning, feature schema v2 và
+  order-level challenger.
+
+### Blocker và cách tiếp tục
+
+- Official v5 comparison có CatBoost GPU **chưa chạy xong**. Ubuntu WSL interop đang lỗi
+  `UtilAcceptVsock:273: accept4 failed 110`; shell hiện tại không thấy GPU và CatBoost local lỗi
+  `CUDA error 35: CUDA driver version is insufficient for CUDA runtime version`.
+- Không có process `hidden-dissatisfaction train` hoặc CatBoost trong process namespace hiện tại;
+  GPU có thể thuộc một WSL/session khác. Không kill rộng hoặc chạy `wsl --shutdown` trước khi kiểm
+  tra session đó có kết quả cần giữ hay không.
+- Sau khi WSL/GPU phục hồi, chạy từ Windows/Ubuntu:
+
+```bash
+wsl -d Ubuntu -- bash -lc 'nvidia-smi'
+wsl -d Ubuntu -- bash -lc 'cd /home/hatca/projects/Hidden-Dissatisfaction && .venv/bin/hidden-dissatisfaction train --data data/processed/modelling_items.parquet --config configs/experiment.toml --output-root . --selection-record artifacts/checkpoints/p5-v5-order-aggregate-selection.json > /tmp/hidden-dissatisfaction-p5-v5-report.json'
+```
+
+- Sau run, so sánh `selection_holdout_order_pr_auc` của mọi key `order_aggregate:*` với winner v4
+  `0.210955`. Chỉ freeze selection mới nếu improvement ổn định; tuyệt đối không dùng
+  `--finalize-test` ở bước này.
+
 ## Quy ước cập nhật HISTORY
 
 1. Cập nhật file trong cùng pull request với phần việc cần ghi nhận.

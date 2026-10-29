@@ -108,7 +108,8 @@ class PostgresOperationalReadModel:
                        CASE WHEN u.role = 'SPECIALIST' THEN (SELECT value FROM capacity) END AS capacity
                 FROM app.users u
                 LEFT JOIN app.assignments a ON a.assignee_id = u.user_id AND a.released_at IS NULL
-                WHERE u.is_active AND (%(role)s IS NULL OR u.role = %(role)s)
+                WHERE u.is_active
+                  AND (%(role)s::varchar IS NULL OR u.role = %(role)s::varchar)
                 GROUP BY u.user_id
                 ORDER BY u.full_name, u.user_id
                 """,

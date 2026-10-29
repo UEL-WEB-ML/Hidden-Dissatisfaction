@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.compose import ColumnTransformer
@@ -71,8 +73,16 @@ class _SampleWeightPipeline(Pipeline):
         return self
 
 
-def build_candidates(seed: int) -> dict[str, BaseEstimator]:
-    """Construct the seven versioned, bounded, deterministic candidates."""
+def build_candidates(
+    seed: int,
+    *,
+    include_gpu_candidate: bool = False,
+    gpu_device: str = "0",
+    numeric_features: Sequence[str] = NUMERIC_FEATURES,
+    binary_features: Sequence[str] = BINARY_FEATURES,
+    categorical_features: Sequence[str] = CATEGORICAL_FEATURES,
+) -> dict[str, BaseEstimator]:
+    """Construct the declared deterministic candidates for the active protocol."""
     one_hot = ColumnTransformer(
         [
             (
@@ -80,7 +90,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                 Pipeline(
                     [("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler())]
                 ),
-                [*NUMERIC_FEATURES, *BINARY_FEATURES],
+                [*numeric_features, *binary_features],
             ),
             (
                 "categorical",
@@ -90,7 +100,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                         ("encode", OneHotEncoder(handle_unknown="ignore")),
                     ]
                 ),
-                [*CATEGORICAL_FEATURES],
+                [*categorical_features],
             ),
         ]
     )
@@ -99,7 +109,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
             (
                 "numeric",
                 SimpleImputer(strategy="median"),
-                [*NUMERIC_FEATURES, *BINARY_FEATURES],
+                [*numeric_features, *binary_features],
             ),
             (
                 "categorical",
@@ -109,7 +119,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                         ("encode", OneHotEncoder(handle_unknown="ignore")),
                     ]
                 ),
-                [*CATEGORICAL_FEATURES],
+                [*categorical_features],
             ),
         ]
     )
@@ -118,7 +128,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
             (
                 "numeric",
                 SimpleImputer(strategy="median"),
-                [*NUMERIC_FEATURES, *BINARY_FEATURES],
+                [*numeric_features, *binary_features],
             ),
             (
                 "categorical",
@@ -131,7 +141,7 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                         ),
                     ]
                 ),
-                [*CATEGORICAL_FEATURES],
+                [*categorical_features],
             ),
         ]
     )
@@ -176,8 +186,8 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                         l2_regularization=1.0,
                         class_weight="balanced",
                         categorical_features=[False]
-                        * (len(NUMERIC_FEATURES) + len(BINARY_FEATURES))
-                        + [True] * len(CATEGORICAL_FEATURES),
+                        * (len(numeric_features) + len(binary_features))
+                        + [True] * len(categorical_features),
                         random_state=seed,
                     ),
                 ),
@@ -222,11 +232,102 @@ def build_candidates(seed: int) -> dict[str, BaseEstimator]:
                     max_leaf_nodes=15,
                     l2_regularization=5.0,
                     class_weight="balanced",
-                    categorical_features=[False] * (len(NUMERIC_FEATURES) + len(BINARY_FEATURES))
-                    + [True] * len(CATEGORICAL_FEATURES),
+                    categorical_features=[False] * (len(numeric_features) + len(binary_features))
+                    + [True] * len(categorical_features),
                     random_state=seed,
                 ),
             ),
         ]
     )
+    if include_gpu_candidate:
+        try:
+            from catboost import CatBoostClassifier
+        except ImportError as error:
+            raise RuntimeError(
+                "The GPU candidate requires the 'boosting' extra; install it with "
+                "`uv sync --extra boosting`."
+            ) from error
+        candidates["catboost-gpu-depth8-v1"] = _SampleWeightPipeline(
+            [
+                ("preprocess", ordinal),
+                (
+                    "model",
+                    CatBoostClassifier(
+                        loss_function="Logloss",
+                        iterations=500,
+                        learning_rate=0.05,
+                        depth=8,
+                        auto_class_weights="Balanced",
+                        task_type="GPU",
+                        devices=gpu_device,
+                        random_seed=seed,
+                        verbose=False,
+                        allow_writing_files=False,
+                    ),
+                ),
+            ]
+        )
+        candidates["catboost-gpu-native-depth8-v2"] = _SampleWeightPipeline(
+            [
+                (
+                    "model",
+                    CatBoostClassifier(
+                        loss_function="Logloss",
+                        iterations=750,
+                        learning_rate=0.04,
+                        depth=8,
+                        l2_leaf_reg=5.0,
+                        auto_class_weights="Balanced",
+                        cat_features=list(categorical_features),
+                        task_type="GPU",
+                        devices=gpu_device,
+                        random_seed=seed,
+                        verbose=False,
+                        allow_writing_files=False,
+                    ),
+                ),
+            ]
+        )
+        candidates["catboost-gpu-native-depth6-l2-8-v3"] = _SampleWeightPipeline(
+            [
+                (
+                    "model",
+                    CatBoostClassifier(
+                        loss_function="Logloss",
+                        iterations=1000,
+                        learning_rate=0.03,
+                        depth=6,
+                        l2_leaf_reg=8.0,
+                        auto_class_weights="Balanced",
+                        cat_features=list(categorical_features),
+                        task_type="GPU",
+                        devices=gpu_device,
+                        random_seed=seed,
+                        verbose=False,
+                        allow_writing_files=False,
+                    ),
+                ),
+            ]
+        )
+        candidates["catboost-gpu-native-depth10-l2-8-v3"] = _SampleWeightPipeline(
+            [
+                (
+                    "model",
+                    CatBoostClassifier(
+                        loss_function="Logloss",
+                        iterations=750,
+                        learning_rate=0.03,
+                        depth=10,
+                        l2_leaf_reg=8.0,
+                        auto_class_weights="Balanced",
+                        cat_features=list(categorical_features),
+                        task_type="GPU",
+                        devices=gpu_device,
+                        random_seed=seed,
+                        verbose=False,
+                        allow_writing_files=False,
+                    ),
+                ),
+            ]
+        )
     return candidates

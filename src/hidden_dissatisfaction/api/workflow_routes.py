@@ -140,7 +140,7 @@ def policy_error(exc: WorkflowPolicyError) -> HTTPException:
     elif exc.code in _CONFLICT_CODES:
         http_status = status.HTTP_409_CONFLICT
     else:
-        http_status = status.HTTP_422_UNPROCESSABLE_CONTENT
+        http_status = status.HTTP_422_UNPROCESSABLE_ENTITY
     return _error(http_status, exc.code, str(exc))
 
 

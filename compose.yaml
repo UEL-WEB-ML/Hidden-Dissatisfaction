@@ -78,6 +78,16 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend-test:
+    profiles: [quality]
+    build:
+      context: ./frontend/hidden-dissatisfaction-frontend
+      dockerfile: Dockerfile
+      target: test
+    environment:
+      CHROME_BIN: /usr/bin/chromium-browser
+    shm_size: 1gb
+
   warehouse:
     build:
       context: .
@@ -92,7 +102,7 @@ services:
       DBT_USER: ${DBT_USER:-postgres}
       DBT_PASSWORD: ${DBT_PASSWORD:-${POSTGRES_SUPERUSER_PASSWORD}}
       DBT_DATABASE: ${POSTGRES_DB}
-    command: ["dbt", "build", "--project-dir", "dbt", "--profiles-dir", "dbt"]
+    command: ["dbt", "build", "--exclude", "tag:release_only", "--project-dir", "dbt", "--profiles-dir", "dbt"]
 
 volumes:
   postgres_data:

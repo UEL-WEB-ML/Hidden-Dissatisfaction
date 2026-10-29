@@ -64,11 +64,19 @@ def _build_parser() -> argparse.ArgumentParser:
     export.add_argument("--source-hash", action="append", default=[], metavar="NAME=HASH")
     export.add_argument("--cutoff-version", default="p4")
     export.add_argument("--review-policy-version", default="adr-001-latest-answered-v1")
-    export.add_argument("--feature-schema-version", default="ml-modelling-items-v1")
+    export.add_argument("--feature-schema-version", default="p5-item-v11-interactions")
     export.add_argument("--git-sha")
     train.add_argument("--output-root", type=Path, default=Path("."))
     train.add_argument("--config", type=Path, default=Path("configs/experiment.toml"))
     train.add_argument("--bootstrap-iterations", type=int)
+    train.add_argument(
+        "--feature-groups",
+        nargs="+",
+        help="Override the config's ordered feature groups for a development ablation.",
+    )
+    train.add_argument("--cpu-only", action="store_true", help="Disable GPU candidates.")
+    train.add_argument("--candidate-variants", nargs="+")
+    train.add_argument("--regimes", nargs="+")
     train.add_argument(
         "--finalize-test",
         action="store_true",
@@ -160,6 +168,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         config = TrainingConfig.from_toml(args.config)
         if args.bootstrap_iterations is not None:
             config = replace(config, bootstrap_iterations=args.bootstrap_iterations)
+        if args.feature_groups is not None:
+            config = replace(config, feature_groups=tuple(args.feature_groups))
+        if args.cpu_only:
+            config = replace(config, include_gpu_candidate=False)
+        if args.candidate_variants is not None:
+            config = replace(config, candidate_variants=tuple(args.candidate_variants))
+        if args.regimes is not None:
+            config = replace(config, regimes=tuple(args.regimes))
 
         frozen_selection_record = None
         if args.finalize_test:
@@ -202,6 +218,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.source_manifest is not None:
             manifest = json.loads(args.source_manifest.read_text(encoding="utf-8"))
             hashes.update(manifest.get("source_hashes", manifest.get("hashes", {})))
+            for entry in manifest.get("files", []):
+                if isinstance(entry, dict):
+                    name = entry.get("name")
+                    digest = entry.get("sha256")
+                    if isinstance(name, str) and isinstance(digest, str):
+                        hashes[name] = digest
         for value in args.source_hash:
             if "=" not in value:
                 raise SystemExit("--source-hash must be NAME=HASH")

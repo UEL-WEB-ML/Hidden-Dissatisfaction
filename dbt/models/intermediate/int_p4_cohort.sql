@@ -1,4 +1,13 @@
-{{ config(materialized='table', schema='intermediate') }}
+{{ config(
+    materialized='table',
+    schema='intermediate',
+    indexes=[
+      {'columns': ['source_run_id', 'product_item_id'], 'unique': true},
+      {'columns': ['source_run_id', 'seller_id', 'prediction_at']},
+      {'columns': ['source_run_id', 'product_category', 'prediction_at']},
+      {'columns': ['source_run_id', 'order_id', 'prediction_at']}
+    ]
+) }}
 
 with base as (
  select i.*, o.customer_id, o.order_status, o.order_purchase_timestamp,
@@ -7,6 +16,8 @@ with base as (
         r.review_score, r.review_creation_date as review_created_at,
         r.review_id, r.review_count, p.payment_count, p.payment_amount,
         p.max_payment_installments, pr.category as product_category,
+        pr.product_photos_qty, pr.product_weight_g, pr.product_length_cm,
+        pr.product_height_cm, pr.product_width_cm,
         cu.customer_city, cu.customer_state, cu.zip_code_prefix
  from {{ ref('int_p4_item_base') }} i
  join {{ ref('stg_orders') }} o using (source_run_id, order_id)
@@ -16,6 +27,9 @@ with base as (
  left join {{ ref('dim_customer') }} cu using (source_run_id, customer_id)
 )
 select *, order_id || '-' || order_item_id as product_item_id,
+       extract(epoch from (order_estimated_delivery_date - prediction_at)) / 86400.0 as estimated_delivery_buffer_days,
+       extract(epoch from (prediction_at - order_purchase_timestamp)) / 86400.0 as purchase_to_delivery_days,
+       extract(epoch from (prediction_at - order_delivered_carrier_date)) / 86400.0 as carrier_to_delivery_days,
        review_score as canonical_review_score,
        (review_score in (1,2))::int as negative_label,
        case when review_score is not null and review_created_at > prediction_at

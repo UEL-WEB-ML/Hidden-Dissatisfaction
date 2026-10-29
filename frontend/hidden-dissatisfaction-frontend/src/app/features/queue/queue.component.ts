@@ -1,5 +1,5 @@
-import { NgFor, NgIf } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+
+import { Component, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
@@ -10,20 +10,57 @@ import { toQueueOrderVm } from './queue.mappers';
 import { QueueStore } from './queue.store';
 
 @Component({
-  selector: 'hd-queue', standalone: true, providers: [QueueStore],
-  imports: [NgIf, NgFor, RouterLink, LoadingComponent, EmptyComponent, ErrorComponent],
-  template: `
+    selector: 'hd-queue', providers: [QueueStore],
+    imports: [RouterLink, LoadingComponent, EmptyComponent, ErrorComponent],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    template: `
     <div class="page-heading queue-heading"><div><p class="eyebrow">WORK QUEUE <span class="dot"></span> LIVE</p><h1>Risk queue</h1><p class="lede">Prioritised cases with a signal worth investigating.</p></div><button class="button secondary" type="button" (click)="reload()" [disabled]="store.loading()">↻ Refresh</button></div>
     <section class="summary-grid queue-summary" aria-label="Queue summary"><div class="summary-card"><span class="summary-label">HIGH PENDING</span><strong>{{ store.summary()?.high_pending ?? '—' }}</strong><span class="summary-hint">{{ store.summary()?.high_pending_overdue ?? 0 }} overdue</span></div><div class="summary-card accent"><span class="summary-label">NEEDS ATTENTION</span><strong>{{ attention() }}</strong><span class="summary-hint">{{ store.summary()?.escalated ?? 0 }} escalated · {{ store.summary()?.stale ?? 0 }} stale</span></div><div class="summary-card"><span class="summary-label">YOUR CAPACITY</span><strong>{{ capacityLabel() }}</strong><span class="summary-hint">{{ store.summary()?.me?.active_count ?? '—' }} active cases</span></div></section>
-    <div class="queue-conflict" role="alert" *ngIf="store.conflict()">{{ store.conflict() }} <button type="button" (click)="reload()">Refresh</button></div>
+    @if (store.conflict()) {
+      <div class="queue-conflict" role="alert">{{ store.conflict() }} <button type="button" (click)="reload()">Refresh</button></div>
+    }
     <form class="toolbar queue-toolbar" (submit)="search($event)" aria-label="Search and filter risk queue"><label class="search-field"><span aria-hidden="true">⌕</span><span class="sr-only">Search order or product item</span><input #searchInput [value]="query().q" placeholder="Search order or product item ID" autocomplete="off"><kbd>↵</kbd></label><button class="filter-button" type="button" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()">Filter <span aria-hidden="true">≡</span></button><button class="button primary queue-search" type="submit">Search</button></form>
-    <form class="queue-filters" *ngIf="filtersOpen()" (submit)="applyFilters($event)" aria-label="Queue filters"><label>Risk level<select #level name="level" [value]="query().level"><option value="">All risk</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option></select></label><label>Seller<select #seller name="seller" [value]="query().seller"><option value="">All sellers</option><option *ngFor="let item of store.options().sellers" [value]="item">{{ item }}</option></select></label><label>Category<select #category name="category" [value]="query().category"><option value="">All categories</option><option *ngFor="let item of store.options().categories" [value]="item">{{ item }}</option></select></label><label>Sort<select #sort name="sort" [value]="query().sort"><option value="">Priority</option><option value="sla">SLA first</option><option value="aging">Oldest first</option></select></label><button class="button secondary" type="submit">Apply filters</button><button class="clear-filter" type="button" (click)="clearFilters()">Clear</button></form>
-    <p class="queue-count" *ngIf="!store.loading() && !store.error()">Showing {{ store.orders().length }} of {{ store.total() }} cases</p>
-    <hd-loading *ngIf="store.loading()"/><hd-error *ngIf="store.error()" [message]="store.error()!" (retry)="reload()"/><hd-empty *ngIf="!store.loading() && !store.error() && !store.orders().length" title="Your queue is clear" message="No cases match the current filters."/>
-    <section class="table-card queue-table" *ngIf="!store.loading() && !store.error() && store.orders().length" aria-label="Risk queue cases"><div class="table-head"><span>CASE / PRODUCT</span><span>RISK SIGNAL</span><span>STATUS</span><span>OWNER</span><span>SLA</span><span></span></div><div class="table-row queue-row" *ngFor="let order of viewModels()"><a class="queue-main-link" [routerLink]="['/orders', order.id]"><div><b class="mono">{{ order.shortId }}</b><small>{{ order.category }} <em *ngIf="order.itemId">· {{ order.itemId.slice(-4) }}</em></small></div><div class="risk"><span class="risk-dot" [class]="order.risk.toLowerCase()"></span><b>{{ order.risk }}</b><small>{{ order.score }} confidence</small></div><div><span class="pill" [class]="order.statusCode.toLowerCase()">{{ order.status }}</span><small>{{ order.aging }} in queue</small></div><div><b>{{ order.owner }}</b><small *ngIf="order.needsDecision">Decision needed</small></div><div><span class="sla-label" [class]="order.slaCode">{{ order.sla }}</span><small *ngIf="order.escalated">Escalated</small></div></a><div class="row-actions"><button *ngIf="order.canClaim" class="action-link" type="button" (click)="claim(order.id)" [attr.aria-label]="'Claim case ' + order.shortId">Claim</button><a *ngIf="order.canAssign" class="action-link" [routerLink]="['/orders', order.id]">Assign</a><a class="row-chevron" [routerLink]="['/orders', order.id]" aria-label="Open case">›</a></div></div></section>
-    <div class="mobile-case-list" *ngIf="!store.loading() && !store.error()"><a class="mobile-case" *ngFor="let order of viewModels()" [routerLink]="['/orders', order.id]"><div class="mobile-case-top"><b class="mono">{{ order.shortId }}</b><span class="pill" [class]="order.risk.toLowerCase()">{{ order.risk }}</span></div><strong>{{ order.category }}</strong><div class="mobile-case-meta"><span>{{ order.status }}</span><span>{{ order.owner }}</span><span [class]="order.slaCode">{{ order.sla }}</span></div></a></div>
-    <div class="queue-more" *ngIf="store.hasMore()"><button class="button secondary" type="button" (click)="store.loadMore()" [disabled]="store.loadingMore()">{{ store.loadingMore() ? 'Loading…' : 'Load more cases' }}</button></div>
-  `
+    @if (filtersOpen()) {
+      <form class="queue-filters" (submit)="applyFilters($event)" aria-label="Queue filters"><label>Risk level<select #level name="level" [value]="query().level"><option value="">All risk</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option></select></label><label>Seller<select #seller name="seller" [value]="query().seller"><option value="">All sellers</option>@for (item of store.options().sellers; track item) {
+      <option [value]="item">{{ item }}</option>
+      }</select></label><label>Category<select #category name="category" [value]="query().category"><option value="">All categories</option>@for (item of store.options().categories; track item) {
+      <option [value]="item">{{ item }}</option>
+      }</select></label><label>Sort<select #sort name="sort" [value]="query().sort"><option value="">Priority</option><option value="sla">SLA first</option><option value="aging">Oldest first</option></select></label><button class="button secondary" type="submit">Apply filters</button><button class="clear-filter" type="button" (click)="clearFilters()">Clear</button></form>
+    }
+    @if (!store.loading() && !store.error()) {
+      <p class="queue-count">Showing {{ store.orders().length }} of {{ store.total() }} cases</p>
+    }
+    @if (store.loading()) {
+      <hd-loading/>
+      }@if (store.error()) {
+      <hd-error [message]="store.error()!" (retry)="reload()"/>
+      }@if (!store.loading() && !store.error() && !store.orders().length) {
+      <hd-empty title="Your queue is clear" message="No cases match the current filters."/>
+    }
+    @if (!store.loading() && !store.error() && store.orders().length) {
+      <section class="table-card queue-table" aria-label="Risk queue cases"><div class="table-head"><span>CASE / PRODUCT</span><span>RISK SIGNAL</span><span>STATUS</span><span>OWNER</span><span>SLA</span><span></span></div>@for (order of viewModels(); track order) {
+      <div class="table-row queue-row"><a class="queue-main-link" [routerLink]="['/orders', order.id]"><div><b class="mono">{{ order.shortId }}</b><small>{{ order.category }} @if (order.itemId) {
+      <em>· {{ order.itemId.slice(-4) }}</em>
+      }</small></div><div class="risk"><span class="risk-dot" [class]="order.risk.toLowerCase()"></span><b>{{ order.risk }}</b><small>{{ order.score }} confidence</small></div><div><span class="pill" [class]="order.statusCode.toLowerCase()">{{ order.status }}</span><small>{{ order.aging }} in queue</small></div><div><b>{{ order.owner }}</b>@if (order.needsDecision) {
+      <small>Decision needed</small>
+      }</div><div><span class="sla-label" [class]="order.slaCode">{{ order.sla }}</span>@if (order.escalated) {
+      <small>Escalated</small>
+    }</div></a><div class="row-actions">@if (order.canClaim) {
+    <button class="action-link" type="button" (click)="claim(order.id)" [attr.aria-label]="'Claim case ' + order.shortId">Claim</button>
+    }@if (order.canAssign) {
+    <a class="action-link" [routerLink]="['/orders', order.id]">Assign</a>
+    }<a class="row-chevron" [routerLink]="['/orders', order.id]" aria-label="Open case">›</a></div></div>
+    }</section>
+    }
+    @if (!store.loading() && !store.error()) {
+      <div class="mobile-case-list">@for (order of viewModels(); track order) {
+        <a class="mobile-case" [routerLink]="['/orders', order.id]"><div class="mobile-case-top"><b class="mono">{{ order.shortId }}</b><span class="pill" [class]="order.risk.toLowerCase()">{{ order.risk }}</span></div><strong>{{ order.category }}</strong><div class="mobile-case-meta"><span>{{ order.status }}</span><span>{{ order.owner }}</span><span [class]="order.slaCode">{{ order.sla }}</span></div></a>
+      }</div>
+    }
+    @if (store.hasMore()) {
+      <div class="queue-more"><button class="button secondary" type="button" (click)="store.loadMore()" [disabled]="store.loadingMore()">{{ store.loadingMore() ? 'Loading…' : 'Load more cases' }}</button></div>
+    }
+    `
 })
 export class QueueComponent {
   readonly store = inject(QueueStore); readonly auth = inject(AuthStore); private readonly route = inject(ActivatedRoute); private readonly router = inject(Router); private readonly destroyRef = inject(DestroyRef);

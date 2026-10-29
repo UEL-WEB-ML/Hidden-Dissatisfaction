@@ -1,4 +1,4 @@
-.PHONY: install quality test format clean-cache bootstrap bronze-manifest ingest warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format clean-cache bootstrap bronze-manifest ingest warehouse train score demo-seed app-up frontend-test e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -41,7 +41,7 @@ ingest:
 	uv run --frozen --extra db hidden-dissatisfaction ingest --manifest data/interim/bronze-manifest.json
 
 warehouse: bootstrap
-	$(COMPOSE) --profile jobs run --rm warehouse
+	$(COMPOSE) --profile jobs run --rm warehouse dbt build --exclude tag:release_only --project-dir dbt --profiles-dir dbt
 
 train:
 	@test -n "$(TRAIN_COMMAND)" || (echo "TRAIN_COMMAND is required (opt-in)" >&2; exit 1)
@@ -52,14 +52,17 @@ score:
 	$(SCORE_COMMAND)
 
 demo-seed:
-	DEMO_EVIDENCE_DIR=$${DEMO_EVIDENCE_DIR:-data/evidence} scripts/demo-seed.sh
+	@set -a; . ./.env; set +a; DEMO_EVIDENCE_DIR=$${DEMO_EVIDENCE_DIR:-data/evidence} scripts/demo-seed.sh
 
 app-up: bootstrap
 	$(COMPOSE) up -d api frontend
 
+frontend-test:
+	$(COMPOSE) --profile quality run --rm frontend-test
+
 e2e: app-up demo-seed
-	@test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
-	@test -x tests/demo_e2e.sh && tests/demo_e2e.sh
+	@set -a; . ./.env; set +a; test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
+	@set -a; . ./.env; set +a; test -x tests/demo_e2e.sh && tests/demo_e2e.sh
 	@$(COMPOSE) ps --status running api frontend | grep -Eq 'api|frontend'
 
 release-check:

@@ -31,6 +31,7 @@ artifacts/config/
 artifacts/metrics/
 artifacts/reproducibility/
 artifacts/selection/
+catboost_info/
 runs/
 logs/
 

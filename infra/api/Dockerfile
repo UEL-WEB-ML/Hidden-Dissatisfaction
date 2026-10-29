@@ -3,7 +3,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install --no-cache-dir ".[api]"
+RUN pip install --no-cache-dir ".[api,db]"
 RUN useradd --create-home --uid 10001 appuser && mkdir -p /var/lib/hidden-dissatisfaction/evidence && chown -R appuser:appuser /app /var/lib/hidden-dissatisfaction
 USER appuser
 EXPOSE 8000

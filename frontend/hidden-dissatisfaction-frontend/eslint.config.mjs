@@ -9,12 +9,18 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.ts', 'karma.conf.cjs'],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+      },
+    },
     plugins: { '@angular-eslint': angular },
     rules: {
-      // Existing feature stubs intentionally contain unused imports while APIs are filled in.
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@angular-eslint/directive-class-suffix': 'error',

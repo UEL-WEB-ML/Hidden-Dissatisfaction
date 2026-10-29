@@ -1,7 +1,15 @@
-FROM node:22-alpine AS build
+FROM node:24-alpine AS dependencies
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
+
+FROM dependencies AS test
+RUN apk add --no-cache chromium
+ENV CHROME_BIN=/usr/bin/chromium-browser
+COPY . .
+CMD ["npm", "test"]
+
+FROM dependencies AS build
 COPY . .
 RUN npm run build
 
