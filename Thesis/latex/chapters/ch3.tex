@@ -1,45 +1,39 @@
 % Chương 3 — Huy. Nguồn: docs/research-design.md, data-contract.md, modeling-training-plan.md, ADR-001/008/014,
-% SERVER_CONTEXT/*.md. Chỉ mô tả phương pháp; số liệu kết quả để ở Chương 4.
+% SERVER_CONTEXT/*.md. Chỉ mô tả phương pháp; số liệu kết quả để ở Chương 4. Tên cột/bảng/phiên bản: Phụ lục A.
 \chapter{Phương pháp thực hiện}\label{ch:method}
 
-Chương này trình bày cách nhóm xây dựng và đánh giá mô hình nhận diện rủi ro bất mãn ẩn. Mục~\ref{sec:pipeline} phát biểu bài toán và mô tả quy trình tổng thể. Mục~\ref{sec:data} trình bày dữ liệu, cách xây dựng quần thể nghiên cứu và các biện pháp chống rò rỉ dữ liệu. Mục~\ref{sec:models} mô tả các mô hình, cách chia dữ liệu theo thời gian, hiệu chỉnh xác suất và chọn ngưỡng. Mục~\ref{sec:eval} trình bày các chỉ số đánh giá và giới hạn khi diễn giải kết quả.
+Một mô hình dự báo chỉ có giá trị vận hành khi nó được đánh giá trong đúng điều kiện mà nó sẽ được sử dụng. Toàn bộ phương pháp trong chương này được thiết kế xoay quanh nguyên tắc đó: mô hình chỉ được nhìn thấy những gì bộ phận chăm sóc khách hàng biết vào lúc đơn hàng vừa giao xong, và mọi quyết định thiết kế đều được kiểm chứng trên dữ liệu thuộc tương lai so với dữ liệu huấn luyện. Mục~\ref{sec:pipeline} phát biểu bài toán và mô tả hệ thống. Mục~\ref{sec:data} trình bày dữ liệu, cách xây dựng quần thể nghiên cứu và cơ chế chống rò rỉ thông tin. Mục~\ref{sec:models} lý giải các lựa chọn mô hình, cách chia dữ liệu, hiệu chỉnh xác suất và chọn ngưỡng. Mục~\ref{sec:eval} trình bày các chỉ số đánh giá và giới hạn khi diễn giải. Tên kỹ thuật của các bảng, cột dữ liệu và phiên bản công cụ được tập hợp ở Phụ lục~\ref{app:tech} để phần thân chương tập trung vào lập luận.
 
 % =====================================================================
 \section{Quy trình triển khai và đặc tả hệ thống}\label{sec:pipeline}
 
 \subsection{Phát biểu bài toán}
 
-Nghiên cứu tập trung vào các đơn hàng Olist được giao đúng hoặc sớm hơn ngày dự kiến. Với nhóm đơn này, giao hàng trễ không còn là lời giải thích hiển nhiên cho một đánh giá thấp, nên sự không hài lòng nếu có là ``ẩn'' đối với bộ phận vận hành. Câu hỏi nghiên cứu chính là: \emph{chỉ dùng thông tin có sẵn tại thời điểm giao hàng, mô hình học máy có thể ước lượng rủi ro đơn hàng nhận đánh giá 1--2 sao tốt đến mức nào, và danh sách ưu tiên tạo ra từ mô hình có hiệu quả hơn các cách xếp hạng đơn giản hay không?}
+Phần lớn nghiên cứu về sự hài lòng trong thương mại điện tử chỉ ra giao hàng trễ là nguyên nhân hàng đầu của đánh giá thấp~\cite{ravula2023,deshpande2023}. Hệ quả là bộ phận vận hành thường chỉ theo dõi các đơn trễ hạn. Nghiên cứu này nhìn vào phần còn lại: những đơn được giao đúng hoặc sớm hơn ngày dự kiến nhưng khách vẫn đánh giá 1--2 sao. Với nhóm đơn này, không có tín hiệu cảnh báo hiển nhiên nào, nên sự bất mãn là ``ẩn'' cho đến khi đánh giá xuất hiện, tức là khi đã quá muộn để can thiệp. Câu hỏi nghiên cứu vì vậy là: \emph{chỉ với thông tin có tại thời điểm giao hàng, mô hình học máy có thể ước lượng rủi ro một đơn nhận đánh giá thấp tốt đến mức nào, và danh sách ưu tiên tạo ra từ mô hình có giúp bộ phận chăm sóc khách hàng tiếp cận đúng khách hàng hơn so với chọn ngẫu nhiên hay không?}
 
-Bài toán được định nghĩa hình thức như sau:
-\begin{itemize}
-  \item \textbf{Đơn vị học} là một sản phẩm trong đơn (item), định danh bởi \texttt{product\_item\_id} $=$ \texttt{order\_id} $+$ \texttt{order\_item\_id}.
-  \item \textbf{Đơn vị chia dữ liệu và vận hành} là đơn hàng. Mọi item của cùng một đơn luôn nằm trong cùng một phân vùng dữ liệu.
-  \item \textbf{Thời điểm dự đoán} $t_o$ là thời điểm đơn $o$ được giao cho khách (\texttt{order\_delivered\_\allowbreak customer\_date}).
-  \item \textbf{Nhãn} $y_o = 1$ nếu đơn $o$ nhận đánh giá 1 hoặc 2 sao, $y_o = 0$ nếu nhận 3--5 sao. Ngưỡng này thống nhất với các nghiên cứu trước trên cùng bộ dữ liệu~\cite{orman2026}.
-\end{itemize}
+Bài toán được hình thức hóa bằng bốn quy ước. Thứ nhất, \emph{đơn vị học} là từng sản phẩm trong đơn (item), vì phần lớn thông tin dự báo như danh mục, người bán, kích thước và phí vận chuyển gắn với sản phẩm chứ không gắn với đơn. Thứ hai, \emph{đơn vị chia dữ liệu và vận hành} là đơn hàng: nhân viên liên hệ khách theo đơn, và mọi item của một đơn luôn nằm cùng một phân vùng dữ liệu để mô hình không học thuộc một đơn rồi được đánh giá trên chính đơn đó. Thứ ba, \emph{thời điểm dự đoán} $t_o$ của đơn $o$ là lúc đơn được giao cho khách. Thứ tư, \emph{nhãn} $y_o = 1$ khi đơn nhận đánh giá 1 hoặc 2 sao và $y_o = 0$ khi nhận 3--5 sao, thống nhất với các nghiên cứu trước trên cùng bộ dữ liệu~\cite{orman2026}.
 
-Olist chỉ ghi nhận đánh giá ở mức đơn hàng, không cho biết sản phẩm nào gây ra đánh giá thấp. Vì vậy mỗi item thừa hưởng nhãn của đơn chứa nó; đây là một \emph{nhãn yếu}. Điểm $\hat p_i$ của item $i$ được hiểu là rủi ro đơn nhận đánh giá thấp trong bối cảnh có item đó, không phải bằng chứng cho thấy item đó là nguyên nhân. Rủi ro của đơn được tổng hợp theo luật \texttt{max-v1}:
+Sự lệch pha giữa đơn vị học và đơn vị nhãn đặt ra vấn đề phương pháp quan trọng nhất của bài toán. Olist chỉ ghi nhận đánh giá ở mức đơn, không cho biết sản phẩm nào khiến khách không hài lòng. Mỗi item vì vậy thừa hưởng nhãn của đơn chứa nó, tạo thành một \emph{nhãn yếu}: trong một đơn hai sản phẩm bị đánh giá thấp, có thể chỉ một sản phẩm thực sự có vấn đề nhưng cả hai đều mang nhãn dương. Điểm $\hat p_i$ của item $i$ do đó được hiểu là rủi ro đơn nhận đánh giá thấp \emph{khi có mặt} item đó, không phải bằng chứng cho thấy item là nguyên nhân. Rủi ro của đơn được tổng hợp theo luật \emph{max-v1}:
 \begin{equation}\label{eq:maxv1}
   \hat{r}_o = \max_{i \in o} \hat{p}_i
 \end{equation}
-Luật lấy giá trị lớn nhất phản ánh giả định rằng chỉ cần một sản phẩm có vấn đề là đủ để khách đánh giá thấp cả đơn. Luật được đánh số phiên bản để có thể thay thế mà không làm thay đổi cách đánh giá.
+Luật lấy giá trị lớn nhất phản ánh giả định ``mắt xích yếu nhất'': một sản phẩm lỗi là đủ để khách đánh giá thấp cả đơn, nên đơn phải được ưu tiên theo item rủi ro nhất thay vì bị pha loãng bởi các item bình thường như khi lấy trung bình. Đổi lại, luật này có xu hướng nâng điểm của đơn nhiều sản phẩm, vì càng nhiều item thì giá trị lớn nhất càng dễ cao. Đây là một nguồn sai lệch có thể kiểm chứng, và chính vì vậy luật được đánh số phiên bản: mọi chỉ số mức đơn đều gắn với một luật tổng hợp cụ thể, và một luật khác có thể được thay vào mà vẫn so sánh được.
 
-Ngoài ra, việc khách có viết đánh giá hay không cũng là một quá trình tự chọn~\cite{li2008}: khách không đánh giá chưa chắc đã hài lòng. Do đó mô hình ước lượng rủi ro \emph{được quan sát} trong nhóm đơn có đánh giá, không ước lượng mức bất mãn tiềm ẩn của toàn bộ khách hàng.
+Một giới hạn khác đến từ cơ chế sinh ra nhãn. Việc khách có viết đánh giá hay không là một quá trình tự chọn~\cite{li2008}: người rất hài lòng hoặc rất bất mãn có xu hướng lên tiếng nhiều hơn, còn khách im lặng chưa chắc đã hài lòng. Mô hình vì thế ước lượng rủi ro bất mãn \emph{được quan sát} trong nhóm đơn có đánh giá, không ước lượng mức bất mãn của toàn bộ khách hàng. Giới hạn này không làm mất giá trị của danh sách ưu tiên, nhưng cần được ghi nhớ khi suy rộng kết quả.
 
 \subsection{Quy trình tổng thể}
 
-Hệ thống gồm hai luồng: luồng dữ liệu và học máy chạy theo lô, và luồng vận hành phục vụ nhân viên chăm sóc khách hàng (Hình~\ref{fig:arch}). Hai luồng chỉ gặp nhau tại cơ sở dữ liệu: luồng học máy ghi kết quả chấm điểm, luồng vận hành đọc kết quả đó.
+Hệ thống được tách thành hai luồng chỉ gặp nhau tại cơ sở dữ liệu (Hình~\ref{fig:arch}). Luồng dữ liệu và học máy chạy theo lô, ghi điểm rủi ro vào cơ sở dữ liệu; luồng vận hành phục vụ nhân viên chăm sóc khách hàng, chỉ đọc kết quả đó. Việc tách luồng có hai lợi ích: mô hình có thể được huấn luyện lại hoặc thay thế mà không ảnh hưởng ứng dụng đang chạy, và ứng dụng không bao giờ phải chờ mô hình tính toán.
 
-Hình~\ref{fig:ml-flow} trình bày quy trình học máy theo bảy bước:
+Luồng học máy gồm bảy bước nối tiếp (Hình~\ref{fig:ml-flow}), trong đó đầu ra của mỗi bước là đầu vào cố định của bước sau:
 \begin{enumerate}
-  \item \textbf{Nạp dữ liệu}: chín tệp CSV Olist được kiểm tra cấu trúc và nạp vào tầng bronze. Mỗi lần nạp có một manifest ghi lại mã băm tệp nguồn, nhờ đó cùng một tệp không bị nạp hai lần.
-  \item \textbf{Biến đổi}: dbt chuẩn hóa dữ liệu ở tầng silver, tính đặc trưng ở tầng trung gian (intermediate) và tạo bảng \texttt{gold.ml\_modelling\_items} ở mức item.
-  \item \textbf{Chia dữ liệu} theo thời gian dự đoán thành sáu phân vùng (mục~\ref{sec:models}).
-  \item \textbf{Chọn mô hình} bằng kiểm định rolling-origin trong giai đoạn huấn luyện.
-  \item \textbf{Hiệu chỉnh xác suất} và \textbf{chọn ngưỡng} trên các phân vùng riêng.
-  \item \textbf{Chấm điểm}: mô hình tính điểm cho từng item, sau đó tổng hợp thành điểm đơn theo \texttt{max-v1}.
-  \item \textbf{Ghi kết quả} vào bảng dự đoán trong PostgreSQL và đưa các đơn đủ điều kiện vào hàng đợi rủi ro.
+  \item \textbf{Nạp dữ liệu}: chín tệp CSV Olist được kiểm tra cấu trúc rồi nạp nguyên dạng vào tầng bronze. Mỗi lần nạp được ghi vào một manifest kèm mã băm của tệp nguồn, nên cùng một tệp không thể bị nạp hai lần.
+  \item \textbf{Biến đổi}: dbt chuẩn hóa dữ liệu ở tầng silver, tính quần thể và đặc trưng ở tầng intermediate, rồi tạo bảng mô hình hóa mức item ở tầng gold.
+  \item \textbf{Chia dữ liệu} theo thời điểm dự đoán thành sáu phân vùng liên tiếp (mục~\ref{sec:models}).
+  \item \textbf{Chọn mô hình} bằng kiểm định rolling-origin bên trong giai đoạn huấn luyện.
+  \item \textbf{Hiệu chỉnh xác suất} và \textbf{chọn ngưỡng}, mỗi việc trên một phân vùng riêng.
+  \item \textbf{Chấm điểm} từng item rồi tổng hợp thành điểm đơn theo luật max-v1.
+  \item \textbf{Ghi kết quả} vào bảng dự đoán và đưa các đơn đủ điều kiện vào hàng đợi rủi ro.
 \end{enumerate}
 
 \begin{figure}[htbp]\centering
@@ -49,12 +43,12 @@ Hình~\ref{fig:ml-flow} trình bày quy trình học máy theo bảy bước:
   \node[box=brown!20] (csv) {CSV Olist\\(9 bảng)};
   \node[box=brown!20,right=of csv] (bronze) {Bronze\\nạp + manifest};
   \node[box=gray!20,right=of bronze] (silver) {Silver\\chuẩn hóa};
-  \node[box=yellow!30,below=of silver] (gold) {Intermediate $\rightarrow$ Gold\\\texttt{ml\_modelling\_items}};
+  \node[box=yellow!30,below=of silver] (gold) {Intermediate $\rightarrow$ Gold\\bảng mô hình hóa mức item};
   \node[box=blue!15,left=of gold] (split) {Chia theo thời gian\\6 phân vùng};
   \node[box=blue!15,left=of split] (cv) {Rolling-origin 3 fold\\chọn biến thể};
   \node[box=teal!20,below=of cv] (cal) {Hiệu chỉnh xác suất\\sigmoid / isotonic};
   \node[box=violet!20,right=of cal] (thr) {Chọn ngưỡng\\top 5\% / 20\%};
-  \node[box=orange!25,right=of thr] (score) {Chấm điểm item\\$\rightarrow$ \texttt{max-v1}};
+  \node[box=orange!25,right=of thr] (score) {Chấm điểm item\\$\rightarrow$ max-v1};
   \node[box=red!20,below=of thr] (db) {Bảng dự đoán\\$\rightarrow$ hàng đợi rủi ro};
   \draw[->] (csv) -- (bronze); \draw[->] (bronze) -- (silver); \draw[->] (silver) -- (gold);
   \draw[->] (gold) -- (split); \draw[->] (split) -- (cv); \draw[->] (cv) -- (cal);
@@ -71,31 +65,20 @@ Hình~\ref{fig:ml-flow} trình bày quy trình học máy theo bảy bước:
 
 \subsection{Đặc tả hệ thống}
 
-Hệ thống được tổ chức theo kiến trúc phân lớp. Mỗi lớp chỉ đảm nhận một loại trách nhiệm, nhờ đó có thể thay mô hình học máy mà không phải sửa các lớp khác:
-\begin{itemize}
-  \item \textbf{Miền nghiệp vụ} (domain): điều kiện vào quần thể, ý nghĩa nhãn, các bất biến về thời gian. Lớp này không phụ thuộc thư viện dữ liệu hay mô hình.
-  \item \textbf{Ứng dụng} (application): điều phối các ca sử dụng như nạp dữ liệu, huấn luyện, chấm điểm.
-  \item \textbf{Hạ tầng} (infrastructure): đọc ghi PostgreSQL, tính đặc trưng, huấn luyện và lưu mô hình.
-  \item \textbf{Giao diện} (interfaces): giao diện dòng lệnh (CLI) cho các tác vụ theo lô, và API cho ứng dụng web.
-\end{itemize}
+Hệ thống được tổ chức theo kiến trúc phân lớp, với quy tắc phụ thuộc chỉ đi từ ngoài vào trong. Lớp \emph{miền nghiệp vụ} ở trung tâm chứa các quy tắc có ý nghĩa nghiên cứu: điều kiện vào quần thể, định nghĩa nhãn và các bất biến về thời gian. Lớp này không phụ thuộc thư viện dữ liệu hay mô hình nào, nên các quy tắc có thể được kiểm thử độc lập và không bị thay đổi ngầm khi đổi công cụ. Lớp \emph{ứng dụng} điều phối các ca sử dụng như nạp dữ liệu, huấn luyện và chấm điểm thông qua các giao diện trừu tượng. Lớp \emph{hạ tầng} hiện thực các giao diện đó bằng PostgreSQL và thư viện học máy cụ thể. Lớp \emph{giao diện} ngoài cùng cung cấp dòng lệnh cho tác vụ theo lô và API cho ứng dụng web. Nhờ cách tổ chức này, việc thay mô hình học máy chỉ chạm đến lớp hạ tầng.
 
-\textbf{Cơ chế chấm điểm theo lô.} Mô hình không được gọi theo thời gian thực. Một tác vụ theo lô chấm điểm toàn bộ item, tổng hợp điểm đơn bằng \texttt{max-v1}, gán mức \textsc{Cao}/\textsc{Trung bình}/\textsc{Thấp} theo ngưỡng đã chọn rồi ghi vào bảng dự đoán. Mỗi bản ghi lưu mã đơn, điểm rủi ro, mức ưu tiên và phiên bản mô hình, nên có thể truy vết kết quả về đúng lần huấn luyện. Cách làm này giữ ứng dụng web đơn giản và đảm bảo mọi người dùng nhìn thấy cùng một kết quả.
+Mô hình không được gọi theo thời gian thực mà chấm điểm theo lô. Một tác vụ chấm điểm toàn bộ item, tổng hợp điểm đơn theo max-v1, gán mức \textsc{Cao}, \textsc{Trung bình} hoặc \textsc{Thấp} theo ngưỡng đã chọn rồi ghi vào bảng dự đoán. Mỗi bản ghi lưu mã đơn, điểm rủi ro, mức ưu tiên và phiên bản mô hình, nên mọi điểm số đều truy vết được về đúng lần huấn luyện sinh ra nó. Lựa chọn này phù hợp với bản chất bài toán: thông tin đầu vào chỉ đầy đủ khi đơn đã giao, và nhân viên xử lý theo ca chứ không phản hồi từng giây, nên chấm điểm theo lô không làm mất giá trị dự báo mà giúp mọi người dùng nhìn thấy cùng một kết quả nhất quán.
 
-\textbf{Ứng dụng vận hành.} Backend viết bằng FastAPI, frontend bằng Angular, toàn bộ dịch vụ (PostgreSQL, API, frontend, tác vụ kho dữ liệu) được đóng gói bằng Docker Compose. Ứng dụng phục vụ hai vai trò: \emph{chuyên viên} (Specialist) nhận và xử lý đơn mức thấp và trung bình, \emph{quản lý} (Manager) giao đơn mức cao, điều chỉnh tham số vận hành và ra quyết định. Các chức năng chính gồm:
-\begin{itemize}
-  \item \textbf{Hàng đợi rủi ro}: danh sách đơn sắp xếp theo điểm rủi ro giảm dần, sau đó theo hạn SLA và thời gian chờ; có thể lọc theo mức rủi ro, trạng thái, người bán, danh mục.
-  \item \textbf{Chi tiết đơn}: điểm của từng sản phẩm trong đơn, ghi nhận các lần liên lạc với khách và kết quả xử lý.
-  \item \textbf{Dashboard và lịch sử kiểm toán}: tổng hợp tình trạng xử lý; mọi thao tác ghi đều sinh một sự kiện kiểm toán chỉ được thêm, không được sửa hay xóa.
-\end{itemize}
+Ứng dụng vận hành gồm backend FastAPI và frontend Angular; toàn bộ dịch vụ (cơ sở dữ liệu, API, giao diện và tác vụ kho dữ liệu) được đóng gói bằng Docker Compose. Ứng dụng phục vụ hai vai trò. \emph{Chuyên viên} nhận và xử lý các đơn mức thấp và trung bình; \emph{quản lý} giao các đơn mức cao, điều chỉnh tham số vận hành và ra quyết định cuối. Ba chức năng chính là hàng đợi rủi ro (đơn sắp theo điểm rủi ro giảm dần, sau đó theo hạn SLA và thời gian chờ, có thể lọc theo mức rủi ro, trạng thái, người bán và danh mục), trang chi tiết đơn (điểm của từng sản phẩm, các lần liên lạc với khách và kết quả xử lý), và dashboard cùng lịch sử kiểm toán.
 
-Ba nguyên tắc được áp dụng xuyên suốt. Thứ nhất, backend kiểm tra mọi luật nghiệp vụ (quyền theo vai, giới hạn số đơn mỗi người, số lần liên lạc tối đa), kể cả khi frontend đã ẩn nút tương ứng. Thứ hai, không có API nào sửa được điểm rủi ro hay mức rủi ro do mô hình tạo ra. Thứ ba, các tham số vận hành như giới hạn số đơn và thời hạn SLA được lưu trong cơ sở dữ liệu và do quản lý điều chỉnh, không ghi cứng trong mã nguồn.
+Ba nguyên tắc thiết kế bảo đảm ứng dụng không làm sai lệch kết quả của mô hình. Thứ nhất, backend kiểm tra mọi luật nghiệp vụ như quyền theo vai, giới hạn số đơn mỗi người và số lần liên lạc tối đa, kể cả khi frontend đã ẩn nút tương ứng, vì giao diện không phải là ranh giới bảo mật. Thứ hai, không có thao tác nào sửa được điểm rủi ro hay mức rủi ro do mô hình tạo ra; nhân viên có thể ghi nhận đánh giá của mình nhưng không ghi đè lên dự báo, nhờ đó dữ liệu vận hành sau này vẫn dùng được để đánh giá mô hình. Thứ ba, mọi thao tác ghi đều sinh một sự kiện kiểm toán chỉ được thêm, không được sửa hay xóa, và các tham số vận hành như giới hạn số đơn hay thời hạn SLA được lưu trong cơ sở dữ liệu để quản lý điều chỉnh mà không cần sửa mã nguồn.
 
 % =====================================================================
 \section{Dữ liệu và công cụ}\label{sec:data}
 
 \subsection{Nguồn dữ liệu}
 
-Nghiên cứu sử dụng bộ dữ liệu công khai \emph{Brazilian E-Commerce Public Dataset by Olist}~\cite{olist2018}, gồm khoảng 99\,000 đơn hàng phát sinh trên các sàn thương mại điện tử tại Brazil từ năm 2016 đến 2018. Dữ liệu gồm chín bảng liên kết với nhau qua các khóa \texttt{order\_id}, \texttt{customer\_id}, \texttt{product\_id} và \texttt{seller\_id} (Bảng~\ref{tab:olist}). Bảng đơn hàng là trung tâm, ghi các mốc thời gian của vòng đời đơn: mua, duyệt, bàn giao cho đơn vị vận chuyển, giao cho khách và ngày giao dự kiến. Các mốc này là cơ sở để xác định thời điểm dự đoán và lọc đơn giao đúng hạn.
+Nghiên cứu sử dụng bộ dữ liệu công khai \emph{Brazilian E-Commerce Public Dataset by Olist}~\cite{olist2018}, gồm khoảng 99\,000 đơn hàng phát sinh trên các sàn thương mại điện tử tại Brazil từ năm 2016 đến 2018. Dữ liệu gồm chín bảng liên kết qua mã đơn, mã khách hàng, mã sản phẩm và mã người bán (Bảng~\ref{tab:olist}). Bảng đơn hàng là trung tâm, ghi các mốc của vòng đời đơn: mua, duyệt, bàn giao cho đơn vị vận chuyển, giao cho khách và ngày giao dự kiến. Chính các mốc này cho phép xác định thời điểm dự đoán và lọc đơn giao đúng hạn, nên chất lượng của chúng quyết định chất lượng của toàn bộ thiết kế chống rò rỉ.
 
 \begin{table}[htbp]\centering\small
 \caption{Các bảng trong bộ dữ liệu Olist}\label{tab:olist}
@@ -103,26 +86,26 @@ Nghiên cứu sử dụng bộ dữ liệu công khai \emph{Brazilian E-Commerce
 \toprule
 Bảng & Độ chi tiết (một dòng là) & Số dòng \\
 \midrule
-\texttt{orders}         & một đơn hàng                          &    99\,441 \\
-\texttt{order\_items}   & một sản phẩm trong đơn                &   112\,650 \\
-\texttt{order\_payments}& một lần thanh toán của đơn            &   103\,886 \\
-\texttt{order\_reviews} & một đánh giá                          &    99\,224 \\
-\texttt{customers}      & một khách hàng theo đơn               &    99\,441 \\
-\texttt{sellers}        & một người bán                         &     3\,095 \\
-\texttt{products}       & một sản phẩm                          &    32\,951 \\
-\texttt{geolocation}    & một tọa độ theo mã bưu chính          & 1\,000\,163 \\
-\texttt{category\_translation} & một danh mục (tiếng Bồ Đào Nha -- Anh) & 71 \\
+Đơn hàng                 & một đơn hàng                          &    99\,441 \\
+Sản phẩm trong đơn       & một sản phẩm trong đơn                &   112\,650 \\
+Thanh toán               & một lần thanh toán của đơn            &   103\,886 \\
+Đánh giá                 & một đánh giá                          &    99\,224 \\
+Khách hàng               & một khách hàng theo đơn               &    99\,441 \\
+Người bán                & một người bán                         &     3\,095 \\
+Sản phẩm                 & một sản phẩm                          &    32\,951 \\
+Tọa độ địa lý            & một tọa độ theo mã bưu chính          & 1\,000\,163 \\
+Dịch tên danh mục        & một danh mục (tiếng Bồ Đào Nha -- Anh) & 71 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Có hai đặc điểm cần lưu ý. Bảng đánh giá có 99\,224 dòng nhưng một số đơn có nhiều đánh giá và một số đơn không có đánh giá nào. Bảng thanh toán có thể có nhiều dòng cho một đơn khi khách trả bằng nhiều phương thức. Cả hai bảng vì vậy phải được gộp về mức đơn trước khi nối với bảng sản phẩm trong đơn.
+Hai bảng có độ chi tiết không khớp với đơn hàng và cần xử lý trước khi nối. Bảng đánh giá có 99\,224 dòng nhưng một số đơn có nhiều đánh giá trong khi một số đơn không có đánh giá nào. Bảng thanh toán có nhiều dòng cho một đơn khi khách trả bằng nhiều phương thức hoặc trả góp. Nếu nối trực tiếp, mỗi item sẽ bị nhân bản theo số đánh giá hoặc số lần thanh toán, làm sai lệch cả tỉ lệ nhãn lẫn trọng số của từng đơn trong quá trình học.
 
 \subsection{Xây dựng tập dữ liệu mô hình hóa}
 
-Bảng mô hình hóa có độ chi tiết là item. Bảng thanh toán và bảng đánh giá vốn ở mức đơn, nên được gộp về một dòng mỗi đơn trước khi nối, tránh nhân bản item. Khi một đơn có nhiều đánh giá, nhóm chọn một đánh giá đại diện theo thứ tự ưu tiên: đánh giá đã được người bán trả lời, sau đó đánh giá có thời điểm trả lời hoặc tạo mới nhất, cuối cùng là mã đánh giá. Quy tắc này mang tính tất định, nên chạy lại luôn cho cùng kết quả.
+Để giữ đúng độ chi tiết mức item, bảng thanh toán và bảng đánh giá được gộp về một dòng mỗi đơn trước khi nối. Khi một đơn có nhiều đánh giá, nhóm chọn một đánh giá đại diện theo thứ tự ưu tiên: đánh giá đã được người bán trả lời, sau đó đánh giá có thời điểm trả lời hoặc tạo mới nhất, cuối cùng là mã đánh giá. Điểm quan trọng của quy tắc không nằm ở thứ tự cụ thể mà ở tính tất định: cùng dữ liệu đầu vào luôn cho cùng nhãn, nên kết quả thí nghiệm lặp lại được và có thể kiểm toán.
 
-Quần thể nghiên cứu gồm các đơn thỏa mãn đồng thời: (i) trạng thái \texttt{delivered}; (ii) ngày giao thực tế không muộn hơn ngày giao dự kiến; (iii) có đánh giá được tạo \emph{sau} thời điểm giao. Điều kiện (iii) loại các đánh giá tạo trước hoặc đúng lúc giao, vì khi đó không thể dự đoán trước khi nhãn xuất hiện. Bảng~\ref{tab:funnel} cho thấy số đơn và item còn lại sau mỗi bước lọc.
+Quần thể nghiên cứu gồm các đơn thỏa đồng thời ba điều kiện: (i) đã được giao thành công; (ii) ngày giao thực tế không muộn hơn ngày giao dự kiến; (iii) có đánh giá được tạo \emph{sau} thời điểm giao. Điều kiện (ii) định nghĩa phạm vi ``bất mãn ẩn'' của đề tài. Điều kiện (iii) ít hiển nhiên hơn nhưng không kém quan trọng: một đánh giá tạo trước hoặc đúng lúc giao là nhãn đã tồn tại tại thời điểm dự đoán, và giữ lại những đơn này sẽ đánh giá mô hình trên một tình huống không thể xảy ra trong vận hành. Bảng~\ref{tab:funnel} cho thấy số đơn và item còn lại sau mỗi bước lọc.
 
 \begin{table}[htbp]\centering\small
 \caption{Quá trình lọc quần thể nghiên cứu}\label{tab:funnel}
@@ -131,18 +114,22 @@ Quần thể nghiên cứu gồm các đơn thỏa mãn đồng thời: (i) tr�
 Bước lọc & Đơn & Item \\
 \midrule
 Toàn bộ đơn hàng                          & 99\,441 & 112\,650 \\
-Trạng thái \texttt{delivered}             & 96\,478 & 110\,197 \\
+Đã giao thành công                        & 96\,478 & 110\,197 \\
 Giao đúng hoặc sớm hạn                    & 88\,644 & 101\,475 \\
 Có đánh giá hợp lệ tạo sau thời điểm giao & 85\,420 &  97\,878 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Tỉ lệ đơn nhận đánh giá thấp trong quần thể là 9,21\% (7\,865/85\,420), cho thấy bài toán mất cân bằng lớp rõ rệt. Bảng~\ref{tab:funnel} được dựng lại từ các tệp CSV gốc để kiểm toán. Snapshot dữ liệu đóng băng dùng cho huấn luyện có 85\,425 đơn và 97\,884 item, lệch 5 đơn và 6 item so với bản dựng lại. Nhật ký dbt xác nhận snapshot được tạo thành công và qua các kiểm tra về độ chi tiết và tính duy nhất, nhưng không lưu số đếm theo từng bước lọc nên chưa giải thích được chênh lệch này. Các thí nghiệm sử dụng số liệu của snapshot đóng băng.
+Phễu lọc cho thấy hai điều. Bước lọc giao đúng hạn chỉ loại khoảng 8\% số đơn đã giao, nghĩa là quần thể ``giao đúng hạn'' chiếm phần lớn hoạt động của sàn chứ không phải một trường hợp biên. Trong quần thể này, tỉ lệ đơn nhận đánh giá thấp là 9,21\% (7\,865/85\,420): cứ khoảng mười một đơn giao đúng hạn lại có một đơn bị đánh giá 1--2 sao. Con số này đủ lớn để có ý nghĩa kinh doanh nhưng đủ nhỏ để tạo ra bài toán mất cân bằng lớp rõ rệt, định hướng trực tiếp các lựa chọn về xử lý mất cân bằng và chỉ số đánh giá ở các mục sau.
+
+Bảng~\ref{tab:funnel} được dựng lại từ các tệp CSV gốc để kiểm toán. Snapshot dữ liệu đóng băng dùng cho huấn luyện có 85\,425 đơn và 97\,884 item, lệch 5 đơn và 6 item so với bản dựng lại. Nhật ký dbt xác nhận snapshot được tạo thành công và qua các kiểm tra về độ chi tiết và tính duy nhất, nhưng không lưu số đếm theo từng bước lọc nên chưa giải thích được chênh lệch. Với độ lệch dưới 0,01\%, ảnh hưởng đến các chỉ số là không đáng kể; các thí nghiệm sử dụng số liệu của snapshot đóng băng.
 
 \subsection{Đặc trưng và kiểm soát rò rỉ dữ liệu}
 
-Mọi đặc trưng phải biết được tại thời điểm $t_o$. Nhóm cho phép các nhóm thông tin sau: thông tin đơn và thanh toán; thuộc tính sản phẩm, danh mục và người bán; vị trí của khách và người bán; giá, phí vận chuyển và cấu trúc đơn; thời gian giao và khoảng dư so với ngày dự kiến; và các đặc trưng lịch sử tính hoàn toàn từ sự kiện xảy ra trước $t_o$. Các đầu vào sau bị cấm: điểm, nội dung, tiêu đề và thời điểm của đánh giá; mọi hành động xảy ra sau đánh giá; các thống kê tính trên toàn bộ dữ liệu; và các mã định danh. Pipeline từ chối tự động mọi cột thuộc nhóm bị cấm hoặc không có trong danh sách khai báo. Hình~\ref{fig:leakage-timeline} minh họa ranh giới này.
+Rò rỉ dữ liệu là rủi ro lớn nhất đối với độ tin cậy của nghiên cứu, vì trong bộ Olist thông tin về đánh giá nằm ngay cạnh thông tin về đơn. Một đặc trưng như ``điểm trung bình của người bán'' nếu tính trên toàn bộ dữ liệu sẽ chứa chính điểm đánh giá của đơn đang dự đoán, giúp mô hình đạt kết quả rất tốt trong thí nghiệm nhưng vô dụng khi triển khai. Nguyên tắc chung vì vậy là: mọi đặc trưng phải biết được tại thời điểm $t_o$ (Hình~\ref{fig:leakage-timeline}).
+
+Theo nguyên tắc này, các nhóm thông tin được phép gồm thông tin đơn và thanh toán; thuộc tính sản phẩm, danh mục và người bán; vị trí của khách và người bán; giá, phí vận chuyển và cấu trúc đơn; thời gian giao và khoảng dư so với ngày dự kiến; và các đặc trưng lịch sử tính hoàn toàn từ sự kiện xảy ra trước $t_o$. Các đầu vào bị cấm gồm điểm, nội dung, tiêu đề và thời điểm của đánh giá; mọi hành động xảy ra sau đánh giá; các thống kê tính trên toàn bộ dữ liệu; và các mã định danh, vốn không mang thông tin tổng quát nhưng cho phép mô hình học thuộc từng đối tượng. Danh sách đặc trưng được khai báo tường minh và pipeline tự động từ chối mọi cột bị cấm hoặc chưa khai báo, nên một sai sót khi thêm cột mới sẽ làm pipeline dừng thay vì âm thầm làm sai kết quả.
 
 \begin{figure}[htbp]\centering
 \begin{tikzpicture}[x=1cm,y=1cm,font=\small,
@@ -164,9 +151,9 @@ Mọi đặc trưng phải biết được tại thời điểm $t_o$. Nhóm cho
 \label{fig:leakage-timeline}
 \end{figure}
 
-Đặc trưng lịch sử của người bán và danh mục (số đánh giá trước đó, điểm đánh giá trung bình, thời gian xử lý và giao hàng trung bình) chỉ được tính từ các đơn có cả thời điểm giao lẫn thời điểm đánh giá diễn ra \emph{trước} $t_o$ của đơn đang xét. Khi có ít hơn năm quan sát trước đó, giá trị trung bình được để trống và một cờ ``hỗ trợ thấp'' được bật, giúp mô hình phân biệt giữa ``không có lịch sử'' và ``lịch sử tốt''.
+Các đặc trưng lịch sử của người bán và danh mục (số đánh giá trước đó, điểm đánh giá trung bình, thời gian xử lý và giao hàng trung bình) đòi hỏi ranh giới chặt hơn. Một đơn cũ chỉ được tính vào lịch sử khi cả thời điểm giao lẫn thời điểm đánh giá của nó đều diễn ra \emph{trước} $t_o$ của đơn đang xét. Điều kiện kép này cần thiết vì một đơn có thể đã giao trước $t_o$ nhưng được đánh giá sau $t_o$; nếu chỉ xét thời điểm giao, điểm đánh giá của đơn đó sẽ lọt vào đặc trưng dù tại thời điểm dự đoán chưa ai biết. Khi có ít hơn năm quan sát trước đó, trung bình lịch sử rất nhiễu, nên giá trị được để trống và một cờ ``hỗ trợ thấp'' được bật. Cờ này giúp mô hình phân biệt ``người bán mới, chưa có lịch sử'' với ``người bán có lịch sử tốt'', hai trường hợp có rủi ro rất khác nhau nhưng sẽ trông giống nhau nếu điền giá trị thiếu bằng trung bình chung.
 
-Tập đặc trưng cuối cùng (phiên bản \texttt{p5-item-v11-interactions}) gồm 61 đặc trưng chia thành bảy nhóm (Bảng~\ref{tab:features}). Việc đưa các đặc trưng về giao hàng và cấu trúc đơn được gợi ý từ các nghiên cứu cho thấy hiệu quả giao hàng ảnh hưởng đến điểm đánh giá~\cite{ravula2023,deshpande2023}, và giao hàng tách thành nhiều kiện có thể làm giảm sự hài lòng~\cite{brylla2022}. Olist không ghi thời điểm giao riêng cho từng item, nên số người bán và số sản phẩm trong đơn chỉ là đại diện gián tiếp cho việc tách đơn, không phải quan sát trực tiếp.
+Tập đặc trưng cuối cùng gồm 61 đặc trưng chia thành bảy nhóm (Bảng~\ref{tab:features}; danh sách đầy đủ ở Phụ lục~\ref{app:features}). Các nhóm được xây dựng theo giả thuyết về nguồn gốc của bất mãn khi giao hàng không phải là vấn đề. Nhóm \emph{tốc độ và độ biến động của người bán} xuất phát từ quan sát rằng hiệu quả giao hàng ảnh hưởng đến điểm đánh giá~\cite{ravula2023,deshpande2023}: một người bán thường xuyên giao chậm hoặc thất thường có thể vẫn kịp hạn ở đơn đang xét nhưng phản ánh chất lượng vận hành chung thấp. Nhóm \emph{cấu trúc đơn} (số lượng, tỉ lệ và mức độ tập trung theo người bán và danh mục) được gợi ý từ bằng chứng rằng giao hàng tách thành nhiều kiện làm giảm sự hài lòng~\cite{brylla2022}. Do Olist không ghi thời điểm giao riêng cho từng item, số người bán và số sản phẩm trong đơn chỉ là đại diện gián tiếp cho việc tách kiện. Các nhóm \emph{hình thái sản phẩm} và \emph{độ đầy đủ nội dung} nhắm đến khoảng cách giữa kỳ vọng và thực tế: sản phẩm cồng kềnh dễ hư hỏng khi vận chuyển, còn trang sản phẩm thiếu ảnh hoặc mô tả dễ khiến khách nhận được thứ khác với hình dung.
 
 \begin{table}[htbp]\centering\small
 \caption{Các nhóm đặc trưng trong tập cuối cùng}\label{tab:features}
@@ -184,41 +171,33 @@ Hình thái sản phẩm (13) & Thể tích, mật độ, tỉ lệ kích thư�
 \bottomrule
 \end{tabular}
 \end{table}
-% Danh sách đầy đủ 61 cột: đưa vào Phụ lục (SERVER_CONTEXT/chapter3_evidence.md §5).
 
 \subsection{Công cụ}
 
-Pipeline được viết bằng Python 3.11 với pandas 2.3.3, NumPy 2.4.6 và PyArrow 21.0.0 để xử lý dữ liệu; scikit-learn 1.9.1 và CatBoost 1.2.10 để huấn luyện mô hình; joblib 1.6.0 để lưu mô hình. Kho dữ liệu dùng PostgreSQL với các phép biến đổi viết bằng dbt 1.8.10. Toàn bộ ranh giới thời gian, danh sách biến thể và siêu tham số được khai báo trong một tệp cấu hình TOML có quản lý phiên bản, thay vì nằm rải rác trong notebook. Mọi lần chạy dùng seed cố định 42 và giới hạn số luồng để kết quả lặp lại được. Mỗi lần chạy xuất một báo cáo JSON ghi lại cấu hình, số liệu theo phân vùng, chỉ số và mã commit Git. GPU chỉ được dùng cho các biến thể CatBoost; mô hình được giữ lại chạy trên CPU.
+Pipeline được viết bằng Python, dùng pandas, NumPy và PyArrow để xử lý dữ liệu, scikit-learn và CatBoost để huấn luyện, joblib để lưu mô hình; kho dữ liệu dùng PostgreSQL với các phép biến đổi viết bằng dbt. Phiên bản cụ thể của từng công cụ được liệt kê ở Phụ lục~\ref{app:env}. Khả năng lặp lại được đặt lên hàng đầu: toàn bộ ranh giới thời gian, danh sách biến thể và siêu tham số được khai báo trong một tệp cấu hình có quản lý phiên bản thay vì nằm rải rác trong notebook; mọi lần chạy dùng seed cố định và giới hạn số luồng; và mỗi lần chạy xuất một báo cáo ghi lại cấu hình, số liệu theo phân vùng, chỉ số và mã commit. Nhờ vậy, mọi con số trong Chương~4 đều truy ngược được về một cấu hình và một phiên bản mã nguồn cụ thể.
 
-Kho dữ liệu được tổ chức theo kiến trúc medallion. Tầng \emph{bronze} lưu dữ liệu nguyên dạng từ các tệp CSV kèm manifest chống nạp trùng. Tầng \emph{silver} chuẩn hóa kiểu dữ liệu và gộp tọa độ theo mã bưu chính. Tầng \emph{intermediate} chứa các mô hình dbt tính quần thể nghiên cứu, đánh giá đại diện, đặc trưng lịch sử và các nhóm đặc trưng trong Bảng~\ref{tab:features}. Tầng \emph{gold} gồm các bảng sự kiện và chiều phục vụ dashboard (đơn hàng, sản phẩm trong đơn, thanh toán, đánh giá, người bán, sản phẩm, khách hàng) và bảng \texttt{ml\_modelling\_items} phục vụ huấn luyện. Sau mỗi lần build, dbt chạy các kiểm tra tự động về tính duy nhất của khóa và độ chi tiết của bảng; các đặc trưng lịch sử có kiểm thử đơn vị riêng để đảm bảo không dùng sự kiện từ tương lai.
+Kho dữ liệu được tổ chức theo kiến trúc medallion, trong đó mỗi tầng có một mức cam kết chất lượng khác nhau. Tầng \emph{bronze} lưu dữ liệu nguyên dạng kèm manifest chống nạp trùng, đóng vai trò bản gốc để mọi tầng sau có thể dựng lại. Tầng \emph{silver} chuẩn hóa kiểu dữ liệu và gộp tọa độ theo mã bưu chính. Tầng \emph{intermediate} chứa logic nghiệp vụ: quần thể nghiên cứu, đánh giá đại diện, đặc trưng lịch sử và các nhóm đặc trưng trong Bảng~\ref{tab:features}. Tầng \emph{gold} gồm các bảng sự kiện và chiều phục vụ dashboard cùng bảng mô hình hóa mức item phục vụ huấn luyện. Sau mỗi lần build, dbt tự động kiểm tra tính duy nhất của khóa và độ chi tiết của bảng, còn các đặc trưng lịch sử có kiểm thử riêng bảo đảm không sử dụng sự kiện từ tương lai. Việc đặt logic chống rò rỉ trong kho dữ liệu thay vì trong mã huấn luyện có chủ đích: đặc trưng chỉ được tính một lần, ở một nơi, và mọi mô hình đều dùng chung một định nghĩa.
 
 % =====================================================================
 \section{Mô hình và thuật toán}\label{sec:models}
 
 \subsection{Mô hình cơ sở và ứng viên}
 
-Nhóm so sánh các mô hình theo thứ tự độ phức tạp tăng dần:
-\begin{itemize}
-  \item \textbf{Mô hình theo tỉ lệ nền} (prevalence): dự đoán mọi item bằng tỉ lệ dương của tập huấn luyện. Mô hình này là mức sàn mà mọi ứng viên phải vượt qua.
-  \item \textbf{Hồi quy logistic} với hai mức điều chuẩn $C \in \{0{,}1;\,1\}$.
-  \item \textbf{Rừng ngẫu nhiên} (Random Forest) với hai cấu hình: (độ sâu 8, tối thiểu 5 mẫu mỗi lá) và (độ sâu 12, tối thiểu 10 mẫu mỗi lá).
-  \item \textbf{HistGradientBoosting} với hai cấu hình: (L2 $=1$, 31 lá) và (L2 $=5$, 15 lá).
-  \item \textbf{CatBoost} chạy trên GPU, dùng cơ chế xử lý biến phân loại có sẵn, với độ sâu 6, 8 và 10.
-\end{itemize}
+Nhóm so sánh các mô hình theo độ phức tạp tăng dần, để mỗi mức phức tạp thêm vào đều phải chứng minh được giá trị so với mức trước. Mức sàn là \emph{mô hình theo tỉ lệ nền}, dự đoán mọi item bằng tỉ lệ dương của tập huấn luyện; một ứng viên không vượt qua mức này không học được gì từ đặc trưng. Tiếp theo là \emph{hồi quy logistic} với hai mức điều chuẩn $C \in \{0{,}1;\,1\}$, đại diện cho quan hệ tuyến tính và dễ diễn giải. Ba họ mô hình cây có khả năng nắm bắt tương tác phi tuyến được đưa vào sau đó: \emph{rừng ngẫu nhiên} với hai cấu hình (độ sâu 8, tối thiểu 5 mẫu mỗi lá và độ sâu 12, tối thiểu 10 mẫu mỗi lá), \emph{HistGradientBoosting} với hai cấu hình (L2 $=1$, 31 lá và L2 $=5$, 15 lá), và \emph{CatBoost} với độ sâu 6, 8 và 10, vốn có cơ chế riêng để xử lý biến phân loại nhiều giá trị như danh mục sản phẩm. Các nghiên cứu trước trên Olist cho thấy mô hình cây thường cạnh tranh tốt với học sâu trên dữ liệu bảng~\cite{zaghloul2024}, nên nhóm không đưa mạng nơ-ron vào so sánh.
 
-Bên cạnh mô hình, nhóm thử bốn chế độ huấn luyện: \emph{item-unweighted} (mỗi item có trọng số như nhau), \emph{order-weight} (trọng số mỗi item bằng nghịch đảo số item trong đơn, để mỗi đơn đóng góp như nhau), \emph{order-reference} và \emph{order-aggregate} (gộp item thành một dòng mỗi đơn trước khi huấn luyện). Chế độ order-aggregate được thêm vào vì nhãn và chỉ số chính đều ở mức đơn.
+Song song với mô hình, nhóm thử bốn chế độ huấn luyện nhằm xử lý sự lệch pha giữa item và đơn đã nêu ở mục~\ref{sec:pipeline}. Chế độ \emph{item-unweighted} cho mọi item trọng số như nhau, khiến các đơn nhiều sản phẩm chi phối quá trình học. Chế độ \emph{order-weight} đặt trọng số mỗi item bằng nghịch đảo số item trong đơn để mỗi đơn đóng góp như nhau. Chế độ \emph{order-reference} và \emph{order-aggregate} gộp item thành một dòng mỗi đơn trước khi huấn luyện, khớp trực tiếp với mức của nhãn và của chỉ số chính, nhưng đánh đổi bằng việc mất thông tin chi tiết ở mức sản phẩm. So sánh các chế độ này cho biết việc học ở mức item có thực sự mang lại lợi ích hay không.
 
 \subsection{Tiền xử lý}
 
-Mỗi họ mô hình có một nhánh tiền xử lý riêng. Với hồi quy logistic và rừng ngẫu nhiên, biến số được điền giá trị thiếu bằng trung vị (hồi quy logistic có thêm chuẩn hóa), biến phân loại được điền bằng giá trị phổ biến nhất rồi mã hóa one-hot, bỏ qua các giá trị chưa gặp. Với HistGradientBoosting, biến phân loại được mã hóa thứ tự để giữ ma trận dày. CatBoost nhận trực tiếp biến phân loại. Mọi bước tiền xử lý được đặt trong cùng một pipeline với mô hình và chỉ được fit trên dữ liệu huấn luyện của từng fold, tránh để thống kê của tập kiểm định lọt vào quá trình huấn luyện.
+Mỗi họ mô hình có một nhánh tiền xử lý riêng phù hợp với giả định của nó. Với hồi quy logistic và rừng ngẫu nhiên, biến số được điền giá trị thiếu bằng trung vị (hồi quy logistic có thêm chuẩn hóa vì nhạy với thang đo), biến phân loại được điền bằng giá trị phổ biến nhất rồi mã hóa one-hot, với các giá trị chưa gặp ở dữ liệu mới được bỏ qua thay vì gây lỗi. Với HistGradientBoosting, biến phân loại được mã hóa thứ tự để giữ ma trận dày và tận dụng cơ chế chia nhánh theo biểu đồ tần suất. CatBoost nhận trực tiếp biến phân loại. Điều kiện chung cho mọi nhánh là các bước tiền xử lý được đặt trong cùng một pipeline với mô hình và chỉ được fit trên dữ liệu huấn luyện của từng fold. Nếu trung vị hay danh sách danh mục được tính trên toàn bộ dữ liệu, thống kê của tập kiểm định sẽ lọt vào quá trình huấn luyện, một dạng rò rỉ khó phát hiện vì không liên quan đến nhãn.
 
 \subsection{Xử lý mất cân bằng lớp}
 
-Với tỉ lệ dương khoảng 9--14\%, nhóm xử lý mất cân bằng bằng trọng số lớp (ví dụ \texttt{class\_weight=balanced\_subsample} cho rừng ngẫu nhiên) kết hợp với chọn ngưỡng riêng, thay vì lấy mẫu lại dữ liệu. Lựa chọn này dựa trên hai bằng chứng. Thứ nhất, với các bộ phân loại mạnh như mô hình boosting, cân bằng dữ liệu bằng SMOTE hầu như không cải thiện so với việc tối ưu ngưỡng~\cite{elor2022smote}. Thứ hai, các phương pháp hiệu chỉnh mất cân bằng làm xác suất dự đoán bị lệch lên một cách có hệ thống, làm hỏng độ tin cậy của xác suất~\cite{vandengoorbergh2022}. Vì bài toán cần xác suất đáng tin để xếp hàng ưu tiên, SMOTE chỉ được xem là thí nghiệm phụ và chưa được đưa vào pipeline chính.
+Với tỉ lệ dương khoảng 9--14\% tùy giai đoạn, một mô hình không xử lý mất cân bằng có xu hướng dồn xác suất về lớp đa số. Có hai hướng tiếp cận phổ biến: thay đổi dữ liệu bằng cách lấy mẫu lại (như SMOTE), hoặc thay đổi hàm mất mát bằng trọng số lớp. Nhóm chọn trọng số lớp kết hợp với chọn ngưỡng riêng, chẳng hạn rừng ngẫu nhiên dùng trọng số cân bằng tính lại trên từng mẫu bootstrap. Lựa chọn này dựa trên hai bằng chứng. Thứ nhất, với các bộ phân loại mạnh như mô hình boosting, cân bằng dữ liệu bằng SMOTE hầu như không cải thiện so với việc chỉ tối ưu ngưỡng quyết định~\cite{elor2022smote}. Thứ hai, mọi phương pháp hiệu chỉnh mất cân bằng đều làm xác suất dự đoán bị đẩy lên một cách có hệ thống~\cite{vandengoorbergh2022}. Hệ quả thứ hai đặc biệt quan trọng với bài toán này, vì hàng đợi ưu tiên và mức rủi ro đều dựa vào xác suất. Trọng số lớp vì vậy được xem như một công cụ giúp mô hình học lớp thiểu số, còn độ lệch xác suất mà nó gây ra được sửa ở bước hiệu chỉnh. SMOTE chỉ được xem là thí nghiệm phụ và chưa được đưa vào pipeline chính.
 
 \subsection{Chia dữ liệu theo thời gian và lựa chọn mô hình}
 
-Dữ liệu được sắp theo thời điểm dự đoán $t_o$ và chia thành sáu phân vùng liên tiếp (Bảng~\ref{tab:split}). Mỗi phân vùng là khoảng nửa mở $[\text{đầu}, \text{cuối})$ và mọi item của một đơn luôn nằm cùng phân vùng. Mỗi phân vùng chỉ phục vụ đúng một mục đích, nên không có quyết định nào được đưa ra trên dữ liệu đã dùng cho quyết định trước đó. Cách chia này khác với việc chia ngẫu nhiên 80:20 thường gặp trong các nghiên cứu trước trên Olist~\cite{orman2026}: chia ngẫu nhiên cho phép mô hình ``nhìn thấy tương lai'', nên thường cho kết quả lạc quan hơn thực tế triển khai.
+Cách chia dữ liệu quyết định con số đánh giá có phản ánh hiệu năng thực tế hay không. Các nghiên cứu trước trên Olist thường chia ngẫu nhiên 80:20~\cite{orman2026}. Cách chia này cho phép mô hình học từ các đơn diễn ra \emph{sau} đơn đang kiểm định, chẳng hạn biết một người bán bắt đầu bị đánh giá kém từ tháng sau, nên thường cho kết quả lạc quan hơn triển khai thực tế. Nhóm vì vậy sắp dữ liệu theo thời điểm dự đoán $t_o$ và chia thành sáu phân vùng liên tiếp (Bảng~\ref{tab:split}). Mỗi phân vùng là khoảng nửa mở $[\text{đầu}, \text{cuối})$, mọi item của một đơn nằm cùng phân vùng, và mỗi phân vùng chỉ phục vụ đúng một mục đích. Nguyên tắc ``một phân vùng, một quyết định'' bảo đảm không quyết định nào được đánh giá trên dữ liệu đã dùng để đưa ra một quyết định trước đó, nhờ vậy sai lệch lạc quan không tích lũy qua các bước.
 
 \begin{table}[htbp]\centering\small
 \caption{Phân vùng dữ liệu theo thời gian dự đoán}\label{tab:split}
@@ -236,7 +215,9 @@ Test niêm phong       & 2018-06-01 & 2018-09-01 & 18\,561 & 21\,191 & ẩn \\
 \end{tabular}
 \end{table}
 
-Trong giai đoạn huấn luyện, các biến thể được so sánh bằng kiểm định rolling-origin với cửa sổ mở rộng gồm ba fold (Hình~\ref{fig:temporal-folds}). Ở mỗi fold, mô hình học trên toàn bộ dữ liệu trước mốc cắt và được đánh giá trên đoạn ngay sau đó, mô phỏng đúng cách mô hình được dùng trong thực tế. Biến thể được chọn theo thứ tự ưu tiên: PR-AUC mức đơn (theo \texttt{max-v1}) trung bình qua các fold cao nhất; nếu ngang nhau thì chọn biến thể có Brier score thấp hơn; nếu vẫn ngang nhau thì chọn mô hình đơn giản hơn. Hiệu chỉnh xác suất và chọn ngưỡng không tham gia vào bước này.
+Bảng~\ref{tab:split} cũng cho thấy tỉ lệ dương không đứng yên mà dao động từ 10,13\% đến 13,80\% giữa các phân vùng. Sự dịch chuyển này là lý do trực tiếp khiến hiệu chỉnh xác suất và chọn ngưỡng phải được thực hiện trên dữ liệu gần thời điểm triển khai hơn dữ liệu huấn luyện: một mô hình được hiệu chỉnh theo tỉ lệ 10\% của năm 2017 sẽ đánh giá thấp rủi ro khi tỉ lệ thực tế đã tăng lên. Phân vùng test cuối cùng được niêm phong, tỉ lệ dương của nó không được xem trong quá trình phát triển để không vô tình ảnh hưởng đến các lựa chọn thiết kế.
+
+Bên trong giai đoạn huấn luyện, các biến thể được so sánh bằng kiểm định rolling-origin với cửa sổ mở rộng gồm ba fold (Hình~\ref{fig:temporal-folds}). Ở mỗi fold, mô hình học trên toàn bộ dữ liệu trước mốc cắt và được đánh giá trên đoạn ngay sau đó, mô phỏng đúng cách mô hình được huấn luyện lại định kỳ trong thực tế. Ba fold thay vì một cho phép quan sát độ ổn định của từng biến thể qua thời gian, tránh chọn nhầm một biến thể chỉ tốt nhờ may mắn ở một giai đoạn. Biến thể được chọn theo thứ tự ưu tiên: PR-AUC mức đơn (theo max-v1) trung bình qua các fold cao nhất; nếu ngang nhau thì chọn biến thể có Brier score thấp hơn; nếu vẫn ngang nhau thì chọn mô hình đơn giản hơn. Hiệu chỉnh xác suất và chọn ngưỡng không tham gia vào bước này để tách biệt câu hỏi ``mô hình nào xếp hạng tốt nhất'' khỏi câu hỏi ``xác suất có đáng tin không''.
 
 \begin{figure}[htbp]\centering
 \begin{tikzpicture}[x=0.62cm,y=1cm,font=\footnotesize]
@@ -268,23 +249,23 @@ Trong giai đoạn huấn luyện, các biến thể được so sánh bằng ki
 
 \subsection{Hiệu chỉnh xác suất và ngưỡng ưu tiên}
 
-Trọng số lớp giúp mô hình chú ý đến lớp thiểu số nhưng làm xác suất đầu ra bị đẩy lên cao. Vì hàng đợi ưu tiên cần xác suất phản ánh đúng tỉ lệ thực tế, nhóm hiệu chỉnh xác suất sau khi đã chọn mô hình. Mô hình gốc được huấn luyện lại trên phân vùng huấn luyện và lựa chọn. Hai phương pháp hiệu chỉnh, sigmoid (Platt scaling) và isotonic, được fit trên phân vùng \emph{fit hiệu chỉnh}, rồi so sánh bằng Brier score trên phân vùng \emph{so sánh hiệu chỉnh} độc lập. Nếu không phương pháp nào cải thiện Brier score so với mô hình gốc, mô hình gốc được giữ nguyên. Tách riêng hai phân vùng giúp kết quả so sánh không bị lạc quan do đánh giá trên chính dữ liệu đã dùng để fit.
+Một mô hình có thể xếp hạng tốt nhưng xác suất sai: nếu mô hình nói ``rủi ro 40\%'' cho một nhóm đơn mà thực tế chỉ 15\% bị đánh giá thấp, quản lý sẽ ước lượng sai khối lượng công việc và mức độ nghiêm trọng. Trọng số lớp và sự dịch chuyển tỉ lệ dương theo thời gian đều gây ra loại sai lệch này, nên nhóm hiệu chỉnh xác suất sau khi đã chọn mô hình. Mô hình gốc được huấn luyện lại trên phân vùng huấn luyện và lựa chọn. Hai phương pháp hiệu chỉnh được fit trên phân vùng \emph{fit hiệu chỉnh}: sigmoid (Platt scaling), giả định độ lệch có dạng hàm logistic và ổn định khi dữ liệu ít, và isotonic, không giả định dạng hàm nhưng dễ quá khớp. Hai phương pháp sau đó được so sánh bằng Brier score trên phân vùng \emph{so sánh hiệu chỉnh} độc lập; nếu không phương pháp nào cải thiện so với mô hình gốc, mô hình gốc được giữ nguyên. Việc tách hai phân vùng giúp kết quả so sánh không bị lạc quan do đánh giá trên chính dữ liệu đã dùng để fit, một sai lầm đặc biệt dễ xảy ra với isotonic. Hiệu chỉnh là phép biến đổi đơn điệu nên không làm thay đổi thứ tự xếp hạng, do đó PR-AUC và Recall@5\% không bị ảnh hưởng, chỉ độ tin cậy của xác suất được cải thiện.
 
-Ngưỡng ưu tiên được chọn trên phân vùng \emph{chọn ngưỡng}: các đơn thuộc 5\% điểm rủi ro cao nhất được gán mức \textsc{Cao}, các đơn còn lại trong 20\% cao nhất được gán mức \textsc{Trung bình}. Cách chọn theo tỉ lệ phần trăm gắn trực tiếp với năng lực xử lý của bộ phận chăm sóc khách hàng thay vì một ngưỡng xác suất cố định.
+Ngưỡng ưu tiên được chọn trên phân vùng \emph{chọn ngưỡng}: các đơn thuộc 5\% điểm rủi ro cao nhất được gán mức \textsc{Cao}, các đơn còn lại trong 20\% cao nhất được gán mức \textsc{Trung bình}. Nhóm chọn ngưỡng theo tỉ lệ phần trăm thay vì một ngưỡng xác suất cố định như 0,5 vì ràng buộc thực sự của bộ phận chăm sóc khách hàng là số đơn có thể xử lý mỗi ngày, không phải mức xác suất. Ngưỡng phần trăm biến năng lực xử lý thành tham số trực tiếp của mô hình, và vẫn giữ nguyên ý nghĩa khi tỉ lệ dương dịch chuyển, điều mà một ngưỡng xác suất cố định không làm được. Cách tiếp cận này phù hợp với quan điểm rằng giá trị của mô hình nằm ở việc phân bổ nguồn lực can thiệp có hạn~\cite{gomezvargas2025}.
 
 % =====================================================================
 \section{Phương pháp đánh giá}\label{sec:eval}
 
-Do lớp dương chỉ chiếm khoảng một phần mười, độ chính xác (accuracy) không có ý nghĩa: một mô hình dự đoán mọi đơn đều tốt đã đạt khoảng 90\%. Nhóm dùng ba chỉ số, tính trên đoạn kiểm định của từng fold rồi lấy trung bình qua ba fold.
+Với lớp dương chỉ chiếm khoảng một phần mười, độ chính xác (accuracy) không có ý nghĩa: một mô hình dự đoán mọi đơn đều tốt đã đạt khoảng 90\%. Nhóm dùng ba chỉ số, mỗi chỉ số trả lời một câu hỏi khác nhau về mô hình, tính trên đoạn kiểm định của từng fold rồi lấy trung bình qua ba fold.
 
-\textbf{PR-AUC} (diện tích dưới đường cong precision--recall) là chỉ số chính, đo ở mức item và mức đơn (sau khi tổng hợp bằng \texttt{max-v1}). PR-AUC của một mô hình xếp hạng ngẫu nhiên xấp xỉ tỉ lệ dương, nên tỉ lệ dương của từng fold là mốc so sánh tự nhiên.
+\textbf{PR-AUC} (diện tích dưới đường cong precision--recall) trả lời câu hỏi \emph{mô hình xếp hạng tốt đến đâu} và là chỉ số chính. Khác với ROC-AUC, PR-AUC tập trung vào lớp dương và không bị thổi phồng bởi số lượng lớn các đơn âm dễ phân loại, nên phù hợp với bài toán mất cân bằng. Chỉ số được đo ở cả mức item và mức đơn (sau khi tổng hợp bằng max-v1); mức đơn là mức quyết định vì đó là đơn vị nhân viên xử lý. PR-AUC của một mô hình xếp hạng ngẫu nhiên xấp xỉ tỉ lệ dương, nên tỉ lệ dương của từng fold là mốc so sánh tự nhiên.
 
-\textbf{Brier score} đo độ tin cậy của xác suất ở mức đơn:
+\textbf{Brier score} trả lời câu hỏi \emph{xác suất có đáng tin không}:
 \begin{equation}\label{eq:brier}
   \mathrm{BS} = \frac{1}{N}\sum_{j=1}^{N}\left(\hat{p}_j - y_j\right)^2
 \end{equation}
-trong đó $\hat p_j$ là xác suất dự đoán và $y_j \in \{0,1\}$ là nhãn thực tế; giá trị càng thấp càng tốt. Brier score cũng là tiêu chí so sánh các phương pháp hiệu chỉnh xác suất ở mục~\ref{sec:models}.
+trong đó $\hat p_j$ là xác suất dự đoán ở mức đơn và $y_j \in \{0,1\}$ là nhãn thực tế; giá trị càng thấp càng tốt. Brier score phạt cả xếp hạng kém lẫn xác suất lệch, nên hai mô hình có cùng PR-AUC vẫn có thể có Brier score khác nhau. Đây cũng là tiêu chí so sánh các phương pháp hiệu chỉnh ở mục~\ref{sec:models}.
 
-\textbf{Recall@5\%} đo hiệu quả ưu tiên: tỉ lệ đơn nhận đánh giá thấp nằm trong 5\% đơn có điểm rủi ro cao nhất. Mức 5\% tương ứng với nhóm ưu tiên \textsc{Cao}. Nếu chọn ngẫu nhiên 5\% số đơn, recall kỳ vọng chỉ là 5\%, nên đây là mốc để đánh giá giá trị của mô hình đối với bộ phận vận hành.
+\textbf{Recall@5\%} trả lời câu hỏi vận hành: \emph{nếu chỉ xử lý được 5\% số đơn, nhóm này bắt được bao nhiêu phần đơn bị đánh giá thấp?} Mức 5\% tương ứng với nhóm ưu tiên \textsc{Cao}. Chọn ngẫu nhiên 5\% số đơn chỉ cho recall kỳ vọng 5\%, nên tỉ số giữa Recall@5\% của mô hình và 5\% cho biết mô hình giúp bộ phận chăm sóc khách hàng hiệu quả gấp bao nhiêu lần so với không có mô hình. Mức tham chiếu ngẫu nhiên là mốc tối thiểu; các nghiên cứu về ưu tiên hóa cho thấy những luật xếp hạng đơn giản như sắp theo giá trị đơn đôi khi đã khó vượt qua~\cite{li2026valuesorting}, nên đây là hướng so sánh cần bổ sung.
 
-Các kết quả trình bày ở Chương~4 là kết quả trên các fold phát triển. Phân vùng test niêm phong chưa được dùng để đánh giá, vì vậy các con số mang tính thăm dò và chưa phải ước lượng cuối cùng về hiệu năng khi triển khai.
+Ba chỉ số này đo khả năng \emph{dự báo} chứ không đo hiệu quả \emph{can thiệp}. Một đơn rủi ro cao không nhất thiết là đơn mà việc liên hệ sẽ thay đổi được kết quả; nghiên cứu về giữ chân khách hàng đã chỉ ra rằng nhắm vào khách có rủi ro cao nhất không phải lúc nào cũng mang lại hiệu quả cao nhất~\cite{ascarza2018}. Đánh giá hiệu quả can thiệp đòi hỏi thử nghiệm có đối chứng và nằm ngoài phạm vi đề tài. Ngoài ra, các kết quả trình bày ở Chương~4 là kết quả trên các fold phát triển. Phân vùng test niêm phong chưa được dùng để đánh giá, vì vậy các con số mang tính thăm dò và chưa phải ước lượng cuối cùng về hiệu năng khi triển khai.

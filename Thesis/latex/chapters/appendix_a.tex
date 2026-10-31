@@ -1,0 +1,102 @@
+% Phụ lục A — chi tiết kỹ thuật được tham chiếu từ Chương 3. Nguồn: SERVER_CONTEXT/chapter3_evidence.md §5–6.
+\chapter{Chi tiết kỹ thuật của phương pháp}\label{app:tech}
+
+Phụ lục này đối chiếu các khái niệm trong Chương~\ref{ch:method} với tên kỹ thuật trong hệ thống, gồm ba bảng tra cứu: từ điển khái niệm (Bảng~\ref{tab:app-dict}), danh mục đặc trưng (Bảng~\ref{tab:feature-list}) và cấu hình thực nghiệm (Bảng~\ref{tab:app-env}).
+
+\section{Từ điển khái niệm}\label{app:ids}
+\begin{table}[htbp]\centering\small
+\caption{Khái niệm trong Chương 3 và tên kỹ thuật tương ứng}\label{tab:app-dict}
+\begin{tabular}{p{4.6cm}p{9.2cm}}
+\toprule
+Khái niệm & Tên kỹ thuật \\
+\midrule
+Mã item         & \texttt{product\_item\_id} = \texttt{order\_id} + \texttt{order\_item\_id} \\
+Thời điểm dự đoán $t_o$ & \texttt{order\_delivered\_customer\_date} \\
+Ngày giao dự kiến & \texttt{order\_estimated\_delivery\_date} \\
+Đơn đã giao     & \texttt{order\_status = 'delivered'} \\
+Luật tổng hợp mức đơn & \texttt{max-v1} \\
+Bảng mô hình hóa & \texttt{gold.ml\_modelling\_items} \\
+Lược đồ đặc trưng & \texttt{p5-item-v11-interactions} \\
+\midrule
+\multicolumn{2}{l}{\emph{Bảng nguồn Olist (Bảng~\ref{tab:olist})}} \\
+Đơn hàng / Sản phẩm trong đơn & \texttt{orders} / \texttt{order\_items} \\
+Thanh toán / Đánh giá & \texttt{order\_payments} / \texttt{order\_reviews} \\
+Khách hàng / Người bán / Sản phẩm & \texttt{customers} / \texttt{sellers} / \texttt{products} \\
+Tọa độ / Dịch danh mục & \texttt{geolocation} / \texttt{product\_category\_name\_translation} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Danh mục 61 đặc trưng}\label{app:features}
+Ký hiệu kiểu: \textbf{S} số, \textbf{N} nhị phân, \textbf{P} phân loại. Số trong ngoặc là số đặc trưng của nhóm.
+
+{\footnotesize\renewcommand{\_}{\textunderscore\allowbreak}\begin{longtable}{>{\raggedright\arraybackslash}p{6.3cm}c|>{\raggedright\arraybackslash}p{6.3cm}c}
+\caption{Danh mục đặc trưng theo nhóm}\label{tab:feature-list}\\
+\toprule Đặc trưng & Kiểu & Đặc trưng & Kiểu \\ \midrule\endfirsthead
+\toprule Đặc trưng & Kiểu & Đặc trưng & Kiểu \\ \midrule\endhead
+\bottomrule\endlastfoot
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Cơ sở (24)}} \\
+\texttt{price} & S & \texttt{freight\_value} & S \\
+\texttt{payment\_count} & S & \texttt{payment\_amount} & S \\
+\texttt{max\_payment\_installments} & S & \texttt{estimated\_delivery\_buffer\_days} & S \\
+\texttt{purchase\_to\_delivery\_days} & S & \texttt{carrier\_to\_delivery\_days} & S \\
+\texttt{seller\_prior\_review\_count} & S & \texttt{seller\_prior\_review\_score\_avg} & S \\
+\texttt{category\_prior\_review\_count} & S & \texttt{category\_prior\_review\_score\_avg} & S \\
+\texttt{seller\_history\_low\_support\_flag} & N & \texttt{category\_history\_low\_support\_flag} & N \\
+\texttt{product\_photos\_qty} & S & \texttt{product\_weight\_g} & S \\
+\texttt{product\_length\_cm} & S & \texttt{product\_height\_cm} & S \\
+\texttt{product\_width\_cm} & S & \texttt{order\_item\_count} & S \\
+\texttt{order\_item\_value\_total} & S & \texttt{item\_value\_share} & S \\
+\texttt{product\_category} & P & \texttt{customer\_state} & P \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Tốc độ và độ biến động của seller (7)}} \\
+\texttt{seller\_mean\_approval\_to\_carrier\_days} & S & \texttt{seller\_mean\_carrier\_to\_delivery\_days} & S \\
+\texttt{seller\_mean\_purchase\_to\_delivery\_days} & S & \texttt{seller\_std\_purchase\_to\_delivery\_days} & S \\
+\texttt{seller\_delivery\_cv} & S & \texttt{seller\_mean\_freight\_value\_ratio} & S \\
+\texttt{seller\_std\_freight\_value\_ratio} & S & & \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Số lượng trong đơn (7)}} \\
+\texttt{order\_seller\_count} & S & \texttt{order\_category\_count} & S \\
+\texttt{order\_product\_count} & S & \texttt{order\_unique\_product\_count} & S \\
+\texttt{multi\_item\_flag} & N & \texttt{multi\_seller\_flag} & N \\
+\texttt{multi\_category\_flag} & N & & \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Tỉ lệ trong đơn (4) và mức độ tập trung (2)}} \\
+\texttt{order\_freight\_total} & S & \texttt{order\_freight\_share} & S \\
+\texttt{order\_max\_item\_value\_share} & S & \texttt{order\_min\_item\_value\_share} & S \\
+\texttt{order\_category\_hhi} & S & \texttt{order\_seller\_hhi} & S \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Hình thái sản phẩm (13)}} \\
+\texttt{product\_volume\_cm3} & S & \texttt{product\_density\_g\_cm3} & S \\
+\texttt{product\_max\_dimension\_cm} & S & \texttt{product\_min\_dimension\_cm} & S \\
+\texttt{product\_dimension\_ratio} & S & \texttt{freight\_to\_price\_ratio} & S \\
+\texttt{freight\_per\_kg} & S & \texttt{photos\_per\_100\_currency} & S \\
+\texttt{product\_dimensions\_missing\_flag} & N & \texttt{product\_weight\_missing\_flag} & N \\
+\texttt{product\_photos\_missing\_flag} & N & \texttt{product\_price\_zero\_flag} & N \\
+\texttt{product\_weight\_zero\_flag} & N & & \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Độ đầy đủ nội dung (4)}} \\
+\texttt{product\_name\_length} & S & \texttt{product\_description\_length} & S \\
+\texttt{product\_metadata\_missing\_count} & S & \texttt{product\_content\_missing\_flag} & N \\
+\end{longtable}}
+
+\section{Cấu hình thực nghiệm}\label{app:env}
+\begin{table}[htbp]\centering\small
+\caption{Môi trường và cấu hình của lần chạy được giữ lại}\label{tab:app-env}
+\begin{tabular}{p{2.6cm}p{4.2cm}p{6.6cm}}
+\toprule
+Nhóm & Thành phần & Giá trị \\
+\midrule
+Môi trường & Ngôn ngữ & Python $\geq$ 3.11 \\
+           & Xử lý dữ liệu & pandas 2.3.3, NumPy 2.4.6, PyArrow 21.0.0 \\
+           & Học máy & scikit-learn 1.9.1, CatBoost 1.2.10, joblib 1.6.0 \\
+           & Kho dữ liệu & PostgreSQL, dbt 1.8.10 \\
+           & Phần cứng & CPU; GPU chỉ cho biến thể CatBoost \\
+\midrule
+Mô hình giữ lại & Thuật toán & Rừng ngẫu nhiên, 200 cây \\
+           & Siêu tham số & độ sâu 8, tối thiểu 5 mẫu mỗi lá \\
+           & Trọng số lớp & \texttt{balanced\_subsample} \\
+\midrule
+Đặc trưng lịch sử & Làm trơn Bayes & $m = 25$ \\
+           & Ngưỡng hỗ trợ thấp & $< 5$ quan sát trước đó \\
+\midrule
+Tái lập    & Seed & 42 \\
+           & Commit & \texttt{6e8976f} \\
+\bottomrule
+\end{tabular}
+\end{table}
