@@ -20,6 +20,7 @@ This repository is the single source of truth for the Hidden Dissatisfaction pro
 
 ## Operations and evidence
 
+- [`feature-flow-guide.vi.md`](feature-flow-guide.vi.md) — Vietnamese guide from system overview to detailed UI, API, workflow, data, and ML feature flows; intended as the source for redrawing architecture diagrams.
 - [`local-development.md`](local-development.md) — Python, data and PostgreSQL setup.
 - [`P12-gate-2-demo.md`](P12-gate-2-demo.md) — synthetic Gate 2 walkthrough, capture fallback, and defense notes.
 - [`evidence/P12-gate-0-release-boundary.md`](evidence/P12-gate-0-release-boundary.md) — evidence statuses, demo scope, provenance rules, and the P5 replacement-holdout gate.

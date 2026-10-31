@@ -1,30 +1,54 @@
 \documentclass[12pt,a4paper]{report}
 \AtBeginDocument{\fontsize{13}{15.6}\selectfont} % 13pt body; report has no 13pt option
-\usepackage[utf8]{inputenc}\usepackage[T5]{fontenc}\usepackage[vietnamese]{babel}
+\usepackage[utf8]{inputenc}\usepackage[T5]{fontenc}\usepackage[english,main=vietnamese]{babel}
 \usepackage{mathptmx}                       % Times New Roman
 \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}\onehalfspacing
 \usepackage{graphicx,booktabs,amsmath,hyperref,caption}
 \usepackage{csquotes}
-\usepackage[style=ieee,backend=biber,language=english]{biblatex} % biblatex has no Vietnamese strings\addbibresource{references.bib}
+\usepackage[style=apa,backend=biber,language=english,autolang=other,sortlocale=en_US]{biblatex} % biber has no Vietnamese locale
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{references.bib}
+% biblatex-apa has no vietnamese-apa.lbx: reuse the English APA strings for Vietnamese text
+\DeclareLanguageMapping{vietnamese}{english-apa}
+\hypersetup{hidelinks}
 \graphicspath{{images/}}
+\usepackage{tikz}\usetikzlibrary{arrows.meta,positioning,fit}
 
 \begin{document}
-% ---------- Bìa (theo mẫu is.uel.edu.vn) ----------
-\begin{titlepage}\centering
-ĐẠI HỌC QUỐC GIA TP.HCM\par \textbf{TRƯỜNG ĐẠI HỌC KINH TẾ - LUẬT}\par \textbf{KHOA HỆ THỐNG THÔNG TIN}\par\vspace{4cm}
-{\Large\textbf{KHÓA LUẬN TỐT NGHIỆP}}\par\vspace{1cm}
-{\LARGE\textbf{PHÁT HIỆN SỰ KHÔNG HÀI LÒNG ẨN CỦA KHÁCH HÀNG TRÊN DỮ LIỆU OLIST}}\par\vspace{3cm}
-\begin{tabular}{ll}
-Sinh viên thực hiện: & TODO \tabularnewline MSSV: & TODO \tabularnewline Giảng viên hướng dẫn: & TODO \tabularnewline
-\end{tabular}\vfill TP. Hồ Chí Minh, \the\year
-\end{titlepage}
+% ---------- Bìa + phụ bìa theo mẫu KL01 (Khoa HTTT, UEL) ----------
+% Ảnh nền (khung, logo, dải xanh) trích từ file hướng dẫn .doc của khoa.
+\newcommand{\coverpage}{%
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay]
+  \node[inner sep=0] at (current page.center)
+    {\includegraphics[width=\paperwidth,height=\paperheight]{cover-kl01-vi}};
+  \node[font=\bfseries\fontsize{16}{20}\selectfont] at ([yshift=-4.6cm]current page.north) {KHOA HỆ THỐNG THÔNG TIN};
+  \node[font=\bfseries\fontsize{14}{18}\selectfont] at ([yshift=-11.3cm]current page.north) {KHÓA LUẬN TỐT NGHIỆP};
+  \node[font=\bfseries\fontsize{18}{24}\selectfont,text width=16cm,align=center]
+    at ([yshift=-13.3cm]current page.north)
+    {GIAO ĐÚNG HẠN, VẪN CHƯA HÀI LÒNG\\[4pt]
+     {\fontsize{14}{19}\selectfont HỆ THỐNG HỌC MÁY PHÁT HIỆN SỚM VÀ ƯU TIÊN CHĂM SÓC\\
+      ĐƠN HÀNG CÓ NGUY CƠ BẤT MÃN ẨN TRÊN DỮ LIỆU OLIST}};
+  \node[font=\bfseries\fontsize{13}{18}\selectfont,anchor=north west,align=left]
+    at ([xshift=-1.2cm,yshift=-17.3cm]current page.north)
+    {GVHD: TODO\\SVTH: TODO\\MSSV: TODO};
+  \node[font=\bfseries\fontsize{13}{16}\selectfont,text=white]
+    at ([yshift=2.25cm]current page.south) {TP.HCM, THÁNG \,TODO/2026};
+\end{tikzpicture}
+\end{titlepage}}
+\coverpage   % trang bìa
 
 \pagenumbering{roman}
-\chapter*{Lời cảm ơn}\chapter*{Lời cam đoan}
-\chapter*{Tóm tắt}  % Abstract + từ khóa
-\tableofcontents\listoffigures\listoftables
-\chapter*{Danh mục từ viết tắt}
+% Thứ tự theo hướng dẫn Khoa HTTT, mục II
+\chapter*{Lời cảm ơn}
+\chapter*{Lời cam kết}
+\tableofcontents
+\listoffigures\addcontentsline{toc}{chapter}{Danh mục hình ảnh}
+\listoftables\addcontentsline{toc}{chapter}{Danh mục bảng biểu}
+\chapter*{Danh mục từ viết tắt}\addcontentsline{toc}{chapter}{Danh mục từ viết tắt}
+% TODO: bảng 2 cột (từ viết tắt | nghĩa)
+\chapter*{Tóm tắt}\addcontentsline{toc}{chapter}{Tóm tắt}  % tối đa 1 trang A4
 \clearpage\pagenumbering{arabic}
 
 \chapter{Giới thiệu}
@@ -39,13 +63,7 @@ Sinh viên thực hiện: & TODO \tabularnewline MSSV: & TODO \tabularnewline Gi
 \section{Các nghiên cứu liên quan} % ưu tiên 5 năm gần đây
 \section{Lý thuyết và mô hình áp dụng}
 
-\chapter{Phương pháp thực hiện}
-\section{Quy trình triển khai và kiến trúc hệ thống}
-\begin{figure}[h]\centering\includegraphics[width=\linewidth]{system-architecture}
-\caption{Kiến trúc tổng thể hệ thống}\label{fig:arch}\end{figure}
-\section{Dữ liệu và công cụ}  % \cite{olist2018}
-\section{Mô hình và thuật toán}
-\section{Phương pháp đánh giá}
+\input{chapters/ch3}
 
 \chapter{Kết quả và phân tích}
 \section{Kết quả đạt được}
@@ -65,6 +83,7 @@ Sinh viên thực hiện: & TODO \tabularnewline MSSV: & TODO \tabularnewline Gi
 
 \printbibliography[heading=bibintoc,title={Tài liệu tham khảo}]
 \appendix
+\clearpage\pagenumbering{alph}  % phụ lục đánh số trang a, b, c
 \chapter{Mã nguồn và dữ liệu}
 \chapter{Tài liệu bổ trợ}
 \end{document}
