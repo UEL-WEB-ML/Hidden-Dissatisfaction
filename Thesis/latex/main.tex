@@ -4,8 +4,9 @@
 \usepackage{mathptmx}                       % Times New Roman
 \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}\onehalfspacing
-\usepackage{graphicx,booktabs,amsmath,hyperref,caption}
+\usepackage{graphicx,booktabs,amsmath,longtable,hyperref,caption}
 \usepackage{csquotes}
+\usepackage[table]{xcolor}
 \usepackage[style=apa,backend=biber,language=english,autolang=other,sortlocale=en_US]{biblatex} % biber has no Vietnamese locale
 \DeclareLanguageMapping{english}{english-apa}
 \addbibresource{references.bib}
@@ -84,6 +85,6 @@
 \printbibliography[heading=bibintoc,title={Tài liệu tham khảo}]
 \appendix
 \clearpage\pagenumbering{alph}  % phụ lục đánh số trang a, b, c
-\chapter{Mã nguồn và dữ liệu}
+\input{chapters/appendix_a}
 \chapter{Tài liệu bổ trợ}
 \end{document}
