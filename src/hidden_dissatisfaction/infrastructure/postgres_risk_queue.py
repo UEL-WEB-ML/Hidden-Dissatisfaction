@@ -6,6 +6,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from hidden_dissatisfaction.application.queue import QueueOrder, QueuePage
+from hidden_dissatisfaction.domain.case_metrics import MetricParameters, case_metrics
 from hidden_dissatisfaction.domain.queue import PRODUCT_ITEM_ID, QueueFilters
 
 
@@ -26,6 +27,10 @@ class PostgresRiskOrderQuery:
             FROM app.review_cases c
             JOIN ml.v_risk_orders_for_web r
               ON r.prediction_id = c.prediction_id AND r.order_id = c.order_id
+            JOIN ml.v_risk_items_for_web risk_item
+              ON risk_item.prediction_id = r.prediction_id
+             AND risk_item.order_id = r.order_id
+             AND risk_item.product_item_id = r.top_product_item_id
             LEFT JOIN app.assignments a ON a.case_id = c.case_id AND a.released_at IS NULL
             LEFT JOIN app.users u ON u.user_id = a.assignee_id
             LEFT JOIN LATERAL (
@@ -39,13 +44,42 @@ class PostgresRiskOrderQuery:
             ) cycle ON TRUE
         """
         with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            now_row = connection.execute("SELECT CURRENT_TIMESTAMP AS now").fetchone()
+            assert now_row is not None
+            now = now_row["now"]
+            params["as_of"] = now
+            values = connection.execute(
+                """SELECT DISTINCT ON (param_key) param_key, value
+                FROM app.parameters WHERE effective_at <= %(now)s
+                ORDER BY param_key, effective_at DESC, version DESC""",
+                {"now": now},
+            ).fetchall()
+            pv = {r["param_key"]: r["value"] for r in values}
+            metric_params = MetricParameters(
+                int(pv.get("soon_hours", 24)),
+                int(pv.get("aging_days", 3)),
+                int(pv.get("stale_hours", 24)),
+            )
             total = connection.execute(
                 f"SELECT count(*) AS total {projection} {where}", params
             ).fetchone()
             rows = connection.execute(
                 f"""
                 SELECT c.order_id, r.risk_score, r.risk_level, c.status, a.assignee_id,
-                       u.username AS assignee_name, c.original_queued_at, cycle.sla_due_at, c.row_version
+                       u.full_name AS assignee_name, cycle.started_at AS queued_at, c.original_queued_at,
+                       cycle.sla_due_at, c.row_version, c.outcome, c.skip_reason, c.updated_at,
+                       r.top_factors, r.items_count,
+                       jsonb_build_object(
+                         'product_item_id', risk_item.product_item_id,
+                         'risk_score', risk_item.risk_score,
+                         'risk_level', risk_item.risk_level,
+                         'top_factors', risk_item.top_factors,
+                         'synthetic_data_flag', risk_item.synthetic,
+                         'model_version', risk_item.model_version,
+                         'category', risk_item.context ->> 'category',
+                         'data_source', CASE WHEN risk_item.synthetic
+                           THEN 'synthetic_v1' ELSE 'olist_order_items' END
+                       ) AS top_item
                 {projection} {where}
                 ORDER BY {order_by}
                 LIMIT %(limit)s OFFSET %(offset)s
@@ -53,8 +87,10 @@ class PostgresRiskOrderQuery:
                 params | {"limit": filters.limit, "offset": filters.offset},
             ).fetchall()
         return QueuePage(
-            items=tuple(self._to_order(row, matched_item_id) for row in rows),
+            items=tuple(self._to_order(row, matched_item_id, now, metric_params) for row in rows),
             total=int(self._require_row(total)["total"]),
+            limit=filters.limit,
+            offset=filters.offset,
         )
 
     def filter_options(self) -> dict[str, tuple[str, ...]]:
@@ -115,20 +151,20 @@ class PostgresRiskOrderQuery:
             clauses.append(f"{field} = %(outcome)s")
             params["outcome"] = value
         if filters.sla == "over":
-            clauses.append("cycle.sla_due_at < now()")
+            clauses.append("cycle.sla_due_at < %(as_of)s")
         elif filters.sla == "soon":
-            clauses.append("cycle.sla_due_at >= now()")
+            clauses.append("cycle.sla_due_at >= %(as_of)s")
             clauses.append(
-                "cycle.sla_due_at <= now() + make_interval(hours => (SELECT value::int FROM app.parameters WHERE param_key='soon_hours' AND effective_at <= now() ORDER BY effective_at DESC, version DESC LIMIT 1))"
+                "cycle.sla_due_at <= %(as_of)s + make_interval(hours => (SELECT value::int FROM app.parameters WHERE param_key='soon_hours' AND effective_at <= %(as_of)s ORDER BY effective_at DESC, version DESC LIMIT 1))"
             )
         elif filters.sla == "esc":
             clauses.append(
-                "c.original_queued_at <= now() - make_interval(days => (SELECT value::int FROM app.parameters WHERE param_key='aging_days' AND effective_at <= now() ORDER BY effective_at DESC, version DESC LIMIT 1))"
+                "c.original_queued_at <= %(as_of)s - make_interval(days => (SELECT value::int FROM app.parameters WHERE param_key='aging_days' AND effective_at <= %(as_of)s ORDER BY effective_at DESC, version DESC LIMIT 1))"
             )
         elif filters.sla == "stale":
             clauses.append("c.status = 'IN_PROGRESS'")
             clauses.append(
-                "c.updated_at <= now() - make_interval(hours => (SELECT value::int FROM app.parameters WHERE param_key='stale_hours' AND effective_at <= now() ORDER BY effective_at DESC, version DESC LIMIT 1))"
+                "c.updated_at <= %(as_of)s - make_interval(hours => (SELECT value::int FROM app.parameters WHERE param_key='stale_hours' AND effective_at <= %(as_of)s ORDER BY effective_at DESC, version DESC LIMIT 1))"
             )
         if filters.needs_decision is not None:
             decision_exists = "EXISTS (SELECT 1 FROM app.manager_decisions d WHERE d.case_id = c.case_id AND (d.cycle_id = cycle.cycle_id OR d.cycle_id IS NULL))"
@@ -152,18 +188,52 @@ class PostgresRiskOrderQuery:
         return (f"WHERE {' AND '.join(clauses)}" if clauses else "", params, matched_item_id)
 
     @staticmethod
-    def _to_order(row: dict[str, Any], matched_item_id: str | None) -> QueueOrder:
+    def _to_order(
+        row: dict[str, Any], matched_item_id: str | None, now: Any, params: MetricParameters
+    ) -> QueueOrder:
+        metrics = case_metrics(
+            status=row["status"],
+            now=now,
+            cycle_started_at=row["queued_at"],
+            original_queued_at=row["original_queued_at"],
+            sla_due_at=row["sla_due_at"],
+            updated_at=row["updated_at"],
+            params=params,
+        )
+        top_item = dict(row["top_item"] or {})
+        top_item["data_source"] = (
+            "synthetic_v1" if top_item.get("synthetic_data_flag") else "olist_order_items"
+        )
+        top_item.setdefault("category", None)
         return QueueOrder(
             order_id=str(row["order_id"]),
-            score=float(row["risk_score"]),
-            level=str(row["risk_level"]),
+            risk_score=float(row["risk_score"]),
+            risk_level=str(row["risk_level"]),
             status=str(row["status"]),
             assignee_id=str(row["assignee_id"]) if row["assignee_id"] else None,
             assignee_name=row["assignee_name"],
-            queued_at=row["original_queued_at"],
+            queued_at=row["queued_at"],
             sla_due_at=row["sla_due_at"],
             row_version=int(row["row_version"]),
+            original_queued_at=row["original_queued_at"],
             matched_item_id=matched_item_id,
+            top_item=top_item,
+            top_factors=tuple(row["top_factors"] or ()),
+            items_count=int(row["items_count"]),
+            outcome=row["outcome"],
+            skip_reason=row["skip_reason"],
+            self_claim_allowed=row["status"] == "PENDING" and row["risk_level"] != "HIGH",
+            **{
+                k: metrics[k]
+                for k in (
+                    "sla_state",
+                    "sla_hours_left",
+                    "aging_hours",
+                    "total_aging_hours",
+                    "is_escalated",
+                    "is_stale",
+                )
+            },
         )
 
     @staticmethod

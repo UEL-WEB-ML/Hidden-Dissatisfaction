@@ -157,7 +157,6 @@ Hidden-Dissatisfaction/
 ├── data/
 ├── dbt/
 ├── frontend/
-│   └── hidden-dissatisfaction-frontend/
 ├── infra/
 │   ├── postgres/
 │   │   ├── init/
@@ -205,7 +204,8 @@ Hidden-Dissatisfaction/
 └── uv.lock
 ```
 
-`web/Prototype` là reference/mock. Production Angular nằm ở `frontend/hidden-dissatisfaction-frontend`.
+`frontend/prototype` là đường dẫn frontend tĩnh đã bàn giao. `web/Wireframe` chỉ là tài liệu tham khảo
+đã lưu trữ, không phải đường dẫn ứng dụng đang hoạt động.
 
 ## 6. Definition of Ready và Definition of Done
 
@@ -277,7 +277,7 @@ Nhập snapshot, không tái tạo lịch sử source repository:
 - `scripts/load_bronze.py`.
 - `scripts/build_silver.py` để refactor, không giữ path cũ.
 - `sql/migrations/001_bronze.sql` vào migration sequence mới.
-- `web/Prototype/` làm reference/API mock.
+- `frontend/prototype/` là frontend đã bàn giao; `web/Wireframe/` chỉ là reference/archive.
 
 Không ghi đè tài liệu 4.2/2.2/0.5 hiện hành bằng bản cũ trên `origin/main`. Không giữ mặc định `ironman`, path `../Docker_Environment` hoặc env ngoài repository.
 

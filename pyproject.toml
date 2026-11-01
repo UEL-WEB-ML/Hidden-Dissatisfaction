@@ -16,11 +16,11 @@ dependencies = [
     "pwdlib[argon2]>=0.2,<1",
     "sqlalchemy[asyncio]>=2.0,<3",
     "aiosqlite>=0.20,<1",
+    "psycopg[binary]>=3.2,<4",
 ]
 
 [project.optional-dependencies]
 db = [
-    "psycopg[binary]>=3.2,<4",
     "sqlalchemy>=2.0,<3",
 ]
 api = [

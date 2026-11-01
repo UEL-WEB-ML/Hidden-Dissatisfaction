@@ -7,6 +7,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
+from pydantic import ValidationError
 
 pytest.importorskip("httpx")
 from fastapi.testclient import TestClient  # noqa: E402
@@ -92,16 +93,96 @@ class FakeReads:
     def __init__(self) -> None:
         self.include_audit: bool | None = None
         self.missing = False
+        self.omit_collection: str | None = None
 
     def detail(self, order_id: str, now: datetime, include_audit: bool) -> dict[str, Any]:
         if self.missing:
             raise CaseNotFoundError(order_id)
         self.include_audit = include_audit
-        return {
-            "order": {"order_id": order_id, "status": "IN_PROGRESS"},
-            "contacts": [{"attempt_no": 1}],
-            "audit_events": [] if include_audit else None,
+        item = {
+            "product_item_id": "item-1",
+            "category": "electronics",
+            "risk_score": 0.8,
+            "risk_level": "HIGH",
+            "top_factors": ["late_delivery"],
+            "synthetic_data_flag": False,
+            "model_version": "m1",
+            "predicted_at": NOW,
+            "data_source": "seller",
+            "threshold_version": "t1",
+            "aggregation_rule": "max",
         }
+        order = {
+            "order_id": order_id,
+            "risk_score": 0.8,
+            "risk_level": "HIGH",
+            "status": "IN_PROGRESS",
+            "assignee_id": str(SPECIALIST.id),
+            "assignee_name": SPECIALIST.full_name,
+            "queued_at": NOW,
+            "original_queued_at": NOW,
+            "sla_due_at": NOW,
+            "matched_item_id": "item-1",
+            "top_item": item,
+            "top_factors": ["late_delivery"],
+            "items_count": 1,
+            "outcome": None,
+            "skip_reason": None,
+            "self_claim_allowed": False,
+            "sla_state": "ON_TRACK",
+            "sla_hours_left": 12.0,
+            "aging_hours": 1.0,
+            "total_aging_hours": 1.0,
+            "is_escalated": False,
+            "is_stale": False,
+            "case_id": "case-1",
+            "aggregation_rule": "max",
+            "model_version": "m1",
+            "predicted_at": NOW,
+            "threshold_version": "t1",
+            "seller_id": "seller-1",
+            "category": "electronics",
+            "cycle_no": 1,
+            "updated_at": NOW,
+            "closed_at": None,
+            "reopen_count": 0,
+            "contact_count": 1,
+            "needs_decision": True,
+            "has_synthetic_item": False,
+            "items": [item],
+        }
+        payload = {
+            "order": order,
+            "cycles": [
+                {
+                    "cycle_no": 1,
+                    "started_at": NOW,
+                    "ended_at": None,
+                    "sla_due_at": NOW,
+                    "contact_count": 1,
+                    "parameter_version": "p1",
+                }
+            ],
+            "contacts": [{"contacted_at": NOW, "method": "PHONE", "result": "REACHED"}],
+            "comments": [{"text": "comment"}],
+            "decisions": [{"decision": "WORK_WITH_SELLER"}],
+            "next_step": {"decision": "FOLLOW_UP"},
+            "model_notes": [{"note": "note"}],
+            "audit_events": [] if include_audit else None,
+            "status_history": [
+                {
+                    "created_at": NOW,
+                    "actor_name": "Boss",
+                    "event_type": "ASSIGNED",
+                    "old_value": None,
+                    "new_value": "IN_PROGRESS",
+                }
+            ],
+            "seller_open_count": 2,
+        }
+        if self.omit_collection:
+            payload.pop(self.omit_collection)
+        return payload
 
     def dashboard(self, now: datetime, **filters: Any) -> dict[str, Any]:
         return {"view": filters["view"], "days": filters["days"]}
@@ -157,6 +238,29 @@ def test_detail_hides_audit_from_specialist_and_shows_it_to_manager(ctx: Any) ->
     assert reads.include_audit is False
     assert client.get("/api/v1/orders/abc", headers=auth("manager")).json()["audit_events"] == []
     assert reads.include_audit is True
+
+
+def test_detail_serializes_complete_order_detail_and_rejects_missing_collection(ctx: Any) -> None:
+    client, _, reads, _ = ctx
+    response = client.get("/api/v1/orders/abc", headers=auth("manager"))
+    assert response.status_code == 200
+    body = response.json()
+    assert set(body) == {
+        "order",
+        "cycles",
+        "contacts",
+        "comments",
+        "decisions",
+        "next_step",
+        "model_notes",
+        "audit_events",
+        "status_history",
+        "seller_open_count",
+    }
+    assert set(body["order"]) >= {"order_id", "top_item", "items", "status", "risk_score"}
+    reads.omit_collection = "cycles"
+    with pytest.raises(ValidationError):
+        client.get("/api/v1/orders/abc", headers=auth("manager"))
 
 
 def test_unknown_order_uses_the_error_envelope(ctx: Any) -> None:

@@ -124,3 +124,33 @@ class PostgresOperationalReadModel:
             )
             result.append(item)
         return result
+
+    def principal(self, user_id: str, now: datetime) -> dict[str, Any] | None:
+        """Read the authenticated principal and its workload in one bounded query."""
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                WITH capacity AS (
+                  SELECT value::int AS value FROM app.parameters
+                  WHERE param_key='capacity' AND effective_at <= %(now)s
+                  ORDER BY effective_at DESC, version DESC LIMIT 1
+                )
+                SELECT u.user_id, u.username, u.full_name, u.role, u.preferred_language,
+                       u.created_at, CASE WHEN u.role='SPECIALIST' THEN count(a.assignment_id)::int END AS active_count,
+                       CASE WHEN u.role='SPECIALIST' THEN (SELECT value FROM capacity) END AS capacity
+                FROM app.users u
+                LEFT JOIN app.assignments a ON a.assignee_id=u.user_id AND a.released_at IS NULL
+                WHERE u.user_id=%(user_id)s AND u.is_active
+                GROUP BY u.user_id
+                """,
+                {"user_id": user_id, "now": now},
+            ).fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        item["slots_left"] = (
+            max(int(item["capacity"]) - int(item["active_count"]), 0)
+            if item["capacity"] is not None
+            else None
+        )
+        return item

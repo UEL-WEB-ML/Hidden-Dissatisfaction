@@ -47,3 +47,8 @@ real execution exposed two stale test fixtures; both were corrected, and all 17 
 
 The post-upgrade `npm audit --json` has zero reported vulnerabilities. The core P11 Compose/runtime
 gate and P10 frontend test execution gate are complete for the authenticated synthetic demo scope.
+
+## Disposition note
+
+This dated gate is retained as original evidence. The completed static frontend cutover is delivered
+under `frontend/prototype`; no additional browser E2E coverage is implied for it.

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-vi="Tổng quan rủi ro · Hidden Dissatisfaction">Risk Overview Dashboard · Hidden Dissatisfaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="topbar" id="topbar"></nav>
+
+  <div class="page" id="content">
+    <div class="ov-head">
+      <div>
+        <p class="eyebrow" id="ov-date"></p>
+        <h1 data-vi="Tổng quan rủi ro">Risk overview</h1>
+      </div>
+      <div class="ov-tools">
+        <!-- F01-S02: chế độ xem theo đơn / theo sản phẩm -->
+        <span class="view-switch big" role="group" aria-label="View" id="view-switch">
+          <button type="button" id="v-order" onclick="setView('order')" data-vi="Theo đơn">Orders</button><button type="button" id="v-product" onclick="setView('product')" data-vi="Theo sản phẩm">Products</button>
+        </span>
+        <button type="button" class="btn filter-btn" id="filter-btn" aria-expanded="false" aria-controls="dash-filters" onclick="toggleFilters()"></button>
+      </div>
+    </div>
+
+    <!-- F01-S01: Bộ lọc (ẩn sau nút "Bộ lọc" cho màn gọn) -->
+    <form class="box filters dash-filters" id="dash-filters" hidden onsubmit="apply(); return false;" onchange="markDirty()" oninput="markDirty()">
+      <div class="f-row">
+        <label><span data-vi="Vào queue">Queued</span>
+          <select id="f-time">
+            <option value="" data-vi="Mọi lúc">All time</option>
+            <option value="1" data-vi="Hôm nay">Today</option>
+            <option value="3" data-vi="3 ngày qua">Last 3 days</option>
+            <option value="7" data-vi="7 ngày qua">Last 7 days</option>
+          </select>
+        </label>
+        <label><span data-vi="Mức rủi ro">Risk level</span>
+          <select id="f-level"><option value="" data-vi="Tất cả">All</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+        </label>
+        <label>Seller
+          <select id="f-seller"><option value="" data-vi="Tất cả">All</option></select>
+        </label>
+        <label><span data-vi="Ngành hàng">Category</span>
+          <select id="f-category"><option value="" data-vi="Tất cả">All</option></select>
+        </label>
+        <label><span data-vi="Nhân viên">Specialist</span>
+          <select id="f-assignee"><option value="" data-vi="Tất cả">All</option></select>
+        </label>
+        <label><span data-vi="Trạng thái">Status</span>
+          <select id="f-status">
+            <option value="" data-vi="Tất cả">All</option>
+            <option value="PENDING" data-vi="Chờ nhận">Pending</option>
+            <option value="IN_PROGRESS" data-vi="Đang xử lý">In progress</option>
+            <option value="COMPLETED" data-vi="Hoàn tất">Completed</option>
+            <option value="SKIPPED" data-vi="Bỏ qua">Skipped</option>
+          </select>
+        </label>
+        <label><span data-vi="Mã sản phẩm">Product ID</span>
+          <input id="f-item" type="search" placeholder="order_id-1" autocomplete="off">
+        </label>
+        <button class="btn" type="submit" id="apply-btn" data-vi="Áp dụng">Apply</button>
+        <button class="btn" type="button" onclick="resetAll()" data-vi="Đặt lại">Reset</button>
+        <span class="pending-msg" id="pending-msg" role="status" hidden data-vi="Đã đổi bộ lọc, chưa áp dụng">Filters changed, not applied yet</span>
+      </div>
+    </form>
+    <div class="chips" id="chips"></div>
+
+    <div id="dash">
+      <div id="alert"></div>
+
+      <div class="ov-grid">
+        <!-- Dẫn mắt: đơn HIGH chờ Manager giao (BRD 6.3: HIGH chỉ Manager giao) -->
+        <section class="ov-card spot s-4" id="spot" aria-labelledby="spot-title"></section>
+
+        <div class="s-8" style="display:grid; gap:1em; align-content:start">
+          <!-- F01-S03: Thẻ chỉ số -->
+          <div id="kpi"></div>
+          <!-- Việc cần làm: GET /dashboard → actions -->
+          <section class="ov-card" aria-labelledby="todo-title">
+            <div class="c-head"><h2 id="todo-title" data-vi="Việc cần làm">To do</h2><span class="tiny" data-vi="xếp theo mức ảnh hưởng tới khách">sorted by customer impact</span></div>
+            <ul class="todo" id="todo"></ul>
+          </section>
+        </div>
+
+        <!-- F01-S08: Xu hướng số case vào Risk Queue theo ngày -->
+        <section class="ov-card s-8" aria-labelledby="trend-title">
+          <div class="c-head"><h2 id="trend-title" data-vi="Case vào queue mỗi ngày">Cases entering the queue</h2><span class="legend-inline" id="trend-legend"></span></div>
+          <p class="insight" id="trend-insight"></p>
+          <div id="trend"></div>
+        </section>
+
+        <!-- F01-S04: Phân bố mức + trạng thái -->
+        <section class="ov-card s-4" aria-labelledby="dist-title">
+          <div class="c-head"><h2 id="dist-title" data-vi="Phân bố rủi ro">Risk mix</h2></div>
+          <div class="mix" id="level-mix"></div>
+          <div id="pipe-wrap">
+            <h3 class="caps" style="margin:1.3em 0 0.6em" data-vi="Tiến độ xử lý">Handling progress</h3>
+            <div id="pipe"></div>
+          </div>
+          <details class="more" id="bands-wrap">
+            <summary data-vi="Xem theo khoảng score">Show by score band</summary>
+            <table class="small" id="bands"></table>
+          </details>
+        </section>
+
+        <!-- Chất lượng chăm sóc: GET /dashboard → service -->
+        <section class="ov-card s-7" aria-labelledby="quality-title">
+          <div class="c-head"><h2 id="quality-title" data-vi="Chất lượng chăm sóc">Customer care quality</h2><span id="q-flag" style="margin-left:auto"></span></div>
+          <div class="q-row" id="quality"></div>
+        </section>
+
+        <!-- F01-S06: Workload -->
+        <section class="ov-card s-5" aria-labelledby="crew-title">
+          <div class="c-head"><h2 id="crew-title" data-vi="Ai còn chỗ trống">Who has room</h2></div>
+          <ul class="crew" id="crew"></ul>
+          <div class="crew-legend" id="crew-legend"></div>
+        </section>
+
+        <!-- F01-S05: Rủi ro dồn ở đâu -->
+        <section class="ov-card s-6" aria-labelledby="hot-title">
+          <div class="c-head"><h2 id="hot-title" data-vi="Rủi ro dồn ở đâu">Where risk piles up</h2><span class="tabs" role="tablist" id="group-tabs"></span></div>
+          <ul class="hot" id="hot"></ul>
+          <div class="crew-legend"><span><i class="sw" style="background:var(--high)"></i>HIGH</span><span><i class="sw" style="background:var(--ink-300)"></i><span data-vi="Mức khác">Other levels</span></span></div>
+        </section>
+
+        <!-- Đơn cần can thiệp -->
+        <section class="ov-card s-6" aria-labelledby="att-title">
+          <div class="c-head"><h2 id="att-title" data-vi="Đơn cần can thiệp">Orders needing attention</h2><a class="c-more" id="att-more" href="index.html?sla=over&amp;status=OPEN" data-vi="Xem tất cả">View all</a></div>
+          <ul class="feed" id="attention"></ul>
+        </section>
+
+        <!-- Product view: sản phẩm rủi ro nhất -->
+        <section class="ov-card s-12" id="top-items-box" aria-labelledby="top-title">
+          <div class="c-head"><h2 id="top-title" data-vi="Sản phẩm rủi ro cao nhất">Highest-risk products</h2></div>
+          <ul class="feed" id="top-items"></ul>
+        </section>
+
+        <!-- Phân công, vượt quy tắc, đổi tham số gần đây -->
+        <section class="ov-card s-12" aria-labelledby="recent-title">
+          <div class="c-head"><h2 id="recent-title" data-vi="Thay đổi gần đây">Recent changes</h2><a class="c-more" href="audit.html" data-vi="Lịch sử thao tác">Audit History</a></div>
+          <ul class="feed" id="recent"></ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script>
+    var KEYS = ["time", "level", "seller", "category", "assignee", "status", "item"];
+    var applied = {};          // filter đã áp dụng (khác giá trị đang chọn mà chưa bấm Áp dụng)
+    var group = "seller";
+    var view = "order";
+    try { view = localStorage.getItem("hd-dash-view") || "order"; } catch (e) { }
+
+    function el(id) { return document.getElementById(id); }
+    function pct(a, b) { return b ? Math.round(a / b * 100) : 0; }
+
+    // GET /orders/filter-options + GET /users?role=specialist
+    async function fillOptions() {
+      var r = await Promise.all([api.getFilterOptions(), api.listUsers("SPECIALIST")]);
+      var sellers = r[0].sellers, cats = r[0].categories, sp = r[1].items;
+      for (var s = 0; s < sellers.length; s++) el("f-seller").innerHTML += '<option value="' + escapeHtml(sellers[s]) + '">' + escapeHtml(shortId(sellers[s])) + "</option>";
+      for (var c = 0; c < cats.length; c++) el("f-category").innerHTML += '<option value="' + escapeHtml(cats[c]) + '">' + escapeHtml(catLabel(cats[c])) + "</option>";
+      for (var u = 0; u < sp.length; u++) el("f-assignee").innerHTML += '<option value="' + escapeHtml(sp[u].user_id) + '">' + escapeHtml(sp[u].full_name) + "</option>";
+    }
+
+    // ---------- Bộ lọc ----------
+    function toggleFilters(open) {
+      var f = el("dash-filters");
+      if (open == null) open = f.hidden;
+      f.hidden = !open;
+      el("filter-btn").setAttribute("aria-expanded", open);
+      if (open) el("f-time").focus();
+    }
+    function renderFilterBtn() {
+      var n = 0;
+      for (var i = 0; i < KEYS.length; i++) if (applied[KEYS[i]]) n++;
+      el("filter-btn").innerHTML = icon("filter") + L("Filters", "Bộ lọc") + (n ? ' <span class="n">' + n + "</span>" : "");
+    }
+    function apply() {
+      for (var i = 0; i < KEYS.length; i++) applied[KEYS[i]] = el("f-" + KEYS[i]).value.trim();
+      markDirty();
+      renderAll();
+    }
+    function markDirty() {
+      var dirty = false;
+      for (var i = 0; i < KEYS.length; i++) if ((applied[KEYS[i]] || "") != el("f-" + KEYS[i]).value.trim()) dirty = true;
+      el("pending-msg").hidden = !dirty;
+      el("apply-btn").className = "btn" + (dirty ? " primary" : "");
+    }
+    function resetAll() {
+      for (var i = 0; i < KEYS.length; i++) el("f-" + KEYS[i]).value = "";
+      apply();
+    }
+    function clearOne(k) { el("f-" + k).value = ""; apply(); }
+
+    // F01-S02: đổi góc nhìn, giữ bộ lọc
+    function setView(v) {
+      view = v;
+      try { localStorage.setItem("hd-dash-view", v); } catch (e) { }
+      if (v == "product" && group == "seller") group = "category";
+      renderAll();
+    }
+    function renderViewSwitch() {
+      el("v-order").className = view == "order" ? "active" : "";
+      el("v-product").className = view == "product" ? "active" : "";
+      el("v-order").setAttribute("aria-pressed", view == "order");
+      el("v-product").setAttribute("aria-pressed", view == "product");
+    }
+
+    var DASH = null;   // phản hồi GET /dashboard gần nhất
+
+    // Link drill-down sang Risk Queue: filter của Dashboard + điều kiện của ô được bấm
+    function queueLink(extra) {
+      var p = new URLSearchParams();
+      p.set("status", "");                       // Dashboard tính trên mọi trạng thái
+      if (DASH && DASH.from) p.set("from", DASH.from);
+      if (applied.level) p.set("level", applied.level);
+      if (applied.seller) p.set("seller", applied.seller);
+      if (applied.category) p.set("category", applied.category);
+      if (applied.assignee) p.set("assignee", applied.assignee);
+      if (applied.status) p.set("status", applied.status);
+      if (applied.item) p.set("q", applied.item);
+      for (var k in extra) p.set(k, extra[k]);
+      return "index.html?" + p.toString();
+    }
+
+    function renderChips() {
+      var names = { time: L("Queued", "Vào queue"), level: L("Level", "Mức"), seller: "Seller", category: L("Category", "Ngành hàng"), assignee: L("Specialist", "Nhân viên"), status: L("Status", "Trạng thái"), item: L("Product", "Sản phẩm") };
+      var html = "";
+      for (var i = 0; i < KEYS.length; i++) {
+        var k = KEYS[i];
+        if (!applied[k]) continue;
+        var sel = el("f-" + k), text = applied[k];
+        if (sel.tagName == "SELECT") for (var j = 0; j < sel.options.length; j++) if (sel.options[j].value == applied[k]) text = sel.options[j].text;
+        if (k == "item") text = shortItemId(applied[k]);
+        html += '<span class="chip">' + names[k] + ": <b>" + text + '</b> <button type="button" aria-label="' + L("Remove filter ", "Bỏ lọc ") + names[k] + '" onclick="clearOne(\'' + k + '\')">×</button></span>';
+      }
+      el("chips").innerHTML = html ? '<span class="muted">' + L("Applied:", "Đang áp dụng:") + "</span> " + html : "";
+      renderFilterBtn();
+    }
+
+    var BLOCKS = ["spot", "kpi", "todo", "trend", "level-mix", "pipe", "quality", "crew", "hot", "attention", "recent", "top-items"];
+    function renderLoading() {
+      el("alert").innerHTML = "";
+      document.querySelector(".ov-grid").hidden = false;
+      renderFilterBtn();
+      for (var j = 0; j < BLOCKS.length; j++) el(BLOCKS[j]).innerHTML = skeletonHtml(3);
+    }
+    // Lỗi tải: chỉ một thông báo, ẩn lưới khối (tránh 10 khối cùng ghi "Không có dữ liệu")
+    function renderError() {
+      el("alert").innerHTML = errorHtml(L("dashboard data", "dữ liệu tổng quan"));
+      document.querySelector(".ov-grid").hidden = true;
+    }
+
+    var reqNo = 0;
+    async function renderAll() {
+      renderViewSwitch();
+      renderChips();
+      renderLoading();
+      var mine = ++reqNo, pending;
+      var q = { days: applied.time, level: applied.level, seller: applied.seller, category: applied.category,
+        assignee: applied.assignee, status: applied.status, product_item: applied.item, view: view };
+      try {
+        var r = await Promise.all([
+          api.getDashboard(q),
+          // Đơn HIGH chưa người nhận, cùng phạm vi seller/ngành hàng/sản phẩm (GET /orders)
+          api.listOrders({ level: "HIGH", status: "PENDING", seller: applied.seller, category: applied.category, q: applied.item, limit: 4 })
+        ]);
+        DASH = r[0]; pending = r[1];
+      } catch (e) {
+        if (mine == reqNo) renderError();
+        return;
+      }
+      if (mine != reqNo) return;
+      el("ov-date").innerHTML = L("Data as of ", "Số liệu lúc ") + viTime(DASH.as_of) + " · " + DASH.totals.total + L(" risk orders", " đơn rủi ro");
+      renderSpot(DASH.totals, pending);
+      if (view == "product") renderProductKpi(DASH.product.totals); else renderKpi(DASH.totals, DASH.actions);
+      renderTodo(DASH.actions);
+      renderTrend(DASH.trend);
+      renderLevels(DASH);
+      renderPipe(DASH.totals);
+      renderQuality(DASH.service);
+      renderCrew(DASH.workload);
+      renderGroups();
+      renderAttention(DASH.attention);
+      renderTopItems();
+      renderRecent(DASH.recent_overrides);
+      if (DASH.totals.total == 0) {
+        el("alert").innerHTML = '<div class="alert info"><span class="icon">i</span><span>' + L("No orders in the current filters.", "Không có đơn nào trong bộ lọc hiện tại.") + '</span><a class="btn sm" href="#" onclick="resetAll(); return false;">' + L("Reset", "Đặt lại") + "</a></div>";
+      }
+    }
+
+    // ---------- Dẫn mắt: HIGH chờ giao ----------
+    function renderSpot(n, pending) {
+      var list = "";
+      for (var i = 0; i < pending.items.length; i++) {
+        var o = pending.items[i];
+        list += '<li><a href="order.html?id=' + encodeURIComponent(o.order_id) + '"><span class="id">' + shortId(o.order_id) + "</span>"
+          + '<span class="tiny" style="color:inherit">' + escapeHtml(catLabel(o.category)) + "</span>"
+          + (o.sla_state == "over" ? '<span class="ov">' + L("overdue", "quá hạn") + "</span>" : "")
+          + '<span class="sc">' + o.risk_score.toFixed(2) + "</span></a></li>";
+      }
+      var calm = !n.high_pending;
+      el("spot").className = "ov-card spot s-4" + (calm ? " calm" : "");
+      el("spot").innerHTML = '<span class="ring-hi" aria-hidden="true"></span>'
+        + '<p class="eyebrow">' + L("Waiting for you", "Đang chờ anh/chị") + "</p>"
+        + '<div class="spot-num" id="spot-title">' + n.high_pending + "</div>"
+        + '<div class="spot-label">' + L("HIGH orders with no owner", "đơn HIGH chưa có người nhận") + "</div>"
+        + '<div class="spot-sub">' + (calm ? L("Every HIGH order has an owner.", "Mọi đơn HIGH đã có người nhận.")
+            : (n.high_pending_overdue ? "<b>" + n.high_pending_overdue + "</b> " + L("already past SLA", "đơn đã quá hạn SLA") : L("All still within SLA", "Đều còn hạn SLA"))) + "</div>"
+        + (list ? '<ul class="spot-list">' + list + "</ul>" : "")
+        + (calm ? "" : '<a class="btn primary" href="' + queueLink({ level: "HIGH", status: "PENDING" }) + '">' + L("Assign now", "Giao ngay") + " " + icon("arrow") + "</a>")
+        + spotCrew();
+    }
+    // Ai nhận được: nhân viên còn chỗ, nhiều chỗ nhất lên trước
+    function spotCrew() {
+      var w = DASH.workload.slice().sort(function (a, b) { return b.slots_left - a.slots_left; }), rows = "";
+      for (var i = 0; i < w.length; i++) {
+        var cells = "";
+        for (var k = 0; k < w[i].capacity; k++) cells += '<i class="' + (k < w[i].active_count ? "on" : "") + '"></i>';
+        rows += "<li><span>" + escapeHtml(w[i].full_name) + '</span><span class="slots">' + cells + "</span><b>" + w[i].slots_left + "</b></li>";
+      }
+      return rows ? '<div class="spot-crew"><p class="eyebrow">' + L("Free slots", "Chỗ trống để giao") + "</p><ul>" + rows + "</ul></div>" : "";
+    }
+
+    // ---------- F01-S03: ô số (Theo đơn) ----------
+    function renderKpi(n, actions) {
+      var decide = 0;
+      for (var i = 0; i < actions.length; i++) if (actions[i].code == "DECIDE") decide = actions[i].count;
+      var open = n.PENDING + n.IN_PROGRESS;
+      function slots(total, marked, cls) {
+        var s = "";
+        for (var k = 0; k < total; k++) s += '<i class="' + (k < marked ? cls : "on") + '"></i>';
+        return '<div class="slots">' + s + "</div>";
+      }
+      el("kpi").innerHTML = '<div class="tiles">'
+        + '<a class="tile' + (n.overdue ? " danger" : "") + '" href="' + queueLink({ sla: "over", status: "OPEN" }) + '">'
+          + '<span class="tile-top">' + icon("clock") + L("Past SLA", "Quá hạn SLA") + "</span>"
+          + '<span class="tile-num">' + n.overdue + "<small>/" + open + "</small></span>"
+          + '<div class="tile-viz">' + slots(open, n.overdue, "over") + '</div><span class="tile-foot">' + L("of open orders", "trong số đơn đang mở") + "</span></a>"
+        + '<a class="tile" href="' + queueLink({ status: "IN_PROGRESS" }) + '">'
+          + '<span class="tile-top">' + icon("progress") + L("In progress", "Đang xử lý") + "</span>"
+          + '<span class="tile-num">' + n.IN_PROGRESS + "</span>"
+          + '<div class="tile-viz">' + slots(n.IN_PROGRESS, n.stale, "stale") + '</div><span class="tile-foot">' + (n.stale ? "<b>" + n.stale + "</b> " + L("not updated ≥ " + durationText(config.stale_hours), "đơn ≥ " + durationText(config.stale_hours) + " chưa cập nhật") : L("All recently updated", "Đều mới cập nhật")) + "</span></a>"
+        + '<a class="tile" href="decision.html">'
+          + '<span class="tile-top">' + icon("gavel") + L("Need a decision", "Chờ quyết định") + "</span>"
+          + '<span class="tile-num">' + decide + "</span>"
+          + '<div class="tile-viz"><div class="dots">' + new Array(decide + 1).join('<i style="background:var(--accent)"></i>') + '</div></div><span class="tile-foot">' + L("contact finished, next step open", "đã liên lạc xong, chưa chốt bước tiếp") + "</span></a>"
+        + "</div>";
+    }
+    // Theo sản phẩm
+    function renderProductKpi(p) {
+      el("kpi").innerHTML = '<div class="tiles">'
+        + '<a class="tile" href="' + queueLink({}) + '"><span class="tile-top">' + icon("inbox") + L("Risk products", "Sản phẩm rủi ro") + '</span><span class="tile-num">' + p.total_items + "</span>"
+          + '<span class="tile-foot">' + L("in " + p.orders + " orders", "trong " + p.orders + " đơn") + (p.synthetic ? " · " + p.synthetic + L(" simulated", " giả lập") : "") + "</span></a>"
+        + '<a class="tile danger" href="' + queueLink({ level: "HIGH" }) + '"><span class="tile-top">' + levelIcon("HIGH") + L("HIGH products", "Sản phẩm HIGH") + '</span><span class="tile-num">' + p.HIGH + "<small>" + pct(p.HIGH, p.total_items) + "%</small></span>"
+          + '<div class="tile-viz"><div class="progress"><div style="width:' + pct(p.HIGH, p.total_items) + '%;background:var(--high)"></div></div></div></a>'
+        + '<a class="tile" href="' + queueLink({ level: "MEDIUM" }) + '"><span class="tile-top">' + levelIcon("MEDIUM") + L("MEDIUM products", "Sản phẩm MEDIUM") + '</span><span class="tile-num">' + p.MEDIUM + "<small>" + pct(p.MEDIUM, p.total_items) + "%</small></span>"
+          + '<div class="tile-viz"><div class="progress"><div style="width:' + pct(p.MEDIUM, p.total_items) + '%;background:var(--med)"></div></div></div></a>'
+        + "</div>";
+    }
+
+    // ---------- Việc cần làm ----------
+    var ACTION_ICON = { ASSIGN_HIGH: "inbox", REBALANCE: "users", STALE: "hourglass", DECIDE: "gavel", SELLER_HOTSPOT: "store" };
+    function actionText(a) {
+      var who = a.suggest ? escapeHtml(a.suggest.full_name) : null;
+      switch (a.code) {
+        case "ASSIGN_HIGH": return { title: L("Assign " + a.count + " HIGH orders", "Giao " + a.count + " đơn HIGH"),
+          sub: who ? L(escapeHtml(who) + " has " + a.suggest.slots_left + " free slots", escapeHtml(who) + " còn " + a.suggest.slots_left + " chỗ trống") : L("Nobody has a free slot", "Không ai còn chỗ trống"),
+          go: L("Assign", "Giao"), href: queueLink({ level: "HIGH", status: "PENDING" }) };
+        case "REBALANCE": return { title: L("Rebalance " + escapeHtml(a.full_name) + " (" + a.active + "/" + a.capacity + ")", "Chia bớt việc của " + escapeHtml(a.full_name) + " (" + a.active + "/" + a.capacity + ")"),
+          sub: L(a.overdue + " overdue", a.overdue + " đơn quá hạn") + (who ? L(" · move to " + who, " · chuyển cho " + who) : ""),
+          go: L("Review", "Xem"), href: "index.html?assignee=" + encodeURIComponent(a.user_id) + "&status=IN_PROGRESS" };
+        case "STALE": return { title: L("Chase " + a.count + " stale orders", "Nhắc " + a.count + " đơn lâu không cập nhật"),
+          sub: L("no update for " + durationText(a.hours), durationText(a.hours) + " chưa cập nhật, có thể lỡ hẹn gọi lại"), go: L("Check", "Kiểm tra"), href: "index.html?sla=stale" };
+        case "DECIDE": return { title: L("Decide " + a.count + " cases", "Quyết định " + a.count + " case"),
+          sub: L("contact is done, choose the next step", "đã liên lạc xong, cần chốt bước tiếp theo"), go: L("Decide", "Quyết định"), href: "decision.html" };
+        case "SELLER_HOTSPOT": return { title: L("Seller " + shortId(a.seller_id) + ": " + a.high + "/" + a.high_total + " HIGH orders", "Seller " + shortId(a.seller_id) + ": " + a.high + "/" + a.high_total + " đơn HIGH"),
+          sub: L("likely a seller-side cause", "nguyên nhân có thể nằm ở seller"), go: L("View", "Xem"), href: queueLink({ seller: a.seller_id }) };
+      }
+    }
+    function renderTodo(list) {
+      var html = "";
+      for (var i = 0; i < list.length; i++) {
+        var a = list[i], t = actionText(a);
+        html += '<li><a class="' + a.severity + '" href="' + safeUrl(t.href) + '"><span class="t-ic" aria-hidden="true">' + icon(ACTION_ICON[a.code]) + "</span>"
+          + '<span class="t-title">' + t.title + '<span class="t-sub">' + t.sub + "</span></span>"
+          + '<span class="t-go">' + t.go + " " + icon("arrow") + "</span></a></li>";
+      }
+      el("todo").innerHTML = html || '<li class="todo-empty">' + L("Nothing to do right now. The team is keeping up.", "Chưa có việc gì cần làm. Nhóm đang theo kịp.") + "</li>";
+    }
+
+    // ---------- F01-S08: cột chồng theo ngày ----------
+    function renderTrend(t) {
+      var max = 1, W = 720, H = 270, padL = 26, padB = 26, padT = 22, n = t.length;
+      for (var i = 0; i < n; i++) max = Math.max(max, t[i].HIGH + t[i].MEDIUM + t[i].LOW);
+      var step = (W - padL) / n, bw = Math.min(46, step * 0.56), unit = (H - padB - padT) / max, svg = "";
+      for (var g = 0; g <= max; g += Math.max(1, Math.ceil(max / 4))) {
+        var gy = H - padB - g * unit;
+        svg += '<line class="grid" x1="' + padL + '" x2="' + W + '" y1="' + gy + '" y2="' + gy + '"/><text class="ax" x="' + (padL - 8) + '" y="' + (gy + 4) + '" text-anchor="end">' + g + "</text>";
+      }
+      var total = 0;
+      for (var d = 0; d < n; d++) {
+        var x = padL + d * step + (step - bw) / 2, y = H - padB, sum = t[d].HIGH + t[d].MEDIUM + t[d].LOW, levels = ["LOW", "MEDIUM", "HIGH"];
+        total += sum;
+        svg += '<g class="tbar"><title>' + shortDay(t[d].date) + ": HIGH " + t[d].HIGH + ", MEDIUM " + t[d].MEDIUM + ", LOW " + t[d].LOW + "</title>";
+        for (var l = 0; l < 3; l++) {
+          var h = t[d][levels[l]] * unit;
+          if (h > 0) { y -= h; svg += '<rect class="seg ' + levels[l] + '" x="' + x + '" y="' + y + '" width="' + bw + '" height="' + Math.max(h - 2, 1) + '" rx="4"/>'; }
+        }
+        if (sum) svg += '<text class="tot" x="' + (x + bw / 2) + '" y="' + (y - 6) + '" text-anchor="middle">' + sum + "</text>";
+        svg += '<text class="ax" x="' + (x + bw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + shortDay(t[d].date) + "</text></g>";
+      }
+      el("trend").innerHTML = total ? '<svg class="trend" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + L("Cases entering the queue per day by risk level", "Số case vào queue theo ngày, tách mức rủi ro") + '">' + svg + "</svg>"
+        : '<p class="empty">' + L("No cases entered the queue in this period.", "Không có case nào vào queue trong khoảng này.") + "</p>";
+      var last = t[n - 1], lastSum = last ? last.HIGH + last.MEDIUM + last.LOW : 0, prev = 0;
+      for (var pv = 0; pv < n - 1; pv++) prev += t[pv].HIGH + t[pv].MEDIUM + t[pv].LOW;
+      var avg = n > 1 ? prev / (n - 1) : 0, ins = "";
+      if (total && last) {
+        ins = L("<b>" + lastSum + " new</b> on " + shortDay(last.date) + " (" + last.HIGH + " HIGH)", "<b>" + lastSum + " case mới</b> ngày " + shortDay(last.date) + " (" + last.HIGH + " HIGH)");
+        if (avg > 0 && lastSum >= avg * 1.5) ins += L(", " + (lastSum / avg).toFixed(1) + "x the usual day", ", gấp " + (lastSum / avg).toFixed(1).replace(".", ",") + " lần ngày thường");
+      }
+      el("trend-insight").innerHTML = ins;
+      el("trend-legend").innerHTML = '<span><i class="sw HIGH"></i>HIGH</span><span><i class="sw MEDIUM"></i>MEDIUM</span><span><i class="sw LOW"></i>LOW</span>';
+    }
+
+    // ---------- F01-S04: vòng phân bố mức ----------
+    function renderLevels(d) {
+      var counts = view == "product" ? { HIGH: d.product.totals.HIGH, MEDIUM: d.product.totals.MEDIUM, LOW: d.product.totals.LOW } : { HIGH: d.by_level[0].count, MEDIUM: d.by_level[1].count, LOW: d.by_level[2].count };
+      var total = counts.HIGH + counts.MEDIUM + counts.LOW, word = view == "product" ? L("products", "sản phẩm") : L("orders", "đơn");
+      el("dist-title").innerHTML = L("Risk mix", "Phân bố rủi ro");
+      var r = 52, len = 2 * Math.PI * r, off = 0, segs = "", legend = "", gap = total > 1 ? 3 : 0;
+      ["HIGH", "MEDIUM", "LOW"].forEach(function (lv) {
+        var part = total ? counts[lv] / total : 0, dash = Math.max(part * len - gap, 0);
+        if (counts[lv]) segs += '<circle class="m-seg ' + lv + '" cx="70" cy="70" r="' + r + '" stroke-dasharray="' + dash.toFixed(1) + " " + len.toFixed(1) + '" stroke-dashoffset="' + (-off).toFixed(1) + '" transform="rotate(-90 70 70)"/>';
+        off += part * len;
+        legend += '<li><a href="' + queueLink({ level: lv }) + '">' + badge(lv) + "<span></span><span><b>" + counts[lv] + '</b><span class="pct">' + pct(counts[lv], total) + "%</span></span></a></li>";
+      });
+      el("level-mix").innerHTML = '<svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="' + L("Risk level mix", "Phân bố mức rủi ro") + '">'
+        + '<circle cx="70" cy="70" r="' + r + '" fill="none" stroke="var(--ink-100)" stroke-width="16"/>' + segs
+        + '<text class="m-c1" x="70" y="74" text-anchor="middle">' + total + '</text><text class="m-c2" x="70" y="92" text-anchor="middle">' + word.toUpperCase() + "</text></svg>"
+        + '<ul class="mix-legend">' + legend + "</ul>";
+      el("bands-wrap").style.display = view == "product" ? "none" : "";
+      if (view == "product") return;
+      var rows = "<thead><tr><th>Score</th><th>" + L("Orders", "Đơn") + "</th><th>" + L("Open", "Đang mở") + "</th></tr></thead><tbody>", sum = 0;
+      for (var b = 0; b < d.score_bands.length; b++) {
+        var band = d.score_bands[b], lo = band.min, hi = band.max;
+        sum += band.count;
+        rows += '<tr class="click" onclick="location.href=\'' + queueLink({ smin: lo, smax: hi == 1 ? 1 : (hi - 0.01).toFixed(2) }) + '\'">'
+          + "<td>" + lo.toFixed(1) + " – " + (hi == 1 ? "1.0" : "&lt; " + hi.toFixed(1)) + "</td><td>" + band.count + "</td><td>" + band.open + "</td></tr>";
+      }
+      rows += '<tr class="total"><td>' + L("Total", "Tổng") + "</td><td>" + sum + "</td><td>" + (sum == d.totals.total ? L("matches", "khớp số đơn") : L("off by ", "lệch ") + (d.totals.total - sum)) + "</td></tr></tbody>";
+      el("bands").innerHTML = rows;
+    }
+
+    // ---------- Tiến độ xử lý ----------
+    function renderPipe(n) {
+      el("pipe-wrap").style.display = view == "product" ? "none" : "";
+      var parts = [["PENDING", L("Pending", "Chờ nhận")], ["IN_PROGRESS", L("In progress", "Đang xử lý")], ["COMPLETED", L("Completed", "Hoàn tất")], ["SKIPPED", L("Skipped", "Bỏ qua")]];
+      var bar = "", legend = "";
+      for (var i = 0; i < parts.length; i++) {
+        var k = parts[i][0], num = n[k], href = queueLink({ status: k });
+        if (num) bar += '<a class="' + k + '" href="' + href + '" style="flex-grow:' + num + '" title="' + parts[i][1] + ": " + num + '"><span class="sr">' + parts[i][1] + ": " + num + "</span></a>";
+        legend += '<a href="' + href + '"><span class="pl-l"><i class="sw st-' + k + '"></i>' + parts[i][1] + '</span><span class="pl-n">' + num + "</span></a>";
+      }
+      el("pipe").innerHTML = '<div class="pipe">' + bar + '</div><div class="pipe-legend">' + legend + "</div>";
+    }
+
+    // ---------- Chất lượng chăm sóc ----------
+    function gauge(p, cls) {
+      var r = 42, len = 2 * Math.PI * r, v = Math.max(0, Math.min(p, 100)) / 100;
+      return '<svg class="gauge ' + cls + '" viewBox="0 0 96 96" width="96" height="96" aria-hidden="true"><circle class="g-track" cx="48" cy="48" r="' + r + '"/>'
+        + (v > 0 ? '<circle class="g-fill" cx="48" cy="48" r="' + r + '" stroke-dasharray="' + (len * v).toFixed(1) + " " + len.toFixed(1) + '" transform="rotate(-90 48 48)"/>' : "") + "</svg>";
+    }
+    function tone(p) { return p >= 80 ? "good" : p >= 50 ? "warn" : "bad"; }
+    function renderQuality(s) {
+      var contacted = s.cases ? pct(s.contacted, s.cases) : null, inSla = s.with_first_contact ? pct(s.first_in_sla, s.with_first_contact) : null;
+      function item(o) {
+        return '<div class="q-item">' + (o.p != null ? '<div class="q-val">' + gauge(o.p, o.tone) + '<span class="q-num">' + o.num + "</span></div>" : '<div class="q-big">' + o.num + "</div>")
+          + '<div class="q-label">' + o.label + '</div><div class="q-sub">' + o.sub + "</div></div>";
+      }
+      el("quality").innerHTML =
+          item({ p: contacted == null ? 0 : contacted, tone: tone(contacted || 0), num: contacted == null ? "–" : contacted + "%", label: L("Customers reached out to", "Khách được gọi"), sub: s.contacted + "/" + s.cases + L(" orders", " đơn") })
+        + item({ p: inSla == null ? 0 : inSla, tone: tone(inSla || 0), num: inSla == null ? "–" : inSla + "%", label: L("First call on time", "Gọi đầu đúng hạn"), sub: s.first_in_sla + "/" + s.with_first_contact + L(" cases", " case") })
+        + item({ num: s.median_first_contact_hours == null ? "–" : durationText(s.median_first_contact_hours), label: L("Wait for first call", "Chờ tới cuộc gọi đầu"), sub: L("median", "trung vị") })
+        + item({ num: s.issue_found, label: L("Problems caught early", "Vấn đề bắt sớm"), sub: s.issue_found ? L(s.issue_followed_up + " with a next step", s.issue_followed_up + " đã có hướng xử lý") : L("none yet", "chưa có") });
+      el("q-flag").innerHTML = s.high_open_not_contacted ? '<a class="q-flag" href="' + queueLink({ level: "HIGH", status: "OPEN" }) + '">' + icon("phone") + L(s.high_open_not_contacted + " HIGH not called yet", s.high_open_not_contacted + " đơn HIGH chưa ai gọi") + "</a>" : "";
+    }
+
+    // ---------- F01-S06: workload ----------
+    function renderCrew(list) {
+      var html = "";
+      for (var i = 0; i < list.length; i++) {
+        var w = list[i], parts = w.full_name.split(" "), ini = parts[0].charAt(0) + parts[parts.length - 1].charAt(0), cells = "";
+        for (var k = 0; k < w.capacity; k++) {
+          var c = k < w.overdue ? "over" : k < w.overdue + w.stale ? "stale" : k < w.active_count ? "on" : "";
+          cells += '<i class="' + c + '"></i>';
+        }
+        var flag = w.slots_left ? '<span class="c-flag ok">' + L(w.slots_left + " free", "trống " + w.slots_left) + "</span>" : '<span class="c-flag hi">' + L("Full", "Đã đủ") + "</span>";
+        html += '<li><a href="index.html?assignee=' + encodeURIComponent(w.user_id) + '&status=IN_PROGRESS"><span class="avatar" aria-hidden="true">' + ini + "</span>"
+          + '<span class="c-name">' + escapeHtml(w.full_name) + "<small>" + w.active_count + "/" + w.capacity + (w.overdue ? L(" · " + w.overdue + " overdue", " · " + w.overdue + " quá hạn") : "") + "</small></span>"
+          + '<span class="slots" role="img" aria-label="' + w.active_count + "/" + w.capacity + '">' + cells + "</span>" + flag + "</a></li>";
+      }
+      el("crew").innerHTML = html || '<li class="empty">' + L("No specialists.", "Không có nhân viên.") + "</li>";
+      el("crew-legend").innerHTML = '<span><i class="sw" style="background:var(--accent)"></i>' + L("holding", "đang giữ") + '</span><span><i class="sw" style="background:var(--high)"></i>' + L("overdue", "quá hạn")
+        + '</span><span><i class="sw" style="background:var(--med)"></i>' + L("stale", "chậm cập nhật") + '</span><span><i class="sw" style="background:var(--ink-100)"></i>' + L("free", "trống") + "</span>";
+    }
+
+    // ---------- F01-S05: nhóm ----------
+    function setGroup(g) { group = g; if (DASH) renderGroups(); }
+    function renderGroups() {
+      var tabs = view == "product" ? [["category", L("Category", "Ngành hàng")]] : [["seller", "Seller"], ["category", L("Category", "Ngành hàng")]];
+      if (view == "product") group = "category";
+      var th = "";
+      for (var t = 0; t < tabs.length; t++) th += '<button type="button" role="tab" class="' + (group == tabs[t][0] ? "active" : "") + '" aria-selected="' + (group == tabs[t][0]) + '" onclick="setGroup(\'' + tabs[t][0] + '\')">' + tabs[t][1] + "</button>";
+      el("group-tabs").innerHTML = th;
+      var list = view == "product" ? DASH.product.by_category : (group == "seller" ? DASH.by_seller : DASH.by_category);
+      var maxT = 1;
+      for (var m = 0; m < list.length && m < 5; m++) maxT = Math.max(maxT, list[m].total);
+      var html = "";
+      for (var j = 0; j < list.length && j < 5; j++) {
+        var g = list[j], extra = {}, related = [];
+        extra[group] = g.key;
+        for (var r = 0; r < g.related.length && r < 2; r++) related.push(group == "seller" ? escapeHtml(catLabel(g.related[r])) : shortId(g.related[r]));
+        var wTot = g.total / maxT * 100, wHi = g.total ? g.high / g.total * 100 : 0;
+        html += '<li><a href="' + queueLink(view == "product" ? {} : extra) + '"><span class="h-name">' + (group == "seller" ? '<span class="id" style="color:inherit">' + shortId(g.key) + "</span>" : escapeHtml(catLabel(g.key)))
+          + (related.length ? "<small>" + related.join(", ") + (g.related.length > 2 ? " +" + (g.related.length - 2) : "") + "</small>" : "") + "</span>"
+          + '<span class="h-bar" style="width:' + wTot.toFixed(0) + '%" title="HIGH ' + g.high + "/" + g.total + '"><i class="h-hi" style="width:' + wHi.toFixed(0) + '%"></i><i class="h-rest" style="width:' + (100 - wHi).toFixed(0) + '%"></i></span>'
+          + '<span class="h-n">' + g.high + "<small>/" + g.total + "</small></span></a></li>";
+      }
+      el("hot").innerHTML = html || '<li class="empty">' + L("No data in the current filters.", "Không có dữ liệu trong bộ lọc hiện tại.") + "</li>";
+    }
+
+    function renderTopItems() {
+      el("top-items-box").style.display = view == "product" ? "" : "none";
+      if (view != "product") return;
+      var list = DASH.product.top_items, html = "";
+      for (var i = 0; i < list.length; i++) {
+        var it = list[i];
+        html += '<li><a class="id" href="order.html?id=' + encodeURIComponent(it.order_id) + "&item=" + encodeURIComponent(it.product_item_id) + '">' + shortItemId(it.product_item_id) + "</a> " + badge(it.risk_level) + " <b>" + it.risk_score.toFixed(2) + "</b> "
+          + escapeHtml(catLabel(it.category)) + (it.synthetic_data_flag ? " " + synthTag() : "") + " " + statusBadge(it.order_status)
+          + (it.top_factor ? '<span class="f-why">' + escapeHtml(it.top_factor) + "</span>" : "") + "</li>";
+      }
+      el("top-items").innerHTML = html || '<li class="empty">' + L("No products.", "Không có sản phẩm.") + "</li>";
+    }
+
+    function renderAttention(list) {
+      var items = [];
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i].order, why = [];
+        for (var k = 0; k < list[i].reasons.length; k++) {
+          var r = list[i].reasons[k];
+          if (r.code == "SLA_OVERDUE") why.push(L("SLA overdue", "Quá hạn SLA"));
+          if (r.code == "ESCALATED") why.push(L("in queue ", "nằm queue ") + durationText(r.hours));
+          if (r.code == "STALE") why.push(escapeHtml(r.assignee_name) + L(": no update for ", ": ") + durationText(r.hours) + L("", " không cập nhật"));
+        }
+        items.push("<li>" + idLink(c.order_id, "order.html?id=" + c.order_id) + " " + badge(c.risk_level) + " " + statusBadge(c.status)
+          + '<span class="f-when">' + (c.assignee_name ? escapeHtml(c.assignee_name) : L("Unassigned", "Chưa ai nhận")) + "</span>"
+          + '<span class="f-why">' + why.join(" · ") + "</span></li>");
+      }
+      el("attention").innerHTML = items.length ? items.slice(0, 5).join("") : '<li class="empty">' + L("Nothing needs attention.", "Không có gì cần can thiệp.") + "</li>";
+    }
+
+    function renderRecent(ev) {
+      var html = "";
+      for (var i = 0; i < ev.length && i < 4; i++) {
+        var e = ev[i];
+        html += '<li class="row-link" data-href="' + safeUrl(e.order_id ? "order.html?id=" + encodeURIComponent(e.order_id) : "settings.html") + '"><span class="ev ' + e.event_type + '">' + EVENT_LABEL[e.event_type] + "</span> <b>" + escapeHtml(e.actor_name) + "</b>" + (e.order_id ? idLink(e.order_id, "order.html?id=" + encodeURIComponent(e.order_id)) : '<a href="settings.html">' + L("Settings", "Cài đặt") + "</a>")
+          + '<span class="f-when">' + viTime(e.created_at) + "</span>"
+          + '<span class="f-why">' + changeHtml(e.old_value, e.new_value) + (e.reason ? L(" · Reason: ", " · Lý do: ") + escapeHtml(e.reason) : "") + "</span></li>";
+      }
+      el("recent").innerHTML = html || '<li class="empty">' + L("No actions yet.", "Chưa có thao tác.") + "</li>";
+    }
+
+    renderLoading();   // hiện khung xám ngay, trong lúc chờ nạp tài khoản và cấu hình
+    boot("dashboard").then(async function () {
+      if (!requireManager()) return;
+      try { await fillOptions(); } catch (e) { /* ô lọc phụ để trống, số liệu vẫn tải */ }
+      apply();
+    }).catch(function () { });
+  </script>
+</body>
+</html>

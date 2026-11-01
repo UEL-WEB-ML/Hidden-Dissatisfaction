@@ -1,4 +1,4 @@
-.PHONY: install quality test format clean-cache bootstrap bronze-manifest ingest warehouse train score demo-seed app-up frontend-test e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format clean-cache bootstrap bronze-manifest ingest warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -56,9 +56,6 @@ demo-seed:
 
 app-up: bootstrap
 	$(COMPOSE) up -d api frontend
-
-frontend-test:
-	$(COMPOSE) --profile quality run --rm frontend-test
 
 e2e: app-up demo-seed
 	@set -a; . ./.env; set +a; test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)

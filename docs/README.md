@@ -29,7 +29,10 @@ This repository is the single source of truth for the Hidden Dissatisfaction pro
 - [`../references/`](../references/) — dated research-source snapshots.
 - [`../web/BaoCao_LaTeX/`](../web/BaoCao_LaTeX/) — report source.
 - [`../web/SoDo/`](../web/SoDo/) — diagrams.
-- [`../web/Wireframe/`](../web/Wireframe/) — static wireframe.
+- [`../web/Wireframe/`](../web/Wireframe/) — archived/reference-only static wireframe; not an active application path.
+
+The delivered static frontend is [`../frontend/prototype/`](../frontend/prototype/). This documentation
+does not claim browser E2E coverage for that frontend.
 
 ## Fixed system decisions
 

@@ -6,8 +6,6 @@ __pycache__
 .ruff_cache
 .coverage
 htmlcov
-frontend/hidden-dissatisfaction-frontend/node_modules
-frontend/hidden-dissatisfaction-frontend/dist
 data
 reports
 logs
