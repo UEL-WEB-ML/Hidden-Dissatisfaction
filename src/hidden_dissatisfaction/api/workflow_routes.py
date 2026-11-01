@@ -27,6 +27,7 @@ from hidden_dissatisfaction.infrastructure.local_evidence_store import (
 )
 
 from .authorization import require_manager
+from .schemas import OrderDetail
 
 T = TypeVar("T")
 _FORBIDDEN_CODES = {"FORBIDDEN", "HIGH_RISK_REQUIRES_ASSIGN"}
@@ -168,11 +169,11 @@ def build_workflow_router(
         return order
 
     @router.get("/orders/{order_id}")
-    async def order_detail(order_id: str, user: Authenticated) -> dict[str, Any]:
+    async def order_detail(order_id: str, user: Authenticated) -> OrderDetail:
         detail: dict[str, Any] = run(
             lambda: reads.detail(order_id, datetime.now(UTC), user.role is Role.MANAGER)
         )
-        return detail
+        return OrderDetail.model_validate(detail)
 
     @router.post("/orders/{order_id}/assign")
     async def assign(order_id: str, body: AssignBody, user: Authenticated) -> dict[str, Any]:

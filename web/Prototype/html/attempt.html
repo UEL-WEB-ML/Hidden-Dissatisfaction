@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-vi="Liên lạc khách · Hidden Dissatisfaction">Contact attempts · Hidden Dissatisfaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="topbar" id="topbar"></nav>
+
+  <div class="page" id="content">
+    <h1 data-vi="Liên lạc khách">Contact attempts</h1>
+    <p class="sub" data-vi="Chọn đơn bạn đang giữ, gọi cho khách, rồi ghi lại kết quả kèm minh chứng.">Pick an order you hold, contact the customer, then log what happened with evidence.</p>
+
+    <div class="note" lang="vi">Feedback 13/10: tách phần liên lạc (F07) khỏi Order Detail thành trang riêng. Cột trái: các đơn được giao cho mình
+      (Đang xử lý), xếp theo SLA gần hạn; bấm để chọn. Cột phải: tóm tắt đơn, form ghi lần liên lạc kèm ô minh chứng, lịch sử liên lạc theo chu kỳ.
+      Manager không có mục này trên thanh điều hướng; mở từ Order Detail ("Xem lần liên lạc") thì xem được nhưng không ghi (chỉ người phụ trách ghi, BRD 6.6).</div>
+
+    <div class="pick-layout">
+      <!-- Cột trái: danh sách đơn để chọn -->
+      <aside class="box pick-list">
+        <h2 id="pl-title"></h2>
+        <ul class="plist" id="plist" role="listbox" aria-labelledby="pl-title"></ul>
+      </aside>
+
+      <!-- Cột phải: đơn đang chọn -->
+      <section class="pick-main" id="main"></section>
+    </div>
+
+    <div class="note" lang="vi">F07-S01..S04. Mỗi lần liên lạc lưu thời điểm, phương thức, kết quả, ghi chú, ngày hẹn tiếp (BRD 6.6 mục 1).
+      Bộ đếm x/y của chu kỳ hiện tại; y = số lần tối đa trong bộ tham số đang hiệu lực (Settings), mở lại case thì đếm lại từ 0.
+      Ngày hẹn tự đề xuất theo khoảng cách giữa 2 lần (tham số). Contract v0.5: lần cuối mà kết quả khác "Liên lạc được" thì backend tự chuyển đơn sang Bỏ qua / Không liên lạc được
+      (đơn 2b4d6f8a của nhanvien2 là ví dụ). Lần cuối liên lạc được thì khoá form, hướng dẫn hoàn tất.
+      <br>Ô minh chứng (BRD 6.6, FRD F07-S03): tối đa 3 tệp PNG/JPG/PDF, mỗi tệp ≤ 5 MB, không nhận URL, kèm ô "Mã tham chiếu"
+      (mã cuộc gọi, tiêu đề email). Không bắt buộc (BRD: Attempt "có thể kèm" tệp).</div>
+  </div>
+
+  <!-- Backend giả hay thật: chỉnh trong js/config.js (USE_MOCK). Không cần xoá 2 dòng mock bên dưới. Xem BACKEND.md -->
+  <script src="../js/config.js"></script>
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/mock-server.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script>
+    function el(id) { return document.getElementById(id); }
+    var id = new URLSearchParams(location.search).get("id");
+    var LIST = [], D = null, o = null, cyc = [], files = [];
+    var EVIDENCE_TYPES = ["image/png", "image/jpeg", "application/pdf"];
+
+    // ---------- Danh sách đơn để chọn ----------
+    async function loadList() {
+      var q = { status: "IN_PROGRESS", sort: "sla", limit: 50 };
+      if (!isManager()) q.assignee = "me";
+      LIST = (await api.listOrders(q)).items;
+    }
+    function renderList() {
+      el("pl-title").innerHTML = (isManager() ? L("In-progress orders", "Đơn đang xử lý") : L("Assigned to me", "Đơn được giao cho tôi")) + ' <span class="counter">' + LIST.length + "</span>";
+      var html = "";
+      for (var i = 0; i < LIST.length; i++) {
+        var c = LIST[i], on = o && c.order_id == o.order_id;
+        var used = c.contact_count >= c.max_contact;
+        html += '<li role="option" aria-selected="' + on + '"><a href="attempt.html?id=' + c.order_id + '" class="' + (on ? "sel" : "") + '" onclick="pick(\'' + c.order_id + '\'); return false;">'
+          + '<div class="pl-top"><span class="id">' + shortId(c.order_id) + "</span> " + badge(c.risk_level) + "</div>"
+          + '<div class="pl-mid">' + catLabel(c.top_item.category) + (isManager() ? " · " + c.assignee_name : "") + "</div>"
+          + '<div class="pl-bot">' + slaBadge(c) + ' <span class="att' + (used ? " full" : "") + '">' + icon("phone") + c.contact_count + "/" + c.max_contact + "</span></div></a></li>";
+      }
+      el("plist").innerHTML = html || '<li class="empty">' + (isManager() ? L("No orders in progress.", "Không có đơn đang xử lý.")
+        : L("You don't hold any orders. Claim one from the Risk Queue.", "Bạn chưa giữ đơn nào. Nhận đơn ở Risk Queue.") + ' <a href="index.html">Risk Queue →</a>') + "</li>";
+    }
+    function pick(oid) {
+      history.replaceState(null, "", "attempt.html?id=" + oid);
+      id = oid; files = [];
+      loadOrder().then(renderAll).catch(function (e) { toast(e.message, "error"); });
+    }
+
+    // ---------- Đơn đang chọn ----------
+    async function loadOrder() {
+      var r = await Promise.all([api.getOrder(id), reloadMe()]);
+      D = r[0]; o = D.order;
+      cyc = D.contacts.filter(function (c) { return c.cycle_no == o.cycle_no; });
+      rememberOrder(o.order_id);
+    }
+    function mine() { return o.assignee_id == ME.user_id; }
+
+    function renderMain() {
+      if (!o) {
+        el("main").innerHTML = '<div class="box empty">' + L("Pick an order on the left.", "Chọn một đơn ở cột trái.") + "</div>";
+        return;
+      }
+      var n = cyc.length, max = o.max_contact, t = o.top_item, last = cyc[n - 1];
+      var head = '<div class="box att-head">'
+        + '<div class="ah-row"><div><div class="ah-id">' + idLink(o.order_id, "order.html?id=" + o.order_id) + " " + badge(o.risk_level) + " <b>" + o.risk_score.toFixed(2) + "</b> " + statusBadge(o.status)
+        + (o.cycle_no > 1 ? ' <span class="cycle-tag">' + L("Cycle ", "Chu kỳ ") + o.cycle_no + "</span>" : "") + "</div>"
+        + '<div class="tiny">' + o.customer_city + " (" + o.customer_state + ") · " + L("Check first: ", "Kiểm tra trước: ") + "<b>" + catLabel(t.category) + "</b> (" + shortItemId(t.product_item_id) + ", " + t.risk_level + ")"
+        + (o.top_factors[0] ? " · " + o.top_factors[0] : "") + "</div></div>"
+        + '<a class="btn sm" href="order.html?id=' + o.order_id + '">' + L("Open Order Detail", "Mở chi tiết đơn") + "</a></div>"
+        + '<div class="keynums">'
+        + '<div class="kn"><div class="kn-label">SLA</div><div class="kn-num sla-num ' + slaState(o).code + '">' + slaState(o).text + '</div><div class="kn-sub">' + L("Due ", "Hạn ") + viTime(slaDue(o)) + "</div></div>"
+        + '<div class="kn"><div class="kn-label">' + L("Attempts this cycle", "Lần liên lạc chu kỳ này") + '</div><div class="kn-num">' + n + '<span class="kn-of">/' + max + "</span></div>"
+        + '<div class="kn-sub">' + (last && last.next_contact_date ? L("Next: ", "Hẹn: ") + viTime(last.next_contact_date) : (n ? L("No follow-up set", "Chưa hẹn") : L("None yet", "Chưa có"))) + "</div></div>"
+        + '<div class="kn"><div class="kn-label">' + L("Assignee", "Người phụ trách") + '</div><div class="kn-num kn-name">' + (o.assignee_name || "—") + "</div>"
+        + '<div class="kn-sub">' + (mine() ? L("You", "Bạn") : "") + "</div></div></div></div>";
+
+      el("main").innerHTML = head + '<div class="box"><h2>' + L("Log an attempt", "Ghi lần liên lạc") + ' <span class="counter' + (n >= max ? " full" : "") + '">' + n + "/" + max + "</span></h2>"
+        + '<div id="form"></div></div>'
+        + '<div class="box"><h2>' + L("Contact history", "Lịch sử liên lạc") + "</h2><div id=\"hist\"></div></div>";
+      renderForm();
+      renderHistory();
+    }
+
+    function renderForm() {
+      var n = cyc.length, max = o.max_contact, html = "";
+      if (o.status != "IN_PROGRESS") {
+        html = '<p class="muted">' + L("This order is not in progress, so no attempts can be logged.", "Đơn không ở trạng thái Đang xử lý nên không ghi được lần liên lạc.") + "</p>";
+      } else if (!mine()) {
+        html = '<p class="muted">' + L("Only " + o.assignee_name + " (the assignee) can log attempts. You can read the history below.", "Chỉ " + o.assignee_name + " (người phụ trách) được ghi. Bạn xem lịch sử bên dưới.") + "</p>";
+      } else if (n >= max) {
+        // Còn ở Đang xử lý mà đã đủ lượt nghĩa là lần cuối đã liên lạc được (không được thì backend đã tự chuyển Bỏ qua)
+        html = '<div class="alert warn"><span class="icon">!</span><b>' + L("All " + max + " contact attempts used.", "Đã dùng hết " + max + " lần liên lạc.") + "</b><br>"
+          + L("The customer was reached on the last attempt. Complete the order with the outcome.", "Lần cuối đã liên lạc được khách. Hoàn tất đơn kèm kết quả.")
+          + '<div class="actions"><button class="btn sm primary" onclick="complete()">' + L("Complete", "Hoàn tất") + "</button></div></div>";
+      } else {
+        var last = cyc[n - 1];
+        var early = last && last.next_contact_date && inputDate(NOW) < inputDate(last.next_contact_date);
+        var methods = "", results = "";
+        for (var m in CONTACT_METHOD_LABEL) methods += '<option value="' + m + '">' + CONTACT_METHOD_LABEL[m] + "</option>";
+        for (var r in CONTACT_RESULT_LABEL) results += '<option value="' + r + '">' + CONTACT_RESULT_LABEL[r] + "</option>";
+        html = '<form class="contact-form" onsubmit="saveContact(); return false;">'
+          + "<h3>" + L("Attempt " + (n + 1) + " of " + max, "Lần " + (n + 1) + " / " + max) + "</h3>"
+          + (n + 1 == max ? '<p class="tiny warn-text">' + L("Last attempt: if the customer is not reached, the order is skipped automatically (" + SKIP_LABEL.UNREACHABLE + ").",
+            "Lần cuối: nếu không liên lạc được khách, đơn tự chuyển Bỏ qua (" + SKIP_LABEL.UNREACHABLE + ").") + "</p>" : "")
+          + (early ? '<p class="tiny warn-text">' + L("Before the planned date (" + viTime(last.next_contact_date) + "). The default gap is " + config.retry_gap_days + " business day(s).",
+            "Sớm hơn ngày đã hẹn (" + viTime(last.next_contact_date) + "). Khoảng cách mặc định là " + config.retry_gap_days + " ngày làm việc.") + "</p>" : "")
+          + '<div class="grid2">'
+          + '<div class="form-row"><label for="c-at">' + L("Time", "Thời điểm") + ' *</label><input id="c-at" type="datetime-local" value="' + inputTime(NOW) + '" max="' + inputTime(NOW) + '"></div>'
+          + '<div class="form-row"><label for="c-method">' + L("Method", "Phương thức") + ' *</label><select id="c-method">' + methods + "</select></div>"
+          + '<div class="form-row"><label for="c-result">' + L("Result", "Kết quả") + ' *</label><select id="c-result"><option value="">' + L("-- Choose --", "-- Chọn --") + "</option>" + results + "</select></div>"
+          + '<div class="form-row"><label for="c-next">' + L("Next contact", "Hẹn liên lạc tiếp") + '</label><input id="c-next" type="date" value="' + nextBusinessDay(NOW, config.retry_gap_days) + '"></div>'
+          + "</div>"
+          + '<div class="form-row"><label for="c-note">' + L("What did the customer say?", "Khách nói gì?") + '</label><textarea id="c-note" rows="2" placeholder="' + L("e.g. Box was dented, product still works", "vd: Hộp bị móp, sản phẩm vẫn dùng được") + '"></textarea></div>'
+          // Ô minh chứng
+          + '<fieldset class="evidence"><legend>' + L("Evidence of contact", "Minh chứng đã liên lạc") + ' <span class="tiny">' + L("(optional)", "(không bắt buộc)") + "</span></legend>"
+          + '<label class="dropzone" id="dz" for="c-files">' + icon("clip") + "<span><b>" + L("Attach screenshots or files", "Đính kèm ảnh chụp hoặc tệp") + "</b><br>"
+          + '<span class="tiny">' + L("Call log, chat screenshot or email as PNG, JPG or PDF · up to 3 files, 5 MB each", "Nhật ký cuộc gọi, ảnh chụp tin nhắn hoặc email dạng PNG, JPG, PDF · tối đa 3 tệp, mỗi tệp 5 MB") + "</span></span>"
+          + '<input id="c-files" type="file" multiple accept=".png,.jpg,.jpeg,.pdf" onchange="addFiles(this.files); this.value=\'\'"></label>'
+          + '<ul class="files" id="files"></ul>'
+          + '<div class="form-row"><label for="c-ref">' + L("Reference", "Mã tham chiếu") + '</label><input id="c-ref" type="text" placeholder="' + L("e.g. call log #CL-20180604-117 or email subject", "vd: mã cuộc gọi #CL-20180604-117 hoặc tiêu đề email") + '"></div>'
+          + "</fieldset>"
+          + '<p class="form-error" id="c-error" role="alert"></p>'
+          + '<div class="actions"><button class="btn primary" type="submit" id="c-save">' + L("Save attempt", "Lưu lần liên lạc") + "</button>"
+          + ' <button class="btn" type="button" onclick="complete()">' + L("Complete case", "Hoàn tất case") + '</button> <button class="btn" type="button" onclick="skip()">' + L("Skip", "Bỏ qua") + "</button></div></form>";
+      }
+      el("form").innerHTML = html;
+      var dz = el("dz");
+      if (dz) {
+        dz.addEventListener("dragover", function (e) { e.preventDefault(); dz.classList.add("over"); });
+        dz.addEventListener("dragleave", function () { dz.classList.remove("over"); });
+        dz.addEventListener("drop", function (e) { e.preventDefault(); dz.classList.remove("over"); addFiles(e.dataTransfer.files); });
+        renderFiles();
+      }
+    }
+
+    // Kiểm tra nhanh ở trình duyệt; backend kiểm tra lại (422 EVIDENCE_INVALID)
+    function addFiles(list) {
+      var err = "";
+      for (var i = 0; i < list.length; i++) {
+        var f = list[i];
+        if (files.length >= 3) { err = L("At most 3 files.", "Tối đa 3 tệp."); break; }
+        if (EVIDENCE_TYPES.indexOf(f.type) == -1) { err = L(f.name + ": only PNG, JPG or PDF.", f.name + ": chỉ nhận PNG, JPG hoặc PDF."); continue; }
+        if (f.size > 5 * 1024 * 1024) { err = L(f.name + " is larger than 5 MB.", f.name + " lớn hơn 5 MB."); continue; }
+        files.push({ file_name: f.name, file_type: f.type, file_size: f.size, raw: f });   // raw: tệp thật để upload lúc lưu
+      }
+      el("c-error").innerHTML = err;
+      renderFiles();
+    }
+    function removeFile(i) { files.splice(i, 1); renderFiles(); }
+    function renderFiles() {
+      var h = "";
+      for (var i = 0; i < files.length; i++) {
+        h += '<li>' + icon("clip") + "<span>" + files[i].file_name + ' <span class="tiny">' + fileSize(files[i].file_size) + "</span></span>"
+          + '<button type="button" class="file-x" aria-label="' + L("Remove ", "Bỏ ") + files[i].file_name + '" onclick="removeFile(' + i + ')">×</button></li>';
+      }
+      el("files").innerHTML = h;
+    }
+
+    function evidenceHtml(c) {
+      if (!c.evidence.length && !c.evidence_ref) return '<div class="tiny muted">' + L("No evidence attached", "Không kèm minh chứng") + "</div>";
+      var h = '<div class="ev-files">';
+      for (var i = 0; i < c.evidence.length; i++) {
+        var ev = c.evidence[i], name = ev.url ? '<a href="' + ev.url + '" target="_blank" rel="noopener">' + ev.file_name + "</a>" : ev.file_name;
+        h += '<span class="file-chip">' + icon("clip") + name + ' <span class="tiny">' + fileSize(ev.file_size) + "</span></span>";
+      }
+      if (c.evidence_ref) h += '<span class="tiny">' + L("Ref: ", "Mã: ") + c.evidence_ref + "</span>";
+      return h + "</div>";
+    }
+
+    function renderHistory() {
+      var html = "";
+      for (var k = D.cycles.length - 1; k >= 0; k--) {
+        var cy = D.cycles[k], list = D.contacts.filter(function (c) { return c.cycle_no == cy.cycle_no; }), li = "";
+        for (var i = list.length - 1; i >= 0; i--) {
+          var c = list[i];
+          li += "<li" + (c.result == "REACHED" ? ' class="ok"' : "") + "><b>" + L("Attempt ", "Lần ") + c.attempt_no + " · " + viTime(c.contacted_at) + "</b>"
+            + CONTACT_METHOD_LABEL[c.method] + " · " + CONTACT_RESULT_LABEL[c.result] + " · " + c.created_by_name
+            + (c.note ? '<div class="tiny">' + c.note + "</div>" : "")
+            + (c.next_contact_date ? '<div class="tiny">' + L("Next contact: ", "Hẹn tiếp: ") + viTime(c.next_contact_date) + "</div>" : "")
+            + evidenceHtml(c) + "</li>";
+        }
+        var title = L("Cycle ", "Chu kỳ ") + cy.cycle_no + " · " + viTime(cy.started_at) + (cy.ended_at ? " → " + viTime(cy.ended_at) : L(" → now", " → nay")) + " · " + cy.contact_count + L(cy.contact_count == 1 ? " attempt" : " attempts", " lần");
+        var body = '<ul class="timeline">' + (li || '<li class="empty">' + L("No contact attempts yet.", "Chưa có lần liên lạc nào.") + "</li>") + "</ul>";
+        html += cy.cycle_no == o.cycle_no ? '<h3 class="sec">' + title + "</h3>" + body : "<details><summary>" + title + "</summary>" + body + "</details>";
+      }
+      el("hist").innerHTML = html;
+    }
+
+    // Upload từng tệp minh chứng (POST /files) rồi mới ghi lần liên lạc, gửi kèm file_id.
+    // Tệp đã upload ở lần bấm trước (lỗi ở bước ghi) thì không upload lại.
+    async function uploadEvidence(btn) {
+      var out = [];
+      for (var i = 0; i < files.length; i++) {
+        if (!files[i].file_id) {
+          btn.textContent = L("Uploading file " + (i + 1) + "/" + files.length + "…", "Đang tải tệp " + (i + 1) + "/" + files.length + "…");
+          var up = await api.uploadFile(files[i].raw);
+          files[i].file_id = up.file_id;
+        }
+        out.push({ file_id: files[i].file_id, file_name: files[i].file_name, file_type: files[i].file_type, file_size: files[i].file_size });
+      }
+      return out;
+    }
+
+    // POST /orders/{id}/contacts. 422 MAX_CONTACTS_REACHED khi đã đủ lượt, 422 EVIDENCE_INVALID khi tệp sai
+    async function saveContact() {
+      var btn = el("c-save"), label = btn.textContent;
+      btn.disabled = true;
+      try {
+        var evidence = await uploadEvidence(btn);
+        btn.textContent = label;
+        var r = await api.addContact(o.order_id, { contacted_at: apiTime(el("c-at").value), method: el("c-method").value,
+          result: el("c-result").value, note: el("c-note").value.trim(), next_contact_date: el("c-next").value,
+          evidence: evidence, evidence_ref: el("c-ref").value.trim() });
+        if (r.order.status == "SKIPPED") toast(L("Saved the last attempt. The customer was not reached, so the order was skipped (" + SKIP_LABEL.UNREACHABLE + ").",
+          "Đã lưu lần cuối. Không liên lạc được khách nên đơn tự chuyển Bỏ qua (" + SKIP_LABEL.UNREACHABLE + ")."));
+        else toast(L("Saved contact attempt " + r.order.contact_count + "/" + r.order.max_contact + ".", "Đã lưu lần liên lạc " + r.order.contact_count + "/" + r.order.max_contact + "."));
+        files = [];
+        refresh();
+      } catch (e) {
+        el("c-error").innerHTML = e.message;
+        btn.textContent = label;
+        btn.disabled = false;
+      }
+    }
+
+    // Hoàn tất / bỏ qua ngay tại trang này (giống Order Detail)
+    async function submit(promise, okMsg) {
+      try { await promise; toast(okMsg); refresh(); return { ok: true }; }
+      catch (e) { return apiFail(e); }
+    }
+    function complete() {
+      var radios = "";
+      for (var k in OUTCOME_LABEL) radios += '<label class="radio"><input type="radio" name="oc" value="' + k + '"> ' + OUTCOME_LABEL[k] + "</label>";
+      openModal(L("Complete order", "Hoàn tất đơn"), '<fieldset><legend>' + L("Outcome", "Kết quả") + ' *</legend>' + radios + "</fieldset>"
+        + '<div class="form-row"><label for="oc-note">' + L("Note", "Ghi chú") + '</label><textarea id="oc-note" rows="2"></textarea></div>', L("Complete", "Hoàn tất"), function () {
+        var p = document.querySelector('input[name="oc"]:checked');
+        if (!p) return { ok: false, msg: L("Choose an outcome before completing.", "Chọn kết quả trước khi hoàn tất.") };
+        return submit(api.complete(o.order_id, p.value, el("oc-note").value.trim()), L("Completed order " + shortId(o.order_id) + ". Slot released.", "Đã hoàn tất đơn " + shortId(o.order_id) + ". Đã trả slot."));
+      });
+    }
+    function skip(preset) {
+      var opts = '<option value="">' + L("-- Choose a reason --", "-- Chọn lý do --") + "</option>";
+      for (var k in SKIP_LABEL) opts += '<option value="' + k + '"' + (k == preset ? " selected" : "") + ">" + SKIP_LABEL[k] + "</option>";
+      openModal(L("Skip order", "Bỏ qua đơn"), '<div class="form-row"><label for="sk-reason">' + L("Reason", "Lý do") + ' *</label><select id="sk-reason">' + opts + "</select></div>"
+        + '<div class="form-row"><label for="sk-note">' + L("Note (required for \"Other\")", "Ghi chú (bắt buộc khi chọn \"Khác\")") + '</label><textarea id="sk-note" rows="2"></textarea></div>', L("Skip", "Bỏ qua"), function () {
+        if (!el("sk-reason").value) return { ok: false, msg: L("Choose a skip reason.", "Chọn lý do bỏ qua.") };
+        return submit(api.skip(o.order_id, el("sk-reason").value, el("sk-note").value.trim()), L("Skipped order " + shortId(o.order_id) + ". Slot released.", "Đã bỏ qua đơn " + shortId(o.order_id) + ". Đã trả slot."));
+      });
+    }
+
+    function renderAll() { renderTopbar("attempt"); renderList(); renderMain(); }
+    async function refresh() {
+      try { await Promise.all([loadList(), o ? loadOrder() : Promise.resolve()]); renderAll(); }
+      catch (e) { toast(e.message, "error"); }
+    }
+
+    el("main").innerHTML = '<div class="box">' + skeletonHtml(4) + "</div>";
+    boot("attempt").then(async function () {
+      try {
+        await loadList();
+        // Không có ?id= hoặc id không thuộc danh sách của mình: chọn đơn đầu danh sách (SLA gần hạn nhất)
+        if (!id || (!isManager() && !LIST.some(function (c) { return c.order_id == id; }))) id = LIST.length ? LIST[0].order_id : null;
+        if (id) await loadOrder();
+      } catch (e) {
+        el("main").innerHTML = errorHtml(L("this page", "trang này"));
+        return;
+      }
+      renderAll();
+    }).catch(function () { });
+  </script>
+</body>
+</html>

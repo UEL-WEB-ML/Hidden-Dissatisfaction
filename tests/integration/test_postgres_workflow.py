@@ -446,6 +446,8 @@ def test_detail_projects_cycles_contacts_decisions_and_role_based_audit(
         "none",
     )
     assert order["items_count"] == 1 and order["top_item"]["product_item_id"].endswith("-1")
+    assert order["top_item"]["threshold_version"] == "1"
+    assert order["top_item"]["aggregation_rule"] == "max-v1"
     assert as_manager["next_step"]["decision"] == "WORK_WITH_SELLER"
     contact = as_manager["contacts"][0]
     assert contact["attempt_no"] == 1 and contact["evidence"][0]["file_id"] == str(file_id)

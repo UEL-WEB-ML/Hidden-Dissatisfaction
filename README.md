@@ -41,6 +41,10 @@ See [`docs/README.md`](docs/README.md) for the authoritative document order.
 └── pyproject.toml
 ```
 
+The delivered static frontend is [`frontend/prototype/`](frontend/prototype/). `web/Wireframe/` is
+archived reference material only, not an active application path. Browser E2E coverage is not claimed
+by this repository-level documentation.
+
 ## Setup
 
 Python 3.11 and [`uv`](https://docs.astral.sh/uv/) are required.

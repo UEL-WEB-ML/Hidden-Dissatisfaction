@@ -80,6 +80,11 @@ class FakeOperationalReads:
     def users(self, role: str | None, now: datetime) -> list[dict[str, object]]:
         return [{"user_id": str(USER.id), "role": role or "SPECIALIST", "server_time": now}]
 
+    def principal(self, user_id: str, now: datetime) -> dict[str, object] | None:
+        if user_id != str(USER.id):
+            return None
+        return {"user_id": user_id, "server_time": now}
+
 
 def client() -> TestClient:
     return TestClient(create_app(auth=FakeAuth()))

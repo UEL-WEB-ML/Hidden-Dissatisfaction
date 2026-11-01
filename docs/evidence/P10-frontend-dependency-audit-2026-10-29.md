@@ -30,3 +30,8 @@ supported non-major remediation; the audit's fix path required Angular 20–22.
 The Angular legacy Karma/Webpack builder emits a deprecation warning. It has no current `npm audit`
 finding and does not block this release; migrate the test builder to Vitest in a separately scoped
 change so its test semantics can be reviewed independently.
+
+## Disposition note
+
+This dated audit is retained as original evidence. The completed static frontend cutover is delivered
+under `frontend/prototype`; this record does not establish browser E2E coverage for that path.
