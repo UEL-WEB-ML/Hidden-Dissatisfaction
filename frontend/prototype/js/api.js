@@ -1,6 +1,6 @@
 // =========================================================
 // api.js — NƠI DUY NHẤT frontend lấy và ghi dữ liệu
-// Mỗi hàm ứng với một endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md (v0.5). Các trang chỉ gọi api.xxx(), không đọc dữ liệu ở đâu khác.
+// Mỗi hàm ứng với một endpoint trong BA/API_CONTRACT.md. Các trang chỉ gọi api.xxx(), không đọc dữ liệu ở đâu khác.
 //
 // Địa chỉ API và cách đăng nhập của frontend production được cấu hình qua runtime.
 // =========================================================

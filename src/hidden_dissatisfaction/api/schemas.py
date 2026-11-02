@@ -81,6 +81,7 @@ class ParameterVersionResponse(BaseModel):
     actor_id: UUID
     reason: str
     created_at: datetime
+    status: str
 
 
 class QueueOrder(BaseModel):

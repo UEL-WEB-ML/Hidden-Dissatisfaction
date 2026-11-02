@@ -14,7 +14,8 @@ The system scores product items belonging to Olist orders delivered on time or e
 - **Primary metric:** product-item and aggregated order PR-AUC, with order-clustered uncertainty.
 - **Decision use:** prioritize an order queue for human review; no automatic customer action or causal claim.
 
-See [`docs/README.md`](docs/README.md) for the authoritative document order.
+See [`BA/README.md`](BA/README.md) for the as-built product contract and
+[`docs/README.md`](docs/README.md) for research and operational documentation.
 
 ## Repository layout
 
@@ -25,7 +26,8 @@ See [`docs/README.md`](docs/README.md) for the authoritative document order.
 │   ├── raw/olist/            # Nine local Olist CSV files; ignored by Git
 │   ├── interim/              # Validated intermediate data
 │   └── processed/            # Split-ready datasets and manifests
-├── docs/                     # Research, BRD, FRD, API and data contracts
+├── BA/                       # As-built BRD, FRD, API, database and traceability
+├── docs/                     # Research, architecture and operational documentation
 ├── infra/postgres/init/      # PostgreSQL bootstrap SQL
 ├── notebooks/               # EDA and report-oriented notebooks
 ├── references/              # Dated research-source snapshots

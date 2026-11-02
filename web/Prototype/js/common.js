@@ -584,7 +584,7 @@ function renderFooter() {
   tools.className = "wf-tools";
   tools.lang = "vi";
   tools.innerHTML = '<b>Công cụ demo prototype, không có trong sản phẩm.</b> '
-    + "Đang dùng backend giả (js/mock-server.js) theo API_CONTRACT_olist_hidden_dissatisfaction.md v0.5. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
+    + "Đang dùng backend giả (js/mock-server.js) theo contract lịch sử v0.5. Bản thật: vai do tài khoản quyết định, Backend kiểm tra quyền.<br>"
     + '<label>Đăng nhập lại với: <select onchange="switchUser(this.value)">' + opts + "</select></label>"
     + ' · <label>Giả lập mạng: <select onchange="setSim(this.value)">' + simOpts + "</select></label>"
     + ' · <a href="#" onclick="resetData(); return false;">Đặt lại dữ liệu mẫu</a>'

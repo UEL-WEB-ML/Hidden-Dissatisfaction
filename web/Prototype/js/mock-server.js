@@ -1,6 +1,6 @@
 // =========================================================
 // mock-server.js — BACKEND GIẢ chạy ngay trong trình duyệt
-// Trả lời đúng các endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md v0.5 (đường dẫn, JSON, mã lỗi HTTP),
+// Trả lời các endpoint của contract lịch sử v0.5; không phải BA/API_CONTRACT.md hiện hành.
 // để frontend làm trước khi backend thật xong. Frontend chỉ gọi qua js/api.js, không gọi file này trực tiếp.
 // Luật nghiệp vụ (BRD v4.0 mục 6) nằm ở đây, đúng chỗ của nó ở bản thật: backend kiểm tra, frontend chỉ hiển thị.
 // Khi có backend thật: bỏ mock-data.js + mock-server.js khỏi các trang, api.js tự chuyển sang gọi fetch.

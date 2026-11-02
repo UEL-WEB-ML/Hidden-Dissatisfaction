@@ -483,6 +483,24 @@ def test_dashboard_reconciles_with_queue_filters_and_supports_product_view(
     assert product["product"]["totals"]["total_items"] >= open_total
 
 
+def test_queue_can_project_closed_cases_awaiting_manager_decision(
+    db: psycopg.Connection[Any], make_case: Callable[..., str]
+) -> None:
+    from hidden_dissatisfaction.infrastructure.postgres_risk_queue import PostgresRiskOrderQuery
+
+    specialist = _user(db, "SPECIALIST")
+    order_id = make_case(assignee=specialist)
+    _commands().complete(order_id, specialist, False, "HAS_ISSUE", None)
+
+    page = PostgresRiskOrderQuery(RUNTIME_DSN or "").list_orders(
+        QueueFilters(status="COMPLETED", needs_decision=True)
+    )
+
+    projected = next(item for item in page.items if item.order_id == order_id)
+    assert projected.queued_at is not None
+    assert projected.status == "COMPLETED"
+
+
 def test_audit_events_are_filtered_paginated_and_counted(
     db: psycopg.Connection[Any], make_case: Callable[..., str]
 ) -> None:

@@ -217,6 +217,52 @@
 
     var DASH = null;   // phản hồi GET /dashboard gần nhất
 
+    // The PostgreSQL dashboard projection uses normalized lower-case counters,
+    // while the delivered Prototype originally consumed the richer mock shape.
+    // Normalize once at the HTTP boundary so every renderer receives one shape.
+    function normalizeDashboard(d) {
+      var n = d.totals || {};
+      if (n.total == null) n.total = n.cases || 0;
+      if (n.PENDING == null) n.PENDING = n.pending || 0;
+      if (n.IN_PROGRESS == null) n.IN_PROGRESS = n.in_progress || 0;
+      if (n.COMPLETED == null) n.COMPLETED = n.completed || 0;
+      if (n.SKIPPED == null) n.SKIPPED = n.skipped || 0;
+      if (n.high_pending == null) {
+        var assign = (d.actions || []).find(function (a) { return a.code == "ASSIGN_HIGH"; });
+        n.high_pending = assign ? assign.count : 0;
+        n.high_pending_overdue = assign ? assign.overdue : 0;
+      }
+      if (!Array.isArray(d.by_level)) {
+        var levels = d.by_level || {};
+        d.by_level = ["HIGH", "MEDIUM", "LOW"].map(function (level) {
+          return { level: level, count: levels[level] || 0 };
+        });
+      }
+      d.score_bands = (d.score_bands || []).map(function (b) {
+        return { min: b.min != null ? b.min : b.from, max: b.max != null ? b.max : b.to,
+          count: b.count || 0, open: b.open || 0 };
+      });
+      [d.by_seller || [], d.by_category || []].forEach(function (groups) {
+        groups.forEach(function (g) { if (!Array.isArray(g.related)) g.related = []; });
+      });
+      d.workload = (d.workload || []).map(function (w) {
+        if (w.active_count == null) w.active_count = w.active || 0;
+        if (w.slots_left == null) w.slots_left = Math.max((w.capacity || 0) - w.active_count, 0);
+        if (w.stale == null) w.stale = 0;
+        return w;
+      });
+      (d.actions || []).forEach(function (a) {
+        if (typeof a.suggest == "string") {
+          var found = d.workload.find(function (w) { return w.full_name == a.suggest; });
+          a.suggest = found ? { user_id: found.user_id, full_name: found.full_name, slots_left: found.slots_left } : null;
+        }
+      });
+      if (d.product && d.product.by_category) {
+        d.product.by_category.forEach(function (g) { if (!Array.isArray(g.related)) g.related = []; });
+      }
+      return d;
+    }
+
     // Link drill-down sang Risk Queue: filter của Dashboard + điều kiện của ô được bấm
     function queueLink(extra) {
       var p = new URLSearchParams();
@@ -274,7 +320,7 @@
           // Đơn HIGH chưa người nhận, cùng phạm vi seller/ngành hàng/sản phẩm (GET /orders)
           api.listOrders({ level: "HIGH", status: "PENDING", seller: applied.seller, category: applied.category, q: applied.item, limit: 4 })
         ]);
-        DASH = r[0]; pending = r[1];
+        DASH = normalizeDashboard(r[0]); pending = r[1];
       } catch (e) {
         if (mine == reqNo) renderError();
         return;
@@ -553,6 +599,14 @@
     }
 
     function renderAttention(list) {
+      if (!Array.isArray(list)) {
+        var summary = list || {}, links = [];
+        if (summary.overdue) links.push('<li>' + icon("clock") + ' <a href="' + queueLink({ sla: "over", status: "OPEN" }) + '">' + L(summary.overdue + " overdue orders", summary.overdue + " đơn quá hạn") + '</a></li>');
+        if (summary.stale) links.push('<li>' + icon("hourglass") + ' <a href="' + queueLink({ sla: "stale", status: "IN_PROGRESS" }) + '">' + L(summary.stale + " stale orders", summary.stale + " đơn chậm cập nhật") + '</a></li>');
+        if (summary.needs_decision) links.push('<li>' + icon("gavel") + ' <a href="decision.html">' + L(summary.needs_decision + " cases need a decision", summary.needs_decision + " case cần quyết định") + '</a></li>');
+        el("attention").innerHTML = links.length ? links.join("") : '<li class="empty">' + L("Nothing needs attention.", "Không có gì cần can thiệp.") + "</li>";
+        return;
+      }
       var items = [];
       for (var i = 0; i < list.length; i++) {
         var c = list[i].order, why = [];
