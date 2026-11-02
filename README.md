@@ -65,6 +65,29 @@ kaggle datasets download -d olistbr/brazilian-ecommerce -p data/raw/olist --unzi
 
 The nine expected filenames are listed in [`docs/data-contract.md`](docs/data-contract.md).
 
+## Start and stop the system
+
+After creating `.env` once, start PostgreSQL, apply migrations, build the current
+API/frontend code and run the complete application with one command:
+
+```bash
+cp .env.example .env  # first run only; replace the placeholder secrets
+make start
+```
+
+Open the frontend at `http://localhost:4200` and the API at
+`http://localhost:8000`. Ports can be changed in `.env`.
+
+Stop the complete stack with one command:
+
+```bash
+make stop
+```
+
+`make stop` preserves PostgreSQL and evidence volumes. For a new local demo
+database, run `make demo-seed` after `make start`; generated credentials are
+stored in the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env` file.
+
 ## PostgreSQL
 
 ```bash
