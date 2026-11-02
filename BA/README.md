@@ -4,7 +4,7 @@
 |---|---|
 | Trạng thái | **AS-BUILT** |
 | Ngày đối chiếu | 2026-11-02 |
-| Nhánh hệ thống | `MLOPS` |
+| Nhánh review/testing | `dev` |
 | Phạm vi | Static Prototype, FastAPI, PostgreSQL `app`/`ml`, workflow và local MLOps |
 
 Thư mục này mô tả **hệ thống đang chạy**, không mô tả thiết kế mục tiêu. Các bản
