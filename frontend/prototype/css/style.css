@@ -772,7 +772,7 @@ svg.trend .tbar:hover .seg { opacity: 0.8; }
 .ov-grid > * { min-width: 0; margin: 0; }
 .s-12 { grid-column: span 12; } .s-8 { grid-column: span 8; } .s-7 { grid-column: span 7; } .s-6 { grid-column: span 6; }
 .s-5 { grid-column: span 5; } .s-4 { grid-column: span 4; } .s-3 { grid-column: span 3; }
-.ov-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: 1.2em 1.35em; display: flex; flex-direction: column; }
+.ov-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: 1.2em 1.35em; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .ov-card > h2, .ov-card .c-head h2 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
 .c-head { display: flex; align-items: center; gap: 0.6em; flex-wrap: wrap; margin-bottom: 1em; }
 .c-head .c-more { margin-left: auto; font-size: 0.8rem; font-weight: 600; text-decoration: none; }
@@ -808,7 +808,7 @@ svg.trend .tbar:hover .seg { opacity: 0.8; }
 
 /* Ô số nhỏ */
 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1em; }
-.tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: 1.05em 1.15em 1em; color: inherit; text-decoration: none; display: flex; flex-direction: column; gap: 0.15em; transition: box-shadow var(--t-fast), transform var(--t-fast), border-color var(--t-fast); }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: 1.05em 1.15em 1em; color: inherit; text-decoration: none; display: flex; flex-direction: column; gap: 0.15em; min-width: 0; overflow: hidden; transition: box-shadow var(--t-fast), transform var(--t-fast), border-color var(--t-fast); }
 a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-color: var(--line-strong); color: inherit; }
 .tile-top { display: flex; align-items: center; gap: 0.5em; color: var(--ink-600); font-size: 0.8rem; font-weight: 600; }
 .tile-top svg { width: 16px; height: 16px; }
@@ -832,7 +832,7 @@ a.tile:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-
 
 /* Việc cần làm: một dòng mỗi việc */
 .todo { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5em; }
-.todo a { display: grid; grid-template-columns: 2.3rem 1fr auto; align-items: center; gap: 0.8em; padding: 0.6em 0.7em; border-radius: 12px; border: 1px solid var(--line); color: inherit; text-decoration: none; transition: border-color var(--t-fast), background var(--t-fast); }
+.todo a { display: grid; grid-template-columns: 2.3rem minmax(0, 1fr) auto; align-items: center; gap: 0.8em; padding: 0.6em 0.7em; border-radius: 12px; border: 1px solid var(--line); color: inherit; text-decoration: none; transition: border-color var(--t-fast), background var(--t-fast); }
 .todo a:hover { border-color: var(--accent-soft); background: var(--accent-faint); color: inherit; }
 .todo .t-ic { width: 2.3rem; height: 2.3rem; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--ink-100); color: var(--ink-700); }
 .todo .t-ic svg { width: 17px; height: 17px; }
@@ -940,6 +940,12 @@ details.more table { margin-top: 0.4em; }
   .board, .board.has-params { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .s-8, .s-7, .s-6, .s-5, .s-4 { grid-column: span 12; }
   .dash-filters .f-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+/* The desktop sidebar consumes 236px but media queries use the full viewport.
+   Collapse dashboard spans sooner so cards never overflow the content frame. */
+@media (min-width: 901px) and (max-width: 1420px) {
+  .s-8, .s-7, .s-6, .s-5, .s-4 { grid-column: span 12; }
+  .dash-filters .f-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 1024px) {
   .banner.kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }

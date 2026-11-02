@@ -302,6 +302,7 @@ def create_app(
         user: Annotated[User, Depends(current_user)],
     ) -> ParameterVersionResponse:
         require_manager(user)
+        now = datetime.now(UTC)
         try:
             version = parameter_versions.execute(
                 CreateParameterVersionCommand(
@@ -311,14 +312,17 @@ def create_app(
                     reason=body.reason,
                     actor_id=user.id,
                 ),
-                datetime.now(UTC),
+                now,
             )
         except ParameterValidationError as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={"code": exc.code, "message": str(exc), "details": None},
             ) from exc
-        return ParameterVersionResponse(**version.__dict__)
+        return ParameterVersionResponse(
+            **version.__dict__,
+            status="SCHEDULED" if version.effective_at > now else "ACTIVE",
+        )
 
     @app.get("/api/v1/config")
     async def get_config(_: Annotated[User, Depends(current_user)]) -> dict[str, object]:

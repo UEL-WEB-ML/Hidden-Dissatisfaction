@@ -34,7 +34,17 @@
     var id = new URLSearchParams(location.search).get("id");
     var LIST = [], D = null, o = null, USERS = [];
 
-    async function loadList() { LIST = (await api.listOrders({ needs_decision: "true", status: "", limit: 50 })).items; }
+    async function loadList() {
+      // The Queue API defaults an omitted status to OPEN. Cases awaiting a Manager
+      // decision are closed, so query both valid closed statuses explicitly.
+      var pages = await Promise.all([
+        api.listOrders({ needs_decision: "true", status: "COMPLETED", limit: 50 }),
+        api.listOrders({ needs_decision: "true", status: "SKIPPED", limit: 50 })
+      ]);
+      LIST = pages[0].items.concat(pages[1].items).sort(function (a, b) {
+        return b.risk_score - a.risk_score || a.order_id.localeCompare(b.order_id);
+      });
+    }
     function renderList() {
       el("pl-title").innerHTML = L("Needs decision", "Cần quyết định") + ' <span class="counter">' + LIST.length + "</span>";
       var html = "";

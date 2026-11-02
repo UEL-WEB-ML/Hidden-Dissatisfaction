@@ -1,6 +1,6 @@
 // =========================================================
 // api.js — NƠI DUY NHẤT frontend lấy và ghi dữ liệu
-// Mỗi hàm ứng với một endpoint trong API_CONTRACT_olist_hidden_dissatisfaction.md (v0.5). Các trang chỉ gọi api.xxx(), không đọc dữ liệu ở đâu khác.
+// API adapter của prototype lịch sử v0.5; contract as-built hiện ở BA/API_CONTRACT.md.
 //
 // Dùng backend giả hay backend thật, địa chỉ API, cách đăng nhập: đặt trong js/config.js (xem BACKEND.md).
 // =========================================================

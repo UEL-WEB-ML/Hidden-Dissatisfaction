@@ -1,4 +1,4 @@
-"""Automated API 0.5 contract checks: the served OpenAPI must match the documented endpoints."""
+"""Contract checks: served OpenAPI must match the as-built API documentation."""
 
 import re
 from pathlib import Path
@@ -12,8 +12,8 @@ from fastapi.testclient import TestClient  # noqa: E402
 from hidden_dissatisfaction.api.app import create_app  # noqa: E402
 from hidden_dissatisfaction.api.config import Settings  # noqa: E402
 
-CONTRACT = Path(__file__).parents[2] / "docs" / "API_CONTRACT_olist_hidden_dissatisfaction.md"
-# Documented endpoints in section 4.5 table rows and section 4 headings.
+CONTRACT = Path(__file__).parents[2] / "BA" / "API_CONTRACT.md"
+# Documented business endpoints in the as-built endpoint table.
 EXPECTED = {
     ("POST", "/auth/login"),
     ("POST", "/auth/logout"),
@@ -58,7 +58,7 @@ def _app(**settings: Any) -> Any:
     )
 
 
-def test_openapi_exposes_exactly_the_documented_api_0_5_endpoints() -> None:
+def test_openapi_exposes_exactly_the_documented_business_endpoints() -> None:
     paths = _app().openapi()["paths"]
     served = {
         (method.upper(), path.removeprefix("/api/v1"))

@@ -68,23 +68,36 @@ class PostgresOperationalReadModel:
             rows = connection.execute(
                 """
                 SELECT p.param_key AS key, p.value, p.version, p.effective_at, p.reason,
-                       p.created_at, u.user_id AS actor_id, u.full_name AS actor_name,
+                        p.created_at, u.user_id AS actor_id,
+                        COALESCE(u.full_name, 'System') AS actor_name,
                        d.unit, d.in_brd
                 FROM app.parameters p
                 JOIN app.parameter_definitions d ON d.param_key = p.param_key
-                JOIN app.users u ON u.user_id = p.actor_id
+                 LEFT JOIN app.users u ON u.user_id = p.actor_id
                 ORDER BY p.param_key, p.effective_at DESC, p.version DESC
                 """
             ).fetchall()
         current: dict[str, dict[str, object]] = {}
         history: list[dict[str, object]] = []
+        by_version = {(str(row["key"]), int(row["version"])): row for row in rows}
         for row in rows:
             item = dict(row)
+            previous = by_version.get((str(item["key"]), int(item["version"]) - 1))
+            item["old_value"] = previous["value"] if previous is not None else None
             item["status"] = "SCHEDULED" if item["effective_at"] > now else "SUPERSEDED"
             if item["key"] not in current and item["effective_at"] <= now:
                 item["status"] = "ACTIVE"
-                current[str(item["key"])] = item
+                current[str(item["key"])] = {
+                    **item,
+                    "updated_by_name": item["actor_name"],
+                    "scheduled": [],
+                }
             history.append(item)
+        for item in history:
+            if item["status"] == "SCHEDULED" and str(item["key"]) in current:
+                scheduled = current[str(item["key"])]["scheduled"]
+                assert isinstance(scheduled, list)
+                scheduled.append(item)
         return {
             "parameter_version": "current",
             "server_time": now,

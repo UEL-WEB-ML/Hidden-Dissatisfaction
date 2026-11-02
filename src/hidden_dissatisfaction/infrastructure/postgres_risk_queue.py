@@ -39,7 +39,7 @@ class PostgresRiskOrderQuery:
                                  WHERE a.cycle_id = y.cycle_id
                                  ORDER BY a.adjustment_id DESC LIMIT 1), y.sla_due_at) AS sla_due_at
                 FROM app.review_cycles y
-                WHERE y.case_id = c.case_id AND y.ended_at IS NULL
+                WHERE y.case_id = c.case_id
                 ORDER BY y.cycle_no DESC LIMIT 1
             ) cycle ON TRUE
         """

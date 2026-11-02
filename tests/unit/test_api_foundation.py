@@ -87,7 +87,7 @@ class FakeOperationalReads:
 
 
 def client() -> TestClient:
-    return TestClient(create_app(auth=FakeAuth()))
+    return TestClient(create_app(auth=FakeAuth(), operational_reads=FakeOperationalReads()))
 
 
 def test_health_readiness_can_be_overridden() -> None:
@@ -149,6 +149,7 @@ def test_manager_can_create_a_parameter_version() -> None:
 
     assert response.status_code == 201
     assert response.json()["value"] == "6"
+    assert response.json()["status"] == "SCHEDULED"
     assert parameters.command is not None
     assert parameters.command.actor_id == USER.id
 

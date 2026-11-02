@@ -89,7 +89,7 @@ var STATUS_LABEL = {
   COMPLETED: L("Completed", "Hoàn tất"),
   SKIPPED: L("Skipped", "Bỏ qua")
 };
-// Outcome khi COMPLETED (BRD 6.5). Không có UNREACHABLE: hết lượt mà không liên lạc được thì đơn tự chuyển SKIPPED (contract v0.5)
+// Outcome khi COMPLETED theo BA/BRD.md. UNREACHABLE là skip reason sau lần liên lạc cuối.
 var OUTCOME_LABEL = {
   HAS_ISSUE: L("Issue found", "Có vấn đề"),
   NO_ISSUE: L("No issue", "Không có vấn đề"),
