@@ -88,6 +88,19 @@ def test_contract_document_still_lists_every_expected_endpoint() -> None:
         assert bare in text or path in text, f"{method} {path} missing from API contract"
 
 
+def test_queue_order_contract_exposes_current_cycle_contact_count() -> None:
+    schema = _app().openapi()["components"]["schemas"]["QueueOrder"]
+    assert schema["properties"]["contact_count"] == {
+        "default": 0,
+        "type": "integer",
+        "title": "Contact Count",
+    }
+    assert (
+        "contact_count"
+        in CONTRACT.read_text(encoding="utf-8").split("### QueueOrder", 1)[1].split("###", 1)[0]
+    )
+
+
 def test_cors_allows_only_configured_origins() -> None:
     client = TestClient(_app(cors_origins=["http://localhost:4200"]))
     headers = {"Access-Control-Request-Method": "POST"}

@@ -26,6 +26,7 @@ class QueueOrder:
     outcome: str | None = None
     skip_reason: str | None = None
     self_claim_allowed: bool = False
+    contact_count: int = 0
 
     sla_state: str = "none"
     sla_hours_left: float | None = None
@@ -47,6 +48,8 @@ class RiskOrderQueryPort(Protocol):
     """Read-only, stable Queue projection at one row per order."""
 
     def list_orders(self, filters: QueueFilters) -> QueuePage: ...
+
+    def get_order(self, order_id: str) -> QueueOrder | None: ...
 
     def filter_options(self) -> dict[str, tuple[str, ...]]: ...
 

@@ -119,8 +119,16 @@ The nine expected filenames are listed in [`docs/data-contract.md`](docs/data-co
 ## Data and ML workflows
 
 The delivery graph is deliberately opt-in for data work: API startup never
-ingests the full dataset. Run `make bootstrap` for PostgreSQL and migrations,
-then `make warehouse` when the raw Olist files are present. Training and
+ingests the full dataset. Run `make bootstrap`, `make bronze-manifest`, and
+`make ingest` first. Use the completed run UUID printed by ingestion when the
+raw Olist files are present:
+
+```bash
+DBT_SOURCE_RUN_ID=<completed-run-uuid> make warehouse
+```
+
+The UUID must identify exactly one `COMPLETE` row in `bronze.ingestion_runs`.
+Training and
 scoring are explicit commands (`TRAIN_COMMAND=... make train` and
 `SCORE_COMMAND=... make score`). `make start` starts API and frontend after
 migrations; `make e2e` probes API live/readiness and the frontend shell, and

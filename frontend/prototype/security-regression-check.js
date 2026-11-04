@@ -25,10 +25,14 @@ const unsupported = [/o\.max_contact\b/, /o\.parameter_version\b/, /it\.(?:price
 for (const pattern of unsupported) {
   if (pattern.test(source)) throw new Error(`prototype contract regression: ${pattern}`);
 }
+if (/L\("View attempts",\s*"Xem lần liên lạc"\)/.test(pageSource("order.html"))) {
+  throw new Error("prototype role regression: manager attempt-page link must stay hidden");
+}
 
 // Pin the actual delivered render paths, not only the shared helper.
 const requiredSource = [
   ["../js/common.js", /escapeHtml\(c\.assignee_name\)/],
+  ["../js/common.js", /function apiTime\(v\) \{ return v \? new Date\(v\)\.toISOString\(\) : v; \}/],
   ["html/order.html", /data-item-id="' \+ escapeHtml\(it\.product_item_id\)/],
   ["html/order.html", /addEventListener\("click"/],
   ["html/order.html", /escapeHtml\(catLabel\(it\.category\)\)/],
@@ -40,6 +44,9 @@ const requiredSource = [
   ["html/index.html", /escapeHtml\(catLabel\(t\.category\)\)/],
   ["html/index.html", /escapeHtml\(cats\[c\]\)/],
   ["html/decision.html", /escapeHtml\(it\.top_factors\[0\]\)/],
+  ["html/decision.html", /due_date: el\("dc-due"\)\.value \|\| null/],
+  ["html/attempt.html", /if \(!requireSpecialist\(\)\) return;/],
+  ["html/settings.html", /effectiveAt = el\("pm-eff"\)\.value == earliest \? defaultEffectiveTime\(\)/],
   ["html/profile.html", /escapeHtml\(u\.username\)/]
 ];
 for (const [file, pattern] of requiredSource) {

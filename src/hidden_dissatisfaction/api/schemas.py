@@ -102,6 +102,7 @@ class QueueOrder(BaseModel):
     outcome: str | None
     skip_reason: str | None
     self_claim_allowed: bool
+    contact_count: int = 0
     sla_state: str
     sla_hours_left: float | None
     aging_hours: float
@@ -158,7 +159,6 @@ class OrderDetailOrder(QueueOrder):
     updated_at: datetime | None = None
     closed_at: datetime | None = None
     reopen_count: int | None = None
-    contact_count: int | None = None
     needs_decision: bool | None = None
     has_synthetic_item: bool
     items: list[ItemDetail]

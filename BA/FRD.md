@@ -60,6 +60,8 @@ Manager nhận `audit_events`; Specialist nhận `audit_events=null`.
 ## 6. Contact Attempts
 
 - Trang chỉ tải case `IN_PROGRESS` của Specialist hiện tại.
+- Manager không mở trang Contact Attempts; lịch sử contact cần cho Decision được
+  hiển thị read-only ngay trong Order Detail và Decisions.
 - Form gồm contacted time, method, result, note, next-contact date, evidence ref.
 - Upload tối đa ba file; API kiểm tra magic bytes thay vì tin MIME từ client.
 - Frontend đề xuất next-contact date bằng `retry_gap_days` business days.
@@ -79,6 +81,8 @@ Manager nhận `audit_events`; Specialist nhận `audit_events=null`.
 - Danh sách được ghép từ hai query `COMPLETED` và `SKIPPED` có
   `needs_decision=true`.
 - Manager xem detail, attempts/comments/previous decisions và ghi decision mới.
+- API chỉ nhận decision khi case đang `COMPLETED` hoặc `SKIPPED`; form chỉ hiện
+  cho case đóng đang có `needs_decision=true`.
 - Decision append-only; decision mới nhất trở thành `next_step` summary.
 
 ## 9. Audit History
@@ -94,6 +98,8 @@ Manager nhận `audit_events`; Specialist nhận `audit_events=null`.
 - Hiển thị 14 parameter, current value, version, effective time, actor, scheduled
   versions và history.
 - Manager tạo version mới; không sửa/xóa version cũ.
+- UI gửi thời gian ISO 8601 có timezone và mặc định thời điểm hiệu lực sớm nhất
+  là một phút sau `server_time` để tránh race với validation phía server.
 - UI không hỗ trợ thêm/xóa parameter definition, cancel schedule hay rollback nhanh.
 
 ## 11. Language và lỗi
@@ -106,7 +112,7 @@ Manager nhận `audit_events`; Specialist nhận `audit_events=null`.
 ## 12. Non-functional behavior hiện có
 
 - Same-origin frontend proxy tới `/api/v1`.
-- PostgreSQL readiness kiểm tra migration ledger V021.
+- PostgreSQL readiness kiểm tra migration ledger V022.
 - Evidence lưu ngoài database; metadata và ownership nằm trong PostgreSQL.
 - Domain/application test coverage gate 100%; static/security frontend checks có trong CI.
 - Không có browser automation E2E được tuyên bố; walkthrough hiện là authenticated API flow.

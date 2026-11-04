@@ -42,6 +42,7 @@ không có denylist và còn hiệu lực tới khi hết hạn.
 `order_id`, `risk_score`, `risk_level`, `status`, `assignee_id`, `assignee_name`,
 `queued_at`, `original_queued_at`, `sla_due_at`, `matched_item_id`, `top_item`,
 `top_factors`, `items_count`, `outcome`, `skip_reason`, `self_claim_allowed`,
+`contact_count` (số lần liên lạc trong cycle mới nhất, integer mặc định `0`),
 `sla_state`, `sla_hours_left`, `aging_hours`, `total_aging_hours`, `is_escalated`,
 `is_stale`.
 
@@ -56,7 +57,7 @@ không có denylist và còn hiệu lực tới khi hết hạn.
 ```text
 order: QueueOrder + case_id, aggregation_rule, model_version, predicted_at,
        threshold_version, seller_id, category, cycle_no, updated_at, closed_at,
-       reopen_count, contact_count, needs_decision, has_synthetic_item, items
+       reopen_count, needs_decision, has_synthetic_item, items
 cycles, contacts, comments, decisions, next_step, model_notes,
 audit_events, status_history, seller_open_count
 ```
@@ -92,6 +93,10 @@ audit_events, status_history, seller_open_count
 | `GET /audit-events` | Manager | audit filters | items,total,all_total |
 
 Health routes ngoài prefix: `/health`, `/health/live`, `/health/ready`.
+
+`contacted_at` và `effective_at` dùng ISO 8601 có timezone. `due_date` trong
+DecisionBody là ngày hoặc `null`. Decision trên case chưa đóng trả
+`409 INVALID_STATE`.
 
 ## 5. Queue query
 

@@ -34,3 +34,6 @@ after an explicit operator review.
 | V017 | `app.sla_adjustments` (append-only) for recalculated open-cycle SLA |
 | V018 | Retention purge of unattached uploads; attached evidence stays protected |
 | V019 | Bronze raw CSV tables and run-scoped ingestion contract |
+| V020 | Explicit synthetic-demo release status and prediction state transitions |
+| V021 | Runtime read grant for the migration ledger readiness check |
+| V022 | Historical case prediction visibility and least-privilege queue seeding view |

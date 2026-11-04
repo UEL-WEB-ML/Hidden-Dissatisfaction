@@ -84,7 +84,7 @@ async def readiness_check() -> bool:
         with psycopg.connect(dsn, connect_timeout=2, row_factory=dict_row) as connection:
             row = connection.execute(
                 """
-                SELECT 1 FROM app.schema_migrations WHERE version = 'V021__api_readiness_ledger_grant.sql'
+                SELECT 1 FROM app.schema_migrations WHERE version = 'V022__historical_case_prediction_visibility.sql'
             """
             ).fetchone()
             return row is not None
@@ -449,7 +449,7 @@ def create_app(
             )
         try:
             result = claim_case.execute(order_id, user.id)
-            page = risk_orders.list_orders(QueueFilters(query=order_id, limit=1))
+            refreshed = risk_orders.get_order(order_id)
         except ClaimNotFoundError as exc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -479,10 +479,10 @@ def create_app(
                 status_code=http_status,
                 detail={"code": code, "message": str(exc), "details": None},
             ) from exc
-        if not page.items:
+        if refreshed is None:
             raise RuntimeError("Claimed case is absent from the Queue projection")
         order = QueueOrder.model_validate(
-            {k: v for k, v in page.items[0].__dict__.items() if k in QueueOrder.model_fields}
+            {k: v for k, v in refreshed.__dict__.items() if k in QueueOrder.model_fields}
         )
         principal = Principal.model_validate(user_response(user).model_dump()).model_copy(
             update={

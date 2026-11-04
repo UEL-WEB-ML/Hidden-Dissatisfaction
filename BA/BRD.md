@@ -106,6 +106,9 @@ Các key hiện có:
 - Chỉ một prediction snapshot có state `ACTIVE`.
 - Threshold LOW/MEDIUM/HIGH đi cùng model release.
 - Workflow case giữ `prediction_id` và `aggregation_rule` từ lúc tạo.
+- Prediction bị `SUPERSEDED` không làm ẩn, đóng, chấm lại hoặc giải phóng case đã tạo.
+  Case đang mở vẫn xử lý theo snapshot cũ và tiếp tục tính capacity; lần seed sau bỏ
+  qua order đã có case.
 
 ## 10. Ngoài phạm vi hoặc chưa hoàn thiện
 

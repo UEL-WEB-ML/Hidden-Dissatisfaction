@@ -180,8 +180,8 @@ function pad(n) { return n < 10 ? "0" + n : "" + n; }
 // Giá trị cho ô <input type="datetime-local"> / <input type="date"> từ thời gian API trả về (dạng nào cũng được)
 function inputTime(s) { return fmtTime(parseTime(s)).replace(" ", "T"); }
 function inputDate(s) { return fmtDate(parseTime(s)); }
-// Giá trị ô datetime-local ("2018-06-04T14:00") -> dạng gửi lên API theo contract ("2018-06-04 14:00")
-function apiTime(v) { return v ? v.replace("T", " ") : v; }
+// Giá trị datetime-local được hiểu theo múi giờ máy người dùng và gửi dạng ISO 8601.
+function apiTime(v) { return v ? new Date(v).toISOString() : v; }
 function fmtTime(d) {
   return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
 }
@@ -582,5 +582,14 @@ function requireManager() {
     + "<b>" + L("This page is for managers only.", "Trang này chỉ dành cho Manager.") + "</b><br>"
     + L("Your specialist account doesn't have access.", "Tài khoản nhân viên của bạn không có quyền xem.") + "</div>"
     + '<div class="note" lang="vi">BRD 3.1: Specialist không có Dashboard, Decisions, Settings trong MVP.</div>';
+  return false;
+}
+
+function requireSpecialist() {
+  if (!isManager()) return true;
+  document.getElementById("content").innerHTML = '<div class="alert"><span class="icon">!</span>'
+    + '<a class="btn" href="order.html">' + L("Back to Order Detail", "Về Chi tiết đơn") + "</a>"
+    + "<b>" + L("This page is for specialists only.", "Trang này chỉ dành cho Nhân viên CSKH.") + "</b><br>"
+    + L("Managers can review contact history in Order Detail and Decisions.", "Quản lý xem lịch sử liên lạc trong Chi tiết đơn và Quyết định.") + "</div>";
   return false;
 }

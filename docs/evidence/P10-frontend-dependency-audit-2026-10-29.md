@@ -1,5 +1,8 @@
 # P10 frontend dependency audit — 2026-10-29
 
+> **Superseded (2026-11-04):** the Angular frontend described here was replaced by the static
+> HTML/CSS/JS UI in `frontend/prototype/` (served by nginx). This audit is kept as history only.
+
 Status: **resolved by the approved Angular 22 upgrade**
 
 ## Evidence
