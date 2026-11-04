@@ -292,8 +292,7 @@
         if (mine) b += '<a class="btn' + (needContact() ? " primary" : "") + '" href="' + att + '">' + icon("phone") + " " + L("Log contact attempt", "Ghi lần liên lạc") + "</a> ";
         b += '<button class="btn' + (needContact() ? "" : " primary") + '" onclick="complete()">' + L("Complete", "Hoàn tất") + "</button> "
           + '<button class="btn" onclick="skip()">' + L("Skip", "Bỏ qua") + "</button> ";
-        if (isManager()) b += '<button class="btn" onclick="openAssign(o, refresh)">' + L("Reassign", "Chuyển người") + "</button> "
-          + '<a class="btn" href="' + att + '">' + L("View attempts", "Xem lần liên lạc") + "</a>";
+        if (isManager()) b += '<button class="btn" onclick="openAssign(o, refresh)">' + L("Reassign", "Chuyển người") + "</button>";
         if (needContact()) b += '<p class="tiny">' + L("Next step: contact the customer and log the attempt.", "Bước tiếp: liên lạc khách rồi ghi lại.") + "</p>";
       } else if (o.status == "IN_PROGRESS") {
         b += '<p class="muted">' + L(escapeHtml(o.assignee_name) + " is handling this order. You can view it only; ask a manager to reassign it.", escapeHtml(o.assignee_name) + " đang xử lý đơn này. Bạn chỉ xem được; nhờ Manager chuyển người nếu cần.") + "</p>";

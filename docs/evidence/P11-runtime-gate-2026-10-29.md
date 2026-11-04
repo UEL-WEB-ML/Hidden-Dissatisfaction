@@ -1,5 +1,9 @@
 # P11 runtime gate — 2026-10-29
 
+> **Partly superseded (2026-11-04):** the Angular frontend mentioned below (build, `hd-root`
+> selector) was replaced by the static HTML/CSS/JS UI in `frontend/prototype/`. Frontend gates
+> here describe the old build; backend and Compose gates are unaffected.
+
 Status: **Compose E2E and authenticated synthetic walkthrough passed**
 
 ## Passed gates

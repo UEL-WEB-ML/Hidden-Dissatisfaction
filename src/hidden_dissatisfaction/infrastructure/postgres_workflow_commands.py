@@ -126,7 +126,7 @@ class PostgresWorkflowCommands:
         if updated.rowcount != 1:
             raise WorkflowPolicyError(*_CONCURRENT)
         conn.execute(
-            "UPDATE app.assignments SET released_at=%s, release_reason=%s "
+            "UPDATE app.assignments SET released_at=GREATEST(%s, assigned_at), release_reason=%s "
             "WHERE case_id=%s AND released_at IS NULL",
             (now, status, case["case_id"]),
         )
@@ -181,7 +181,7 @@ class PostgresWorkflowCommands:
                 ).fetchone()
                 previous_name = row["full_name"] if row else None
                 conn.execute(
-                    "UPDATE app.assignments SET released_at=%s, release_reason=%s "
+                    "UPDATE app.assignments SET released_at=GREATEST(%s, assigned_at), release_reason=%s "
                     "WHERE case_id=%s AND released_at IS NULL",
                     (now, require_reason(reason), case["case_id"]),
                 )
@@ -484,11 +484,16 @@ class PostgresWorkflowCommands:
     def add_decision(self, command: AddDecision) -> dict[str, object]:
         """Append a Manager Decision to the current cycle; it never changes status or scores."""
         now = self._clock()
-        validate_decision(
-            command.decision, command.reason, command.next_step, command.due_date, now.date()
-        )
         with self._connect() as conn, conn.transaction():
             case = self._lock_case(conn, command.order_id)
+            validate_decision(
+                case["status"],
+                command.decision,
+                command.reason,
+                command.next_step,
+                command.due_date,
+                now.date(),
+            )
             if command.next_step_assignee_id is not None:
                 active = conn.execute(
                     "SELECT 1 FROM app.users WHERE user_id=%s AND is_active",

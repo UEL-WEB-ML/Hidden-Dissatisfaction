@@ -73,7 +73,9 @@ def validate_contact(
     """Validate an append-only contact and return whether it must auto-skip."""
     if case.status != "IN_PROGRESS":
         raise WorkflowPolicyError("INVALID_STATE", "Contacts require an in-progress case")
-    if contacted_at.tzinfo is None or contacted_at > now:
+    if contacted_at.tzinfo is None:
+        raise WorkflowPolicyError("VALIDATION_ERROR", "contacted_at must include a timezone")
+    if contacted_at > now:
         raise WorkflowPolicyError("VALIDATION_ERROR", "contacted_at must not be in the future")
     if result not in CONTACT_RESULTS:
         raise WorkflowPolicyError("VALIDATION_ERROR", "Invalid contact result")
@@ -147,6 +149,7 @@ def validate_comment(text: str | None) -> str:
 
 
 def validate_decision(
+    status: str,
     decision: str | None,
     reason: str | None,
     next_step: str | None,
@@ -154,6 +157,8 @@ def validate_decision(
     today: date,
 ) -> None:
     """Validate the three mandatory Manager Decision fields and the due date."""
+    if status not in CLOSED_STATUSES:
+        raise WorkflowPolicyError("INVALID_STATE", "Decisions require a closed case")
     if decision not in DECISIONS:
         raise WorkflowPolicyError("VALIDATION_ERROR", "Invalid decision")
     require_reason(reason)

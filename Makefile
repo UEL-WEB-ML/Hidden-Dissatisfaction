@@ -50,7 +50,8 @@ ingest:
 	uv run --frozen --extra db hidden-dissatisfaction ingest --manifest data/interim/bronze-manifest.json
 
 warehouse: bootstrap
-	$(COMPOSE) --profile jobs run --rm warehouse dbt build --exclude tag:release_only --project-dir dbt --profiles-dir dbt
+	@test -n "$(DBT_SOURCE_RUN_ID)" || (echo "DBT_SOURCE_RUN_ID is required" >&2; exit 1)
+	$(COMPOSE) --profile jobs run --rm warehouse dbt build --exclude tag:release_only --project-dir dbt --profiles-dir dbt --vars "{source_run_id: $(DBT_SOURCE_RUN_ID)}"
 
 train:
 	@test -n "$(TRAIN_COMMAND)" || (echo "TRAIN_COMMAND is required (opt-in)" >&2; exit 1)

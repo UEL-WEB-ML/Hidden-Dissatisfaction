@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from hidden_dissatisfaction.api.schemas import ItemDetail, TopItem
+from hidden_dissatisfaction.api.schemas import ItemDetail, QueueOrder, TopItem
 
 
 def test_top_item_metadata_is_optional_and_strict_and_item_detail_inherits_it() -> None:
@@ -27,3 +27,9 @@ def test_top_item_metadata_is_optional_and_strict_and_item_detail_inherits_it() 
 
     with pytest.raises(ValidationError):
         TopItem.model_validate({**fields, "unexpected": True})
+
+
+def test_queue_contact_count_is_a_non_null_integer_defaulting_to_zero() -> None:
+    field = QueueOrder.model_fields["contact_count"]
+    assert field.default == 0
+    assert field.annotation is int

@@ -274,6 +274,7 @@
 
     el("main").innerHTML = '<div class="box">' + skeletonHtml(4) + "</div>";
     boot("attempt").then(async function () {
+      if (!requireSpecialist()) return;
       try {
         await loadList();
         // Không có ?id= hoặc id không thuộc danh sách của mình: chọn đơn đầu danh sách (SLA gần hạn nhất)

@@ -5,7 +5,7 @@
 | Flow | UI | API | Policy/adapter | Persistence | Status |
 |---|---|---|---|---|---|
 | Authentication | login/profile/common | auth login/logout/me | auth service | users | Implemented |
-| Queue/filter | index | orders, summary, options | QueueFilters, PostgresRiskOrderQuery | cases + active ML views | Implemented |
+| Queue/filter | index | orders, summary, options | QueueFilters, PostgresRiskOrderQuery | cases + active/historical case ML views | Implemented |
 | Claim | index/order | order claim | validate_claim, claim adapter | cases, assignments, audit | Implemented |
 | Assignment | order | order assign | validate_assign, commands | cases, assignments, audit | Implemented |
 | Detail | order | order detail | PostgresCaseReads | workflow + ML views | Implemented, reduced commerce DTO |
@@ -18,6 +18,7 @@
 | Parameters | settings | config/parameters | parameter domain/service | parameters, bundles, audit | Implemented |
 | SLA recalculation | no UI | CLI job | PostgresSlaRecalculator | sla_adjustments | Manual job only |
 | Training/scoring | no UI | CLI/batch adapters | modeling/release scoring | artifacts + ML tables | Manual/offline; no promoted real demo artifact |
+| Prediction supersession | no UI | queue seed batch | case snapshot guard + seed adapter | predictions, immutable cases | Existing cases remain actionable; existing orders skipped |
 
 ## 2. Loop 1 — source extraction
 
@@ -26,7 +27,7 @@
 1. Runtime OpenAPI `/openapi.json`: 26 paths, 28 operations; gồm ba health paths
    và 23 business/auth paths.
 2. Runtime PostgreSQL `information_schema`: 220 columns thuộc 24 app/ml relation/view.
-3. Schema-only dump của `app` và `ml`, migrations V001–V021.
+3. Schema-only dump của `app` và `ml`, migrations V001–V022.
 4. `frontend/prototype/js/api.js` và 9 HTML screens.
 5. Domain policies: queue, workflow, parameter, case metrics.
 6. Runtime responses của config, parameters, queue detail, dashboard và audit.

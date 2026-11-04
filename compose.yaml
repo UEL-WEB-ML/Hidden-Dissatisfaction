@@ -92,7 +92,16 @@ services:
       DBT_USER: ${DBT_USER:-postgres}
       DBT_PASSWORD: ${DBT_PASSWORD:-${POSTGRES_SUPERUSER_PASSWORD}}
       DBT_DATABASE: ${POSTGRES_DB}
-    command: ["dbt", "build", "--exclude", "tag:release_only", "--project-dir", "dbt", "--profiles-dir", "dbt"]
+      DBT_SOURCE_RUN_ID: ${DBT_SOURCE_RUN_ID:-}
+    command:
+      - sh
+      - -ec
+      - >-
+        test -n "$${DBT_SOURCE_RUN_ID}" ||
+        { echo "DBT_SOURCE_RUN_ID is required" >&2; exit 1; };
+        exec dbt build --exclude tag:release_only
+        --project-dir dbt --profiles-dir dbt
+        --vars "{source_run_id: $${DBT_SOURCE_RUN_ID}}"
 
 volumes:
   postgres_data:

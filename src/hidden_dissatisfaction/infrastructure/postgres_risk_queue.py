@@ -17,7 +17,14 @@ class PostgresRiskOrderQuery:
         self._dsn = dsn
 
     def list_orders(self, filters: QueueFilters) -> QueuePage:
-        where, params, matched_item_id = self._where_clause(filters)
+        return self._list_orders(filters)
+
+    def get_order(self, order_id: str) -> QueueOrder | None:
+        page = self._list_orders(QueueFilters(limit=1), exact_order_id=order_id)
+        return page.items[0] if page.items else None
+
+    def _list_orders(self, filters: QueueFilters, exact_order_id: str | None = None) -> QueuePage:
+        where, params, matched_item_id = self._where_clause(filters, exact_order_id)
         order_by = {
             "priority": "r.risk_score DESC, cycle.sla_due_at ASC NULLS LAST, c.original_queued_at ASC, c.order_id ASC",
             "sla": "cycle.sla_due_at ASC NULLS LAST, r.risk_score DESC, c.order_id ASC",
@@ -67,8 +74,10 @@ class PostgresRiskOrderQuery:
                 f"""
                 SELECT c.order_id, r.risk_score, r.risk_level, c.status, a.assignee_id,
                        u.full_name AS assignee_name, cycle.started_at AS queued_at, c.original_queued_at,
-                       cycle.sla_due_at, c.row_version, c.outcome, c.skip_reason, c.updated_at,
-                       r.top_factors, r.items_count,
+                        cycle.sla_due_at, c.row_version, c.outcome, c.skip_reason, c.updated_at,
+                        r.top_factors, r.items_count,
+                        COALESCE((SELECT count(*)::int FROM app.contact_attempts ca
+                                  WHERE ca.cycle_id = cycle.cycle_id), 0) AS contact_count,
                        jsonb_build_object(
                          'product_item_id', risk_item.product_item_id,
                          'risk_score', risk_item.risk_score,
@@ -110,10 +119,15 @@ class PostgresRiskOrderQuery:
         }
 
     @staticmethod
-    def _where_clause(filters: QueueFilters) -> tuple[str, dict[str, Any], str | None]:
+    def _where_clause(
+        filters: QueueFilters, exact_order_id: str | None = None
+    ) -> tuple[str, dict[str, Any], str | None]:
         clauses: list[str] = []
         params: dict[str, Any] = {}
         matched_item_id: str | None = None
+        if exact_order_id is not None:
+            clauses.append("c.order_id = %(exact_order_id)s")
+            params["exact_order_id"] = exact_order_id
         if filters.level is not None:
             clauses.append("r.risk_level = %(level)s")
             params["level"] = filters.level
@@ -223,6 +237,7 @@ class PostgresRiskOrderQuery:
             outcome=row["outcome"],
             skip_reason=row["skip_reason"],
             self_claim_allowed=row["status"] == "PENDING" and row["risk_level"] != "HIGH",
+            contact_count=int(row["contact_count"]),
             **{
                 k: metrics[k]
                 for k in (

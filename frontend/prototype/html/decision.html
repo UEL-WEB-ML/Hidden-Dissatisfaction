@@ -99,7 +99,7 @@
         + "<p>" + statusBadge(o.status) + " " + (outcomeText(o) ? "<b>" + outcomeText(o) + "</b>" : "") + " · " + (o.assignee_name ? escapeHtml(o.assignee_name) : L("Unassigned", "Chưa ai nhận")) + "</p>"
         + '<ul class="timeline">' + (att || '<li class="empty">' + L("No contact attempts in this cycle.", "Chu kỳ này chưa có lần liên lạc.") + "</li>") + "</ul>"
         + (cms ? '<h3 class="sec">' + L("Comments", "Nhận xét") + '</h3><ul class="comments">' + cms + "</ul>" : "")
-        + '<a class="tiny" href="attempt.html?id=' + encodeURIComponent(o.order_id) + '">' + L("Full contact history and evidence →", "Toàn bộ lịch sử liên lạc và minh chứng →") + "</a></div>";
+        + "</div>";
 
       // 3. Quyết định trước
       var prev = "";
@@ -124,7 +124,8 @@
       }
       var who = '<option value="">' + L("Not assigned", "Chưa giao ai") + "</option>";
       for (var u = 0; u < USERS.length; u++) who += '<option value="' + encodeURIComponent(USERS[u].user_id) + '">' + escapeHtml(USERS[u].full_name) + (USERS[u].role == "MANAGER" ? " (Manager)" : "") + "</option>";
-      var form = '<div class="box"><h2>' + L("Decision", "Quyết định") + "</h2>"
+      var eligible = isClosed(o) && o.needs_decision;
+      var form = eligible ? '<div class="box"><h2>' + L("Decision", "Quyết định") + "</h2>"
         + '<form onsubmit="save(); return false;"><fieldset class="dec-opts"><legend class="sr">' + L("Decision", "Quyết định") + "</legend>" + opts + "</fieldset>"
         + '<div class="form-row"><label for="dc-reason">' + L("Reason", "Lý do") + ' *</label><textarea id="dc-reason" rows="2" placeholder="' + L("e.g. Second packaging complaint for this seller this month", "vd: Seller này bị phàn nàn đóng gói lần thứ hai trong tháng") + '"></textarea></div>'
         + '<div class="form-row"><label for="dc-next">' + L("Next step", "Bước tiếp theo") + ' *</label><textarea id="dc-next" rows="2" placeholder="' + L("e.g. Send packaging photos to the seller and ask for better padding", "vd: Gửi ảnh đóng gói cho seller, yêu cầu chèn lót kỹ hơn") + '"></textarea></div>'
@@ -133,19 +134,21 @@
         + '<div class="form-row"><label for="dc-note">' + L("Note", "Ghi chú") + '</label><input id="dc-note" type="text"></div>'
         + '<p class="form-error" id="dc-error" role="alert"></p>'
         + '<div class="actions"><button class="btn primary" type="submit" id="dc-save">' + L("Save decision", "Lưu quyết định") + "</button> "
-        + (isClosed(o) ? '<a class="btn" href="order.html?id=' + encodeURIComponent(o.order_id) + '">' + L("Reopen in Order Detail", "Mở lại ở Chi tiết đơn") + "</a>" : "") + "</div></form></div>";
+        + '<a class="btn" href="order.html?id=' + encodeURIComponent(o.order_id) + '">' + L("Reopen in Order Detail", "Mở lại ở Chi tiết đơn") + "</a></div></form></div>"
+        : '<div class="box empty">' + L("This case is not eligible for a new decision.", "Case này không đủ điều kiện ghi quyết định mới.") + "</div>";
 
       el("main").innerHTML = '<div class="dgrid">' + p1 + p2 + "</div>" + p3 + form;
     }
 
     async function save() {
       var pickEl = document.querySelector('input[name="dec"]:checked'), btn = el("dc-save");
+      if (!isClosed(o) || !o.needs_decision) { toast(L("This case is not eligible for a new decision.", "Case này không đủ điều kiện ghi quyết định mới."), "error"); return; }
       if (!pickEl) { el("dc-error").textContent = L("Choose a decision.", "Chọn quyết định."); return; }
       if (!el("dc-reason").value.trim()) { el("dc-error").textContent = L("Give a reason for this decision.", "Ghi lý do cho quyết định này."); return; }
       btn.disabled = true;
       try {
         await api.addDecision(o.order_id, { decision: pickEl.value, reason: el("dc-reason").value.trim(), next_step: el("dc-next").value.trim(),
-          next_step_assignee_id: el("dc-who").value || null, due_date: el("dc-due").value, note: el("dc-note").value.trim() });
+          next_step_assignee_id: el("dc-who").value || null, due_date: el("dc-due").value || null, note: el("dc-note").value.trim() });
         toast(L("Decision saved for order " + shortId(o.order_id) + ".", "Đã lưu quyết định cho đơn " + shortId(o.order_id) + "."));
         await loadList();
         var next = LIST.length ? LIST[0].order_id : null;

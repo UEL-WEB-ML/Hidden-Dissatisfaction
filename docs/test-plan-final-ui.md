@@ -30,8 +30,8 @@ make e2e
 ```
 
 Nếu cần khởi động đầy đủ theo quy trình local, làm theo `docs/local-development.md`, sau đó chạy
-`./scripts/demo-seed.sh`. Script tạo/refresh tài khoản và 5 case synthetic (`demo-1001` đến
-`demo-1005`), không tải Olist. Script tạo credentials ngẫu nhiên một lần trong file Git-ignored
+`./scripts/demo-seed.sh`. Script tạo/refresh tài khoản và 5 case synthetic (ID hex kết thúc từ
+`1001` đến `1005`), không tải Olist. Script tạo credentials ngẫu nhiên một lần trong file Git-ignored
 `data/evidence/P12-DEMO-CREDENTIALS.env`; không ghi password vào tài liệu, ticket hoặc ảnh chụp.
 
 Đọc credentials an toàn trên máy chạy seed:
@@ -62,11 +62,11 @@ trong kế hoạch này đều synthetic.
 
 | Order | Risk/score | Baseline status | Baseline assignment | Mục đích |
 |---|---:|---|---|---|
-| `demo-1001` | 0.91 / HIGH | PENDING | Manager-assigned when assignment fixture is present | manager assignment/detail |
-| `demo-1002` | 0.78 / HIGH | IN_PROGRESS | Specialist demo | comment, contact, reopen |
-| `demo-1003` | 0.63 / MEDIUM | PENDING | Chưa assign | specialist claim, manager assign/reassign |
-| `demo-1004` | 0.54 / MEDIUM | COMPLETED | Specialist demo | completed/read-only và audit |
-| `demo-1005` | 0.82 / HIGH | PENDING | Chưa assign | dashboard/filter; decision only if `needs_decision` |
+| `00000000000000000000000000001001` | 0.91 / HIGH | PENDING | Manager-assigned when assignment fixture is present | manager assignment/detail |
+| `00000000000000000000000000001002` | 0.78 / HIGH | IN_PROGRESS | Specialist demo | comment, contact, reopen |
+| `00000000000000000000000000001003` | 0.63 / MEDIUM | PENDING | Chưa assign | specialist claim, manager assign/reassign |
+| `00000000000000000000000000001004` | 0.54 / MEDIUM | COMPLETED | Specialist demo | completed/read-only và audit |
+| `00000000000000000000000000001005` | 0.82 / HIGH | PENDING | Chưa assign | dashboard/filter; decision only if `needs_decision` |
 
 Seed không khôi phục mutation cũ; owner reset là bắt buộc. Xác nhận baseline trên Queue trước mỗi nhóm.
 
@@ -93,9 +93,9 @@ hưởng; ghi lại khi liên quan.
 |---|---|---|---|---|---|---|
 | S01 | Cả hai | Chưa đăng nhập | Mở URL; nhập sai username/password; thử để trống từng ô; bấm Login | Có validation/lỗi rõ; không vào app khi thiếu hoặc sai | Not run | |
 | S02 | Specialist | Có credentials seed | Đăng nhập specialist; đổi VI/EN; bật/tắt hiện password; refresh | Vào đúng app; ngôn ngữ và visibility đổi đúng; phiên còn hợp lệ | Not run | |
-| S03 | Specialist | Đã login | Mở Queue; tìm `demo-1001`; mở detail rồi quay lại | Queue tải; tìm đúng case; điều hướng không mất ngữ cảnh quan trọng | Not run | |
-| S04 | Specialist | `demo-1003` MEDIUM/PENDING, clean baseline | Claim; kiểm tra status; bấm Continue | Case thành IN_PROGRESS/assigned; Continue mở workflow hợp lệ | Not run | |
-| S05 | Manager | Đăng nhập manager | Mở Queue/Decision; mở `demo-1003`; assign specialist | Manager thấy chức năng manager; assignment thành công | Not run | |
+| S03 | Specialist | Đã login | Mở Queue; tìm ID kết thúc `1001`; mở detail rồi quay lại | Queue tải; tìm đúng case; điều hướng không mất ngữ cảnh quan trọng | Not run | |
+| S04 | Specialist | ID kết thúc `1003`, MEDIUM/PENDING, clean baseline | Claim; kiểm tra status; bấm Continue | Case thành IN_PROGRESS/assigned; Continue mở workflow hợp lệ | Not run | |
+| S05 | Manager | Đăng nhập manager | Mở Queue/Decision; mở ID kết thúc `1003`; assign specialist | Manager thấy chức năng manager; assignment thành công | Not run | |
 | S06 | Cả hai | Có app | Truy cập trực tiếp URL của trang role khác khi chưa đủ quyền | Bị chặn hoặc chuyển trang an toàn; không lộ dữ liệu/thao tác trái quyền | Not run | |
 | S07 | Manager | Có baseline | Mở Dashboard; đổi filter; mở drill-down; logout | Manager thấy số liệu/filter/drill-down; logout về Login và back không vào lại | Not run | |
 | S08 | Cả hai | Có app | Thu nhỏ lần lượt desktop/tablet/mobile; mở Queue và detail | Không tràn/che nút; thao tác chính vẫn dùng được | Not run | |
@@ -108,12 +108,12 @@ hưởng; ghi lại khi liên quan.
 | F02 | Cả hai | Đã login | Mở từng mục navigation; dùng URL trực tiếp cho trang hợp lệ và không hợp lệ | Link đúng role; URL sai không làm app hỏng | Not run | |
 | F03 | Specialist | Queue có 5 case | Search theo order ID/product ID; dùng riêng seller/category filters; đổi risk/status; sort cột; clear; reset | Search chỉ tìm ID; seller/category là filter riêng; sort ổn định; Clear/Reset đưa về baseline | Not run | |
 | F04 | Specialist | Queue | Dùng keyboard focus/tab; resize desktop 1366px, tablet 768px, mobile 390px | Focus nhìn thấy; bảng/card không cắt text; filter usable | Not run | |
-| F05 | Specialist | `demo-1003` MEDIUM/PENDING, clean baseline | Claim; thử claim lại case đã assigned; mở case của người khác | Claim hợp lệ một lần; lỗi/trạng thái rõ; không chiếm trái phép | Not run | |
-| F06 | Specialist | Đã claim `demo-1003` | Bấm Continue từ case đã claim; thử tiếp tục case không được assign | Continue chỉ cho phép trạng thái hợp lệ; không có capacity/assignment page; lỗi không làm mất dữ liệu | Not run | |
-| F07 | Manager | `demo-1003` PENDING | Assign cho specialist; mở lại; reassign sang specialist khác | Assignment và audit cập nhật; người mới hiển thị đúng | Not run | |
+| F05 | Specialist | ID kết thúc `1003`, MEDIUM/PENDING, clean baseline | Claim; thử claim lại case đã assigned; mở case của người khác | Claim hợp lệ một lần; lỗi/trạng thái rõ; không chiếm trái phép | Not run | |
+| F06 | Specialist | Đã claim ID kết thúc `1003` | Bấm Continue từ case đã claim; thử tiếp tục case không được assign | Continue chỉ cho phép trạng thái hợp lệ; không có capacity/assignment page; lỗi không làm mất dữ liệu | Not run | |
+| F07 | Manager | ID kết thúc `1003`, PENDING | Assign cho specialist; mở lại; reassign sang specialist khác | Assignment và audit cập nhật; người mới hiển thị đúng | Not run | |
 | F08 | Manager | Có assignment | Chọn override capacity; để trống reason; nhập reason; submit | Override bắt buộc reason; submit hợp lệ lưu reason và người thực hiện | Not run | |
-| F09 | Specialist | Mở `demo-1002` | Kiểm tra order detail, product/item, risk score và factors; dùng Search trong detail; Copy từng giá trị | Dữ liệu case đúng; Search navigates tới kết quả/case, không filter trong detail; Copy báo thành công và clipboard đúng | Not run | |
-| F10 | Specialist | Detail `demo-1002` | Thêm comment rỗng, whitespace, comment hợp lệ; refresh | Blank behavior theo backend; comment hợp lệ hiển thị đúng author/time sau refresh | Not run | |
+| F09 | Specialist | Mở ID kết thúc `1002` | Kiểm tra order detail, product/item, risk score và factors; dùng Search trong detail; Copy từng giá trị | Dữ liệu case đúng; Search navigates tới kết quả/case, không filter trong detail; Copy báo thành công và clipboard đúng | Not run | |
+| F10 | Specialist | Detail ID kết thúc `1002` | Thêm comment rỗng, whitespace, comment hợp lệ; refresh | Blank behavior theo backend; comment hợp lệ hiển thị đúng author/time sau refresh | Not run | |
 | F11 | Specialist | Assigned `IN_PROGRESS` case | Chọn Complete; thử submit thiếu outcome; chọn outcome và submit | Outcome là bắt buộc; complete chuyển COMPLETED và không còn thao tác sai trạng thái | Not run | |
 | F12 | Specialist | Assigned `IN_PROGRESS` case | Chọn Skip; thử thiếu reason; chọn reason khác `OTHER` rồi `OTHER` kèm note; submit | Skip chỉ cho IN_PROGRESS; reason bắt buộc; `OTHER` yêu cầu note; status/lý do đúng | Not run | |
 | F13 | Manager | Case đã hoàn tất/skipped và clean baseline phù hợp | Mở case; chọn Reopen; thử thiếu reason; submit hợp lệ | Reopen chỉ Manager; reason/guard đúng; cycle/status và audit đúng; không giả định confirmation | Not run | |

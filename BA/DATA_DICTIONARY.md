@@ -1,6 +1,6 @@
 # Data Dictionary — As-built PostgreSQL
 
-Nguồn: schema runtime sau migration V001–V021. Kiểu `timestamp with time zone`
+Nguồn: schema runtime sau migration V001–V022. Kiểu `timestamp with time zone`
 được viết gọn là `timestamptz`.
 
 ## 1. Schema `app`
@@ -98,7 +98,7 @@ min/max seed cũ trong database rộng hơn ở một số key.
 ### Infrastructure
 
 `app.schema_migrations(version, applied_at)` là migration ledger và được readiness
-probe đọc để kiểm tra V021.
+probe đọc để kiểm tra V022.
 
 ## 2. Schema `ml`
 
