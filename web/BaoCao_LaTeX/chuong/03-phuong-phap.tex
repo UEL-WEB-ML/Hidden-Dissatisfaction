@@ -1,22 +1,540 @@
 % =========================
-% chuong/03-phuong-phap.tex  —  MỤC 3. PHƯƠNG PHÁP THỰC HIỆN:
+% chuong/03-phuong-phap.tex  —  MỤC 3. PHƯƠNG PHÁP THỰC HIỆN
+% Sơ đồ vẽ bằng draw.io, file nguồn ở thư mục so-do-drawio/ (mở bằng app.diagrams.net để sửa).
+% Số liệu hệ thống đối chiếu nhánh dev, commit 1a8a767 (04/11/2026).
 % =========================
 
 \section{PHƯƠNG PHÁP THỰC HIỆN}
 
-\subsection{Quy trình triển khai và đặc tả hệ thống}
-\textbf{Nguồn và trạng thái bằng chứng.} Nội dung thiết kế được đối chiếu với data contract, architecture, API/FRD và ERD. Đây là bằng chứng contract/implementation, không phải bằng chứng hiệu năng confirmatory. Luồng là nạp dữ liệu đã kiểm tra, tạo output theo product item, tổng hợp theo order bằng `max-v1`, đưa order vào hàng đợi, phân công xử lý, ghi Attempt/Decision và lưu audit append-only.
+% ---------- macro dùng riêng cho mục 3 ----------
+% Bảng đặc tả use case: \usecase{nhãn}{tên}{tác nhân}{mô tả}{tiền điều kiện}{luồng chính}{ngoại lệ}{hậu điều kiện}
+\newcommand{\usecase}[8]{%
+{\small\setstretch{1.1}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{11.9cm}|}
+\caption{Đặc tả use case ``#2''}\label{tab:uc-#1}\\ \hline
+\textbf{Tên use case} & \textbf{#2} \\ \hline
+\endfirsthead
+\hline \endhead
+Tác nhân & #3 \\ \hline
+Mô tả & #4 \\ \hline
+Tiền điều kiện & #5 \\ \hline
+Luồng chính & \begin{enumerate}[nosep,leftmargin=1.4em,topsep=0pt,after=\vspace{-\baselineskip}] #6 \end{enumerate} \\ \hline
+Luồng ngoại lệ & \begin{itemize}[nosep,leftmargin=1.2em,topsep=0pt,after=\vspace{-\baselineskip}] #7 \end{itemize} \\ \hline
+Hậu điều kiện & #8 \\ \hline
+\end{longtable}}}
 
-\subsection{Đơn vị phân tích và chính sách weak label}
-Một product item là đơn vị đầu ra ML; một order là đơn vị workflow, chia tập và bootstrap. Cohort mục tiêu là order đã giao không muộn hơn ngày dự kiến và có review quan sát. Nhãn âm là review score 1--2 ở cấp order; item trong order kế thừa nhãn đó. Score item là tín hiệu rủi ro trong bối cảnh order, không phải bằng chứng item gây ra không hài lòng.
+% Bảng mô tả cột: \begin{bangcot}{tên bảng}{nhãn} ... \end{bangcot}; mỗi dòng: Cột & Kiểu & Ràng buộc & Ý nghĩa \\ \hline
+\newenvironment{bangcot}[2]{%
+\small\setstretch{1.05}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}p{6.0cm}|}
+\caption{Bảng \texttt{#1}}\label{tab:db-#2}\\ \hline
+\textbf{Cột} & \textbf{Kiểu} & \textbf{Ràng buộc} & \textbf{Ý nghĩa} \\ \hline
+\endfirsthead
+\hline \textbf{Cột} & \textbf{Kiểu} & \textbf{Ràng buộc} & \textbf{Ý nghĩa} \\ \hline
+\endhead
+}{\end{longtable}}
 
-\subsection{Dữ liệu, kiểm soát rò rỉ và workflow}
-Pipeline tách thời điểm dự đoán khỏi review, giữ toàn bộ item của một order trong cùng partition và không dùng identifier, review field hoặc metadata chia tập làm feature. Workflow dùng order làm case: hàng đợi được tạo từ output item đã tổng hợp, nhân viên xem context và lý do, ghi hành động, còn Manager có thể phân công/override với reason. Đây là luồng hỗ trợ quyết định, không phải tự động hóa quyết định khách hàng.
+\newcommand{\hinh}[4][\textwidth]{%
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=#1,height=0.82\textheight,keepaspectratio]{hinh/#2}
+    \caption{#3}
+    \label{fig:#4}
+\end{figure}}
 
+% ------------------------------------------------------------
+\subsection{Quy trình triển khai, đề xuất mô hình và đặc tả hệ thống}
+
+\subsubsection{Quy trình triển khai dự án}
+
+Dự án được thực hiện trong khoảng bảy tuần, từ tháng 9 đến đầu tháng 11 năm 2026, theo các giai
+đoạn ở Bảng~\ref{tab:giai-doan}. Hai môn Phát triển Web Kinh doanh và Học máy dùng chung bài toán
+và bộ dữ liệu; ranh giới giữa hai môn là một cấu trúc dữ liệu kết quả dự đoán thống nhất. Môn Học
+máy lo phần chuẩn bị dữ liệu, huấn luyện và đánh giá mô hình; môn Web lo phân tích thiết kế hệ
+thống, cơ sở dữ liệu nghiệp vụ, máy chủ API, giao diện, tích hợp và kiểm thử.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{9cm}|}
+\caption{Các giai đoạn triển khai dự án}\label{tab:giai-doan}\\ \hline
+\textbf{Giai đoạn} & \textbf{Thời gian} & \textbf{Kết quả} \\ \hline \endfirsthead
+\hline \textbf{Giai đoạn} & \textbf{Thời gian} & \textbf{Kết quả} \\ \hline \endhead
+Khảo sát và chọn đề tài & 19/09 -- 21/09 & Đo bốn bộ dữ liệu ứng viên, chọn Olist vì có đủ 9 bảng liên kết; chốt bài toán sự không hài lòng ẩn \\ \hline
+Phân tích yêu cầu & 22/09 -- 10/10 & BRD, FRD; hai vai trò; bộ trạng thái case; quy tắc nhận đơn, SLA, số lần liên lạc tối đa \\ \hline
+Thiết kế giao diện & 29/09 -- 14/10 & Wireframe trên Figma; prototype HTML/CSS/JS chạy với dữ liệu giả; góp ý của giảng viên ngày 13/10 và 14/10 \\ \hline
+Đặc tả API và dữ liệu & 05/10 -- 21/10 & API contract và từ điển dữ liệu qua các phiên bản v0.1 đến v0.5 \\ \hline
+Xây dựng máy chủ và CSDL & 09/10 -- 01/11 & FastAPI, PostgreSQL, 22 tệp migration, nạp kết quả dự đoán thành case \\ \hline
+Tích hợp & 26/10 -- 02/11 & Giao diện bỏ máy chủ giả, gọi API thật; đóng gói bằng Docker Compose \\ \hline
+Kiểm thử và sửa lỗi & 02/11 -- 05/11 & Ba vòng kiểm thử theo tài liệu BA; nhóm sửa lỗi ở commit ngày 04/11; kiểm lại ngày 05/11 \\ \hline
+\end{longtable}
+}
+
+\subsubsection{Mô hình hệ thống đề xuất}
+
+Hình~\ref{fig:kien-truc} trình bày kiến trúc tổng thể. Người dùng mở trang web trên trình duyệt;
+mọi yêu cầu đi qua Nginx tới máy chủ API; máy chủ API là nơi duy nhất đọc và ghi cơ sở dữ liệu.
+Quy trình học máy chạy theo lô và ghi kết quả chấm điểm vào schema \texttt{ml}; hệ thống web chỉ
+đọc schema này và không bao giờ sửa điểm rủi ro. Mỗi khi có một bộ kết quả dự đoán mới được kích
+hoạt, bước nạp dữ liệu tạo một case ở trạng thái chờ cho mỗi đơn chưa có case.
+
+\hinh{sd-kien-truc.png}{Kiến trúc tổng thể của hệ thống}{kien-truc}
+
+Đơn vị xử lý của hệ thống là \textit{case}: mỗi đơn hàng có tối đa một case. Một case đi qua các
+trạng thái ở Hình~\ref{fig:vong-doi}. Case bắt đầu ở \texttt{PENDING}, chuyển sang
+\texttt{IN\_PROGRESS} khi nhân viên tự nhận hoặc được quản lý giao, và kết thúc ở
+\texttt{COMPLETED} (đã liên lạc, có kết quả) hoặc \texttt{SKIPPED} (bỏ qua có lý do). Chỉ quản lý
+được mở lại case đã đóng; mỗi lần mở lại tạo một chu kỳ xử lý mới nhưng giữ nguyên lịch sử cũ.
+
+\hinh[0.9\textwidth]{sd-vong-doi-case.png}{Vòng đời của một case}{vong-doi}
+
+\subsubsection{Phân tích quy trình nghiệp vụ}
+
+Hệ thống có hai vai trò người dùng. \textit{Nhân viên chăm sóc khách hàng} (Specialist) nhận và xử
+lý từng case. \textit{Quản lý} (Manager) theo dõi toàn bộ hàng đợi, giao việc, ra quyết định sau xử
+lý và cấu hình tham số vận hành. Các quy trình chính được mô tả dưới đây và mô hình hóa bằng BPMN ở
+Hình~\ref{fig:bpmn-dang-nhap} đến Hình~\ref{fig:bpmn-tham-so}. Các con số như 5 đơn, 3 lần liên lạc
+hay 4 giờ là giá trị mặc định của tham số; quản lý có thể đổi các giá trị này ở màn hình Cài đặt.
+
+\paragraph{Đăng nhập.} Người dùng chọn ngôn ngữ, nhập tên đăng nhập và mật khẩu. Giao diện kiểm tra
+ô trống trước khi gửi. Nếu đúng, máy chủ trả mã JWT và vai trò; quản lý được đưa tới trang Tổng quan,
+nhân viên tới Risk Queue. Nếu sai, hệ thống báo lỗi chung, không nói rõ sai tên hay sai mật khẩu để
+tránh lộ thông tin tài khoản. Tài khoản được cấp sẵn, hệ thống không có chức năng tự đăng ký.
+
+\hinh[0.6\textwidth]{sd-bpmn-dang-nhap.png}{Quy trình đăng nhập}{bpmn-dang-nhap}
+
+\paragraph{Nhận đơn.} Nhân viên chọn một đơn trong Risk Queue và bấm \textit{Nhận}. Máy chủ kiểm
+tra đơn đang chờ, chưa ai giữ, không thuộc mức cao (đơn mức cao chỉ do quản lý giao), và nhân viên
+còn chỗ trong giới hạn số đơn đang xử lý (capacity, mặc định 5). Việc cập nhật dùng phiên bản dòng
+nên khi hai người bấm cùng lúc, chỉ người đầu tiên thành công; người sau nhận thông báo đơn đã có
+người nhận.
+
+\hinh[0.6\textwidth]{sd-bpmn-nhan-don.png}{Quy trình nhận đơn}{bpmn-nhan-don}
+
+\paragraph{Giao và chuyển đơn.} Quản lý giao đơn chờ cho một nhân viên hoặc chuyển đơn đang xử lý
+sang người khác. Chuyển người bắt buộc ghi lý do. Nếu nhân viên được chọn đã đủ capacity mà quản lý
+chưa tích ô vượt capacity, máy chủ từ chối và báo lỗi; quản lý tích ô vượt capacity, ghi lý do rồi gửi
+lại, và máy chủ kiểm tra lại từ đầu trước khi giao. Thao tác vượt capacity được ghi vào nhật ký với
+nhãn override.
+
+\hinh[0.85\textwidth]{sd-bpmn-giao-don.png}{Quy trình giao và chuyển đơn}{bpmn-giao-don}
+
+\paragraph{Ghi nhận liên lạc.} Nhân viên liên hệ khách qua điện thoại, email hoặc tin nhắn rồi ghi
+lại thời điểm, kênh, kết quả, ghi chú và có thể đính kèm tối đa ba tệp minh chứng (PNG, JPG, PDF,
+mỗi tệp tối đa 5 MB). Máy chủ kiểm tra loại tệp bằng nội dung thật của tệp, không tin phần mở rộng.
+Nếu liên lạc được, nhân viên hoàn tất case. Nếu chưa được và chưa hết lượt, nhân viên hẹn lần sau
+(giao diện gợi ý ngày theo tham số \texttt{retry\_gap\_days}). Nếu lần liên lạc cuối cùng vẫn không
+được, hệ thống tự đóng case với lý do \texttt{UNREACHABLE} trong cùng một giao dịch.
+
+\hinh[0.6\textwidth]{sd-bpmn-lien-lac.png}{Quy trình ghi nhận liên lạc khách hàng}{bpmn-lien-lac}
+
+\paragraph{Hoàn tất hoặc bỏ qua case.} Hoàn tất bắt buộc chọn một kết quả: có vấn đề, không có vấn
+đề, hoặc trùng. Bỏ qua bắt buộc chọn lý do: không liên lạc được, trùng, khách từ chối, không áp dụng,
+hoặc khác (bắt buộc ghi chú). Sau khi đóng, case trả lại chỗ trống cho nhân viên và có thể xuất hiện
+trong danh sách chờ quyết định của quản lý.
+
+\hinh[0.85\textwidth]{sd-bpmn-dong-case.png}{Quy trình hoàn tất hoặc bỏ qua case}{bpmn-dong-case}
+
+\paragraph{Mở lại case.} Quản lý mở lại case đã đóng khi có lý do nghiệp vụ. Nếu case đã đóng lâu
+hơn số ngày quy định hoặc đã được mở lại đủ số lần quy định, hệ thống yêu cầu xác nhận đã xem xét.
+Case trở về trạng thái chờ, không có người phụ trách, bộ đếm liên lạc tính lại từ đầu trong chu kỳ
+mới.
+
+\hinh[0.6\textwidth]{sd-bpmn-mo-lai.png}{Quy trình mở lại case}{bpmn-mo-lai}
+
+\paragraph{Ghi quyết định.} Với các case đã đóng cần quyết định, quản lý đọc lịch sử liên lạc và
+nhận xét, sau đó chọn một trong bốn quyết định: không cần làm thêm, theo dõi tiếp với khách, làm
+việc với người bán, chuyển bộ phận hậu mãi; kèm lý do, bước tiếp theo, người thực hiện và hạn. Quyết
+định chỉ được thêm mới, không sửa hay xóa.
+
+\hinh[0.6\textwidth]{sd-bpmn-quyet-dinh.png}{Quy trình ghi quyết định của quản lý}{bpmn-quyet-dinh}
+
+\paragraph{Thay đổi tham số.} Quản lý tạo phiên bản mới cho một tham số (ví dụ SLA cho đơn mức cao,
+capacity, số lần liên lạc tối đa) kèm thời điểm hiệu lực và lý do. Phiên bản cũ được giữ nguyên;
+giá trị đang dùng là phiên bản mới nhất đã tới thời điểm hiệu lực.
+
+\hinh[0.6\textwidth]{sd-bpmn-tham-so.png}{Quy trình thay đổi tham số vận hành}{bpmn-tham-so}
+
+\subsubsection{Sơ đồ phân rã chức năng}
+
+Hình~\ref{fig:fdd} chia hệ thống thành bảy nhóm chức năng với 26 chức năng con.
+
+\hinh{sd-fdd.png}{Sơ đồ phân rã chức năng của hệ thống}{fdd}
+
+\subsubsection{Sơ đồ luồng dữ liệu}
+
+Sơ đồ ngữ cảnh (Hình~\ref{fig:dfd-ngu-canh}) xem toàn hệ thống là một tiến trình, trao đổi dữ liệu
+với ba tác nhân ngoài: nhân viên, quản lý và quy trình chấm điểm học máy. Sơ đồ mức 0
+(Hình~\ref{fig:dfd-muc-0}) tách thành bảy tiến trình tương ứng bảy nhóm chức năng và bảy kho dữ liệu
+D1--D7. Ba sơ đồ mức 1 chi tiết hóa các tiến trình có nhiều luồng dữ liệu nhất.
+
+\hinh{sd-dfd-ngu-canh.png}{Sơ đồ ngữ cảnh của hệ thống}{dfd-ngu-canh}
+\hinh{sd-dfd-muc-0.png}{Sơ đồ luồng dữ liệu mức 0}{dfd-muc-0}
+\hinh{sd-dfd-1-hang-doi.png}{Sơ đồ luồng dữ liệu mức 1 cho tiến trình 2 - Quản lý hàng đợi rủi ro}{dfd-1-hang-doi}
+\hinh{sd-dfd-1-xu-ly-case.png}{Sơ đồ luồng dữ liệu mức 1 cho tiến trình 3 - Xử lý case}{dfd-1-xu-ly-case}
+\hinh{sd-dfd-1-quyet-dinh.png}{Sơ đồ luồng dữ liệu mức 1 cho tiến trình 4 - Ra quyết định}{dfd-1-quyet-dinh}
+
+\subsubsection{Sơ đồ Use Case và đặc tả}
+
+Hình~\ref{fig:use-case} trình bày sơ đồ Use Case. Tác nhân trừu tượng \textit{Người dùng} gom các
+chức năng chung; \textit{Nhân viên CSKH} và \textit{Quản lý} kế thừa các chức năng này và có thêm
+chức năng riêng. \textit{Quy trình chấm điểm ML} là tác nhân hệ thống, chỉ cung cấp kết quả dự đoán.
+Các bảng từ Bảng~\ref{tab:uc-dang-nhap} đến Bảng~\ref{tab:uc-tham-so} đặc tả các use case chính.
+
+\hinh{sd-use-case.png}{Sơ đồ Use Case của hệ thống}{use-case}
+
+\usecase{dang-nhap}{Đăng nhập}{Nhân viên CSKH, Quản lý}
+{Người dùng xác thực bằng tài khoản được cấp sẵn để vào hệ thống theo đúng vai trò.}
+{Tài khoản tồn tại và đang hoạt động.}
+{\item Người dùng mở trang đăng nhập, chọn ngôn ngữ Việt hoặc Anh.
+ \item Nhập tên đăng nhập và mật khẩu, bấm Đăng nhập.
+ \item Giao diện kiểm tra hai ô không trống rồi gửi \texttt{POST /auth/login}.
+ \item Máy chủ so mật khẩu với bản băm Argon2, tạo JWT và trả thông tin người dùng.
+ \item Giao diện lưu mã, chuyển quản lý tới Tổng quan, nhân viên tới Risk Queue.}
+{\item Bỏ trống ô: báo lỗi ngay trên giao diện, không gửi yêu cầu.
+ \item Sai thông tin: máy chủ trả 401, giao diện báo sai tài khoản hoặc mật khẩu.}
+{Người dùng ở trạng thái đã đăng nhập; mọi yêu cầu sau gửi kèm JWT.}
+
+\usecase{risk-queue}{Xem Risk Queue}{Nhân viên CSKH, Quản lý}
+{Xem danh sách case xếp theo thứ tự ưu tiên; tìm kiếm, lọc và sắp xếp (use case mở rộng).}
+{Đã đăng nhập.}
+{\item Người dùng mở Risk Queue; mặc định hiện các case đang mở (chờ và đang xử lý).
+ \item Hệ thống xếp theo điểm rủi ro giảm dần, SLA gần hết trước, chờ lâu trước.
+ \item Người dùng có thể tìm theo mã đơn hoặc mã sản phẩm, lọc theo mức rủi ro, trạng thái, SLA,
+ người bán, ngành hàng, khoảng điểm, thời gian vào hàng đợi; quản lý lọc thêm theo người phụ trách.
+ \item Người dùng bấm vào một dòng để mở Chi tiết đơn, hoặc bấm Tải thêm để xem trang tiếp.}
+{\item Bộ lọc không hợp lệ (ví dụ điểm nhỏ nhất lớn hơn điểm lớn nhất): máy chủ trả 422, giao diện báo lỗi.
+ \item Không có kết quả: hiện trạng thái trống kèm nút đặt lại bộ lọc.}
+{Không thay đổi dữ liệu.}
+
+\usecase{nhan-don}{Nhận đơn}{Nhân viên CSKH}
+{Nhân viên tự nhận một case đang chờ để xử lý.}
+{Case ở trạng thái \texttt{PENDING}, chưa ai giữ, mức LOW hoặc MEDIUM; nhân viên còn chỗ trong capacity.}
+{\item Nhân viên bấm Nhận trên Risk Queue hoặc Chi tiết đơn.
+ \item Máy chủ kiểm tra vai trò, trạng thái, mức rủi ro và capacity.
+ \item Máy chủ đổi case sang \texttt{IN\_PROGRESS} có điều kiện theo \texttt{row\_version}, tạo bản ghi phân công, ghi nhật ký.
+ \item Giao diện tải lại số chỗ còn trống và đưa case vào mục Đơn của tôi.}
+{\item Case mức HIGH: giao diện không hiện nút Nhận mà hiện ``Chờ Manager giao''; nếu gọi thẳng API, máy chủ trả 403 \texttt{HIGH\_RISK\_REQUIRES\_ASSIGN}.
+ \item Đã đủ capacity hoặc người khác vừa nhận trước: máy chủ trả 409/422, giao diện báo lý do.}
+{Case thuộc nhân viên, bộ đếm SLA tiếp tục tính.}
+
+\usecase{giao-don}{Giao / chuyển đơn}{Quản lý}
+{Quản lý giao case cho nhân viên hoặc chuyển case sang nhân viên khác. Use case mở rộng: vượt capacity.}
+{Case đang mở; nhân viên được chọn đang hoạt động.}
+{\item Quản lý mở Chi tiết đơn, bấm Giao đơn hoặc Chuyển người.
+ \item Chọn nhân viên trong danh sách kèm số đơn đang giữ; nhập lý do nếu chuyển người.
+ \item Máy chủ giải phóng phân công cũ (nếu có), tạo phân công mới, ghi nhật ký.}
+{\item Nhân viên đã đủ capacity mà chưa tích ô vượt capacity hoặc thiếu lý do: máy chủ từ chối.
+ \item Chuyển người mà không có lý do: máy chủ trả 422.}
+{Case thuộc nhân viên mới; nếu vượt capacity, nhật ký có thêm sự kiện override.}
+
+\usecase{lien-lac}{Ghi nhận liên lạc}{Nhân viên CSKH}
+{Nhân viên ghi lại một lần liên hệ khách hàng. Use case mở rộng: tải minh chứng.}
+{Case \texttt{IN\_PROGRESS} do chính nhân viên giữ; chưa vượt số lần liên lạc tối đa.}
+{\item Nhân viên mở trang Liên lạc khách, chọn case đang giữ.
+ \item Nhập thời điểm liên lạc, kênh, kết quả, ghi chú, ngày hẹn lại (nếu có).
+ \item Tùy chọn: tải tối đa 3 tệp minh chứng; máy chủ kiểm tra loại và dung lượng rồi trả mã tệp.
+ \item Bấm Lưu; máy chủ lưu lần liên lạc gắn với chu kỳ hiện tại và ghi nhật ký.}
+{\item Thời điểm ở tương lai hoặc thiếu múi giờ, ngày hẹn trước ngày liên lạc: máy chủ trả 422.
+ \item Đây là lần cuối mà vẫn không liên lạc được: hệ thống tự đóng case \texttt{SKIPPED/UNREACHABLE}.}
+{Lần liên lạc được lưu, không sửa hay xóa được.}
+
+\usecase{hoan-tat}{Hoàn tất case}{Nhân viên CSKH (case mình giữ), Quản lý}
+{Đóng case sau khi đã liên lạc được với khách.}
+{Case \texttt{IN\_PROGRESS}.}
+{\item Người dùng bấm Hoàn tất.
+ \item Chọn kết quả: có vấn đề, không có vấn đề hoặc trùng; nhập ghi chú nếu cần.
+ \item Máy chủ đổi case sang \texttt{COMPLETED}, đóng chu kỳ, trả chỗ trống, ghi nhật ký.}
+{\item Chưa chọn kết quả: giao diện không cho gửi.
+ \item Case không còn ở \texttt{IN\_PROGRESS} hoặc người dùng không giữ case: máy chủ trả 409/403.}
+{Case đóng, có thể vào danh sách chờ quyết định.}
+
+\usecase{bo-qua}{Bỏ qua case}{Nhân viên CSKH (case mình giữ), Quản lý}
+{Đóng case khi không thể hoặc không cần tiếp tục xử lý.}
+{Case \texttt{IN\_PROGRESS}.}
+{\item Người dùng bấm Bỏ qua.
+ \item Chọn lý do; nếu chọn Khác thì nhập ghi chú.
+ \item Máy chủ đổi case sang \texttt{SKIPPED}, trả chỗ trống, ghi nhật ký.}
+{\item Thiếu lý do, hoặc chọn Khác mà thiếu ghi chú: máy chủ trả 422, dữ liệu không đổi.}
+{Case đóng với lý do bỏ qua.}
+
+\usecase{mo-lai}{Mở lại case}{Quản lý}
+{Đưa một case đã đóng trở lại hàng đợi để xử lý tiếp.}
+{Case \texttt{COMPLETED} hoặc \texttt{SKIPPED}.}
+{\item Quản lý bấm Mở lại trên Chi tiết đơn, nhập lý do.
+ \item Nếu case đóng quá số ngày quy định hoặc đã mở lại đủ số lần, quản lý tích xác nhận đã xem xét.
+ \item Máy chủ tạo chu kỳ mới, đưa case về \texttt{PENDING}, bỏ người phụ trách, tính lại SLA, ghi nhật ký.}
+{\item Thiếu xác nhận khi chính sách yêu cầu: máy chủ từ chối.
+ \item Người gọi không phải quản lý: máy chủ trả 403.}
+{Case trở lại Risk Queue, lịch sử các chu kỳ trước được giữ nguyên.}
+
+\usecase{quyet-dinh}{Ghi quyết định}{Quản lý}
+{Ghi quyết định nghiệp vụ sau khi case đã đóng.}
+{Case \texttt{COMPLETED} hoặc \texttt{SKIPPED} và đang cần quyết định.}
+{\item Quản lý mở trang Quyết định, chọn case.
+ \item Đọc lịch sử liên lạc, nhận xét và các quyết định trước.
+ \item Chọn quyết định, nhập lý do, bước tiếp theo, người thực hiện và hạn.
+ \item Máy chủ lưu quyết định, cập nhật bước tiếp theo của case, ghi nhật ký.}
+{\item Case đang mở: máy chủ trả 409 \texttt{INVALID\_STATE}, không tạo bản ghi nào.
+ \item Hạn ở quá khứ hoặc thiếu trường bắt buộc: máy chủ trả 422.}
+{Quyết định mới nhất hiện ở mục Bước tiếp theo của Chi tiết đơn.}
+
+\usecase{tong-quan}{Xem tổng quan rủi ro}{Quản lý}
+{Xem số liệu tổng hợp để biết việc cần làm ngay.}
+{Đã đăng nhập với vai trò quản lý.}
+{\item Quản lý mở trang Tổng quan; hệ thống tính số đơn mức cao chờ giao, quá hạn SLA, đang xử lý, chờ quyết định.
+ \item Hệ thống hiển thị việc cần làm, xu hướng case theo ngày, phân bố mức rủi ro, chất lượng chăm sóc, chỗ trống của từng nhân viên, người bán và ngành hàng tập trung rủi ro, các thay đổi gần đây.
+ \item Quản lý có thể đổi cách xem theo đơn hoặc theo sản phẩm, lọc theo 1, 3 hoặc 7 ngày.
+ \item Bấm một con số để mở Risk Queue đã lọc sẵn.}
+{\item Nhân viên mở trang: hệ thống báo không có quyền và không hiện số liệu.}
+{Không thay đổi dữ liệu.}
+
+\usecase{lich-su}{Xem lịch sử thao tác}{Quản lý}
+{Truy vết ai đã làm gì, với case nào, lúc nào và vì sao.}
+{Đã đăng nhập với vai trò quản lý.}
+{\item Quản lý mở Lịch sử thao tác.
+ \item Lọc theo loại thao tác, người thực hiện, mã đơn, hoặc chỉ các thao tác override.
+ \item Xem theo trang; bấm một dòng để mở Chi tiết đơn.}
+{\item Không có kết quả: hiện trạng thái trống.}
+{Không thay đổi dữ liệu; nhật ký không có chức năng sửa hay xóa.}
+
+\usecase{tham-so}{Cấu hình tham số}{Quản lý}
+{Thay đổi tham số vận hành mà không cần sửa mã nguồn.}
+{Đã đăng nhập với vai trò quản lý.}
+{\item Quản lý mở Cài đặt, xem 14 tham số với giá trị hiện hành, phiên bản và lịch sử.
+ \item Chọn tham số, nhập giá trị mới, thời điểm hiệu lực (mặc định sau thời điểm hiện tại một phút) và lý do.
+ \item Máy chủ kiểm tra miền giá trị, tạo phiên bản mới và ghi nhật ký.}
+{\item Giá trị ngoài miền cho phép, \texttt{capacity\_warn} không nhỏ hơn \texttt{capacity}, hoặc thời điểm ở quá khứ: máy chủ trả 422.}
+{Phiên bản mới được áp dụng từ thời điểm hiệu lực.}
+
+\subsubsection{Thiết kế cơ sở dữ liệu}
+
+Cơ sở dữ liệu PostgreSQL chia hai schema. Schema \texttt{app} chứa dữ liệu nghiệp vụ do hệ thống web
+tạo ra (Hình~\ref{fig:erd-nghiep-vu}). Schema \texttt{ml} chứa kết quả dự đoán do quy trình học máy
+ghi vào và hệ thống web chỉ đọc; Hình~\ref{fig:erd-du-doan} trình bày schema này cùng nhóm bảng tham
+số. Cấu trúc được tạo bằng 22 tệp migration chạy tuần tự từ V001 đến V022, nên có thể dựng lại cơ sở
+dữ liệu giống hệt trên máy khác.
+
+\hinh{sd-erd-nghiep-vu.png}{Sơ đồ ERD phần nghiệp vụ xử lý case (schema app)}{erd-nghiep-vu}
+\hinh{sd-erd-du-doan-tham-so.png}{Sơ đồ ERD phần kết quả dự đoán và tham số vận hành}{erd-du-doan}
+
+Một số quy tắc được ràng buộc ngay ở tầng cơ sở dữ liệu thay vì chỉ ở mã nguồn:
+
+\begin{itemize}
+    \item \texttt{review\_cases.order\_id} là duy nhất: mỗi đơn hàng chỉ có một case.
+    \item Chỉ một bản ghi phân công chưa kết thúc cho mỗi case, bằng chỉ mục duy nhất có điều kiện
+    \texttt{released\_at IS NULL}.
+    \item Các bảng lần liên lạc, minh chứng, nhận xét, quyết định, nhật ký và tham số chỉ được thêm
+    mới; trigger và quyền của người dùng cơ sở dữ liệu chặn lệnh sửa và xóa.
+    \item Điểm của đơn bằng điểm cao nhất trong các sản phẩm của đơn (quy tắc \texttt{max-v1}),
+    được kiểm bằng khóa ngoại và ràng buộc.
+    \item Chỉ một bộ kết quả dự đoán ở trạng thái \texttt{ACTIVE} tại một thời điểm.
+\end{itemize}
+
+Các bảng từ Bảng~\ref{tab:db-users} đến Bảng~\ref{tab:db-parameters} mô tả các bảng chính của schema
+\texttt{app}.
+
+\begin{bangcot}{app.users}{users}
+user\_id & uuid & PK & Mã người dùng \\ \hline
+username & varchar & NOT NULL, UNIQUE & Tên đăng nhập \\ \hline
+password\_hash & text & NOT NULL & Mật khẩu đã băm Argon2 \\ \hline
+full\_name & varchar & NOT NULL & Tên hiển thị \\ \hline
+role & varchar & NOT NULL, CHECK & \texttt{SPECIALIST} hoặc \texttt{MANAGER} \\ \hline
+preferred\_language & varchar & & Ngôn ngữ giao diện \texttt{vi}/\texttt{en} \\ \hline
+is\_active & boolean & NOT NULL, mặc định true & Tài khoản còn hoạt động \\ \hline
+created\_at & timestamptz & NOT NULL & Thời điểm tạo \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.review\_cases}{review-cases}
+case\_id & uuid & PK & Mã case \\ \hline
+order\_id & varchar & NOT NULL, UNIQUE & Mã đơn Olist \\ \hline
+prediction\_id & uuid & NOT NULL & Bộ kết quả dự đoán dùng khi tạo case, không đổi về sau \\ \hline
+aggregation\_rule & varchar & NOT NULL & Quy tắc gộp điểm sản phẩm thành điểm đơn \\ \hline
+status & varchar & NOT NULL, CHECK & \texttt{PENDING}, \texttt{IN\_PROGRESS}, \texttt{COMPLETED}, \texttt{SKIPPED} \\ \hline
+assignee\_id & uuid & FK users & Người đang giữ case \\ \hline
+cycle\_no & smallint & NOT NULL & Số thứ tự chu kỳ hiện tại \\ \hline
+original\_queued\_at & timestamptz & NOT NULL & Lần đầu vào hàng đợi \\ \hline
+outcome / skip\_reason & varchar & CHECK & Kết quả khi hoàn tất / lý do khi bỏ qua \\ \hline
+close\_note, closed\_at & text, timestamptz & & Ghi chú và thời điểm đóng \\ \hline
+reopen\_count & smallint & NOT NULL & Số lần đã mở lại \\ \hline
+row\_version & integer & NOT NULL & Phiên bản dòng, chống ghi đè đồng thời \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.review\_cycles}{review-cycles}
+cycle\_id & uuid & PK & Mã chu kỳ \\ \hline
+case\_id & uuid & FK, UNIQUE cùng cycle\_no & Case chứa chu kỳ \\ \hline
+started\_at, ended\_at & timestamptz & & Bắt đầu và kết thúc chu kỳ \\ \hline
+reopen\_reason, reopened\_by & text, uuid & FK users & Lý do và người mở lại \\ \hline
+sla\_due\_at & timestamptz & NOT NULL & Hạn xử lý theo SLA của chu kỳ \\ \hline
+parameter\_bundle\_id & uuid & FK & Bộ tham số áp dụng cho chu kỳ \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.assignments}{assignments}
+assignment\_id & uuid & PK & Mã phân công \\ \hline
+case\_id & uuid & FK & Case được giao \\ \hline
+assignee\_id & uuid & FK users & Nhân viên nhận \\ \hline
+assigned\_at & timestamptz & NOT NULL & Thời điểm giao/nhận \\ \hline
+released\_at, release\_reason & timestamptz, text & UNIQUE có điều kiện & Thời điểm và lý do kết thúc phân công \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.contact\_attempts}{contact-attempts}
+attempt\_id & uuid & PK & Mã lần liên lạc \\ \hline
+case\_id, cycle\_id, assignment\_id & uuid & FK & Case, chu kỳ và phân công tại thời điểm liên lạc \\ \hline
+attempt\_no & smallint & NOT NULL & Lần thứ mấy trong chu kỳ \\ \hline
+attempted\_at & timestamptz & & Thời điểm liên lạc \\ \hline
+channel & varchar & NOT NULL & Kênh: điện thoại, email, tin nhắn \\ \hline
+contact\_result & varchar & & \texttt{REACHED}, \texttt{NO\_ANSWER}, \texttt{CALLBACK}, \texttt{WRONG\_NUMBER} \\ \hline
+note, next\_contact\_date & text, date & & Ghi chú và ngày hẹn lại \\ \hline
+created\_by & uuid & FK users & Người ghi \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.manager\_decisions}{decisions}
+decision\_id & uuid & PK & Mã quyết định \\ \hline
+case\_id, cycle\_id & uuid & FK & Case và chu kỳ được quyết định \\ \hline
+decided\_by & uuid & FK users & Quản lý ra quyết định \\ \hline
+decision & varchar & NOT NULL, CHECK & Một trong bốn mã quyết định \\ \hline
+rationale & text & NOT NULL & Lý do \\ \hline
+next\_step, next\_step\_assignee\_id, due\_date & text, uuid, date & FK users & Bước tiếp theo, người thực hiện, hạn \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.audit\_events}{audit}
+event\_id & bigint & PK & Mã sự kiện \\ \hline
+case\_id, order\_id & uuid, varchar & FK & Case và đơn liên quan \\ \hline
+actor\_id, actor\_kind & uuid, varchar & FK users, CHECK & Người thực hiện; \texttt{USER} hoặc \texttt{SYSTEM} \\ \hline
+event\_type & varchar & NOT NULL & Loại thao tác: nhận, giao, liên lạc, đóng, mở lại\ldots \\ \hline
+old\_value, new\_value & text & & Giá trị trước và sau \\ \hline
+reason & text & & Lý do (bắt buộc với một số thao tác) \\ \hline
+created\_at & timestamptz & NOT NULL & Thời điểm \\ \hline
+\end{bangcot}
+
+\begin{bangcot}{app.parameters}{parameters}
+parameter\_id & bigint & PK & Mã phiên bản tham số \\ \hline
+param\_key & varchar & FK definitions & Tên tham số, ví dụ \texttt{capacity} \\ \hline
+version & integer & UNIQUE cùng param\_key & Số phiên bản \\ \hline
+value & text & NOT NULL & Giá trị \\ \hline
+effective\_at & timestamptz & NOT NULL & Thời điểm bắt đầu hiệu lực \\ \hline
+actor\_id, reason & uuid, text & FK users & Người đổi và lý do \\ \hline
+\end{bangcot}
+
+% ------------------------------------------------------------
 \subsection{Dữ liệu và công cụ sử dụng}
-Nguồn là Brazilian E-Commerce Public Dataset by Olist với chín bảng quan hệ. Output chuẩn được quy định trong data contract tại \texttt{data/processed/modelling\_items.parquet} khi migration product-item hoàn tất. Artifact reporting hợp lệ, nếu tồn tại, được đọc từ \texttt{reports/experiments/}, \texttt{reports/figures/} và \texttt{reports/tables/}; đường dẫn không tự nó khẳng định có metric.
 
-\subsection{Công nghệ áp dụng}
+\subsubsection{Dữ liệu}
 
+Nguồn dữ liệu là bộ Brazilian E-Commerce Public Dataset by Olist \parencite{olist2018}, gồm 9 bảng:
+đơn hàng, sản phẩm trong đơn, thanh toán, đánh giá, khách hàng, người bán, sản phẩm, vị trí địa lý và
+bảng dịch tên ngành hàng. Dữ liệu đi vào hệ thống qua hai bước. Bước một do nhóm Học máy thực hiện:
+nạp 9 tệp CSV, làm sạch và biến đổi bằng dbt, rồi chấm điểm rủi ro cho từng sản phẩm trong đơn. Bước
+hai là hệ thống web đọc kết quả chấm điểm qua hai view \texttt{ml.v\_risk\_orders\_for\_web} và
+\texttt{ml.v\_risk\_items\_for\_web}, rồi tạo case cho các đơn chưa có case.
+
+Về phía hệ thống web, kết quả dự đoán đi vào qua một cửa chung là schema \texttt{ml}. Mỗi lần chấm
+điểm tạo một bộ kết quả mới, ghi kèm phiên bản mô hình và ngưỡng phân mức; bộ kết quả đã ghi thì không
+sửa được. Hệ thống web chỉ tạo case từ bộ kết quả đang được kích hoạt, và cơ sở dữ liệu chỉ cho kích hoạt
+kết quả của mô hình đã được kiểm chứng hoặc của bộ dữ liệu mẫu có gắn nhãn riêng. Nhờ vậy, một mô hình
+chưa đạt yêu cầu không thể vô tình đưa danh sách sai tới nhân viên chăm sóc khách hàng.
+
+Bản trình diễn dùng 100 đơn Olist đã giao đúng hạn; thông tin đơn, người bán và ngành hàng là dữ liệu
+thật, điểm rủi ro lấy từ bộ kết quả mẫu (mức MEDIUM từ 0,4, mức HIGH từ 0,7). Khi môn Học máy có mô hình
+được kiểm chứng, chỉ cần nạp bộ kết quả mới, không phải sửa giao diện hay máy chủ. Tài khoản người dùng
+là tài khoản thử, tên hiển thị là tên giả định.
+
+\subsubsection{Công cụ}
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{11.4cm}|}
+\caption{Công cụ sử dụng trong dự án}\label{tab:cong-cu}\\ \hline
+\textbf{Công cụ} & \textbf{Mục đích} \\ \hline \endfirsthead
+\hline \textbf{Công cụ} & \textbf{Mục đích} \\ \hline \endhead
+Figma & Vẽ wireframe ba khổ màn hình: máy tính, máy tính bảng, điện thoại \\ \hline
+draw.io & Vẽ BPMN, FDD, DFD, Use Case, ERD, sơ đồ kiến trúc và vòng đời case \\ \hline
+Visual Studio Code & Viết mã nguồn giao diện, máy chủ và tài liệu \\ \hline
+Git, GitHub & Quản lý mã nguồn theo nhánh, gộp qua pull request; GitHub Actions chạy kiểm tra chất lượng \\ \hline
+Docker, Docker Compose & Đóng gói và chạy cơ sở dữ liệu, máy chủ API, máy chủ web \\ \hline
+Playwright & Tự động bấm giao diện và chụp màn hình khi kiểm thử \\ \hline
+pytest, Ruff, Mypy & Kiểm thử đơn vị, kiểm thử hợp đồng API, kiểm tra quy cách mã Python \\ \hline
+Google Sheets, Discord & Phân công, theo dõi tiến độ và trao đổi trong nhóm \\ \hline
+LaTeX & Soạn báo cáo \\ \hline
+\end{longtable}
+}
+
+% ------------------------------------------------------------
+\subsection{Mô hình, thuật toán và công nghệ áp dụng}
+
+Bảng~\ref{tab:cong-nghe} tóm tắt công nghệ ở từng tầng.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{7.6cm}|}
+\caption{Công nghệ áp dụng theo từng tầng}\label{tab:cong-nghe}\\ \hline
+\textbf{Tầng} & \textbf{Công nghệ} & \textbf{Vai trò trong hệ thống} \\ \hline \endfirsthead
+\hline \textbf{Tầng} & \textbf{Công nghệ} & \textbf{Vai trò trong hệ thống} \\ \hline \endhead
+Giao diện & HTML5, CSS3, JavaScript thuần & 9 trang HTML, 1 tệp CSS dùng chung (biến màu, 24 media query), \texttt{api.js} gửi AJAX, \texttt{common.js} dựng thanh điều hướng, hộp thoại, đổi ngôn ngữ \\ \hline
+Máy chủ web & Nginx & Phục vụ trang tĩnh, chuyển \texttt{/api/} sang máy chủ API \\ \hline
+Máy chủ API & Python 3.11, FastAPI 0.115, Pydantic & 23 endpoint nghiệp vụ, 3 endpoint kiểm tra sức khỏe; kiểm tra dữ liệu vào, quyền và quy tắc BRD \\ \hline
+Xác thực & PyJWT, pwdlib (Argon2) & Cấp và kiểm tra JWT; băm mật khẩu \\ \hline
+Truy cập dữ liệu & SQLAlchemy 2 (async) & Gửi truy vấn tới PostgreSQL bằng người dùng \texttt{app\_api} có quyền hạn chế \\ \hline
+Cơ sở dữ liệu & PostgreSQL 16 & Schema \texttt{app} và \texttt{ml}, ràng buộc, trigger, view \\ \hline
+Triển khai & Docker Compose & 4 dịch vụ: \texttt{postgres}, \texttt{migrate}, \texttt{api}, \texttt{frontend}; lệnh \texttt{make start} \\ \hline
+\end{longtable}
+}
+
+Mã nguồn máy chủ được chia theo bốn lớp: \textit{domain} chứa quy tắc nghiệp vụ thuần (ví dụ hàm
+kiểm tra điều kiện nhận đơn), \textit{application} điều phối từng nghiệp vụ, \textit{infrastructure}
+làm việc với PostgreSQL và tệp, \textit{api} nhận yêu cầu HTTP và trả JSON. Nhờ tách lớp, quy tắc
+nghiệp vụ được kiểm thử độc lập mà không cần cơ sở dữ liệu.
+
+Về phía giao diện, mọi lời gọi API đi qua một tệp \texttt{api.js} duy nhất theo đúng API contract.
+Tệp này tự gắn JWT vào tiêu đề, chuyển lỗi của máy chủ thành thông báo cho người dùng, và đưa người
+dùng về trang đăng nhập khi mã hết hạn. Nhờ đó, trong giai đoạn máy chủ chưa xong, nhóm đã chạy giao
+diện với một máy chủ giả trả dữ liệu mẫu, rồi chuyển sang máy chủ thật mà không phải sửa các trang.
+
+Về thuật toán, hệ thống dùng ba quy tắc chính:
+\begin{itemize}
+    \item \textbf{Xếp hạng ưu tiên:} sắp theo điểm rủi ro giảm dần; nếu bằng nhau thì case gần hết
+    hạn SLA hơn đứng trước, rồi tới case nằm trong hàng đợi lâu hơn.
+    \item \textbf{Mức rủi ro:} điểm từ ngưỡng HIGH trở lên là HIGH, từ ngưỡng MEDIUM tới dưới HIGH là
+    MEDIUM, còn lại là LOW. Ngưỡng đi cùng phiên bản mô hình, không cố định trong mã nguồn.
+    \item \textbf{Trạng thái SLA:} so hạn xử lý của chu kỳ với thời điểm hiện tại để gắn nhãn quá
+    hạn, sắp hết hạn (trong \texttt{soon\_hours}), lâu không cập nhật (quá \texttt{stale\_hours}).
+\end{itemize}
+
+% ------------------------------------------------------------
 \subsection{Cách đánh giá và đo lường kết quả}
-Kế hoạch quy định PR-AUC ở item/order, calibration, ranking theo budget và bootstrap theo order; đây là protocol, không phải kết quả. P5 hiện là exploratory-only. Chỉ replacement holdout theo P12 Gate 0 mới cho phép chuyển sang claim confirmatory; số liệu không có artifact nguồn không được đưa vào báo cáo.
+
+Nhóm đánh giá hệ thống theo năm tiêu chí:
+
+\begin{enumerate}
+    \item \textbf{Đúng chức năng:} mỗi quy tắc trong BRD, mỗi chức năng trong FRD và mỗi endpoint
+    trong API contract có ít nhất một ca kiểm thử. Thước đo là tỉ lệ ca đạt và số lỗi theo mức độ.
+    \item \textbf{Đúng trên giao diện:} bấm thử theo luồng của từng vai trò, vì kiểm thử API trực
+    tiếp có thể bỏ sót lỗi do giao diện gửi sai định dạng.
+    \item \textbf{Đúng quyền:} gọi thẳng API bằng tài khoản không đủ quyền để chắc chắn máy chủ từ
+    chối, không chỉ dựa vào việc giao diện ẩn nút.
+    \item \textbf{Hiển thị:} kiểm tra ở ba độ rộng 1440, 820 và 390 điểm ảnh, không tràn ngang, chữ
+    đọc được; kiểm tra cả tiếng Việt và tiếng Anh.
+    \item \textbf{Bám mục tiêu:} đối chiếu sản phẩm với sáu mục tiêu cụ thể ở mục 1.3.
+\end{enumerate}
+
+Về góc độ kinh doanh, hệ thống tự tính các chỉ số chất lượng chăm sóc khách hàng ở trang Tổng quan
+(Bảng~\ref{tab:kpi}). Các chỉ số này giúp quản lý biết bộ phận đang làm tốt tới đâu mà không phải
+tổng hợp thủ công.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.6cm}|>{\raggedright\arraybackslash}p{5.2cm}|>{\raggedright\arraybackslash}p{4.4cm}|}
+\caption{Chỉ số kinh doanh hệ thống theo dõi}\label{tab:kpi}\\ \hline
+\textbf{Chỉ số} & \textbf{Ý nghĩa kinh doanh} & \textbf{Cách tính} \\ \hline \endfirsthead
+\hline \textbf{Chỉ số} & \textbf{Ý nghĩa kinh doanh} & \textbf{Cách tính} \\ \hline \endhead
+Tỉ lệ khách được liên hệ & Bộ phận có theo kịp số đơn có nguy cơ không & Số case có ít nhất một lần liên lạc / tổng số case \\ \hline
+Tỉ lệ liên hệ lần đầu đúng hạn & Khách có được hỏi thăm kịp trước khi đánh giá không & Số case có lần liên lạc đầu trước hạn SLA / số case đã liên lạc \\ \hline
+Thời gian tới lần liên hệ đầu & Tốc độ phản ứng của bộ phận & Trung vị khoảng thời gian từ lúc vào hàng đợi tới lần liên lạc đầu \\ \hline
+Vấn đề phát hiện sớm & Số vấn đề tìm ra trước khi thành đánh giá công khai & Số case hoàn tất với kết quả ``có vấn đề'' \\ \hline
+Tỉ lệ quá hạn SLA & Mức độ quá tải hoặc chậm trễ & Số case đang mở đã quá hạn / số case đang mở \\ \hline
+Tải việc theo nhân viên & Phân bổ nhân sự có hợp lý không & Số case đang giữ so với giới hạn của từng người \\ \hline
+\end{longtable}
+}
+
+Ngoài ra, kho mã có sẵn các bộ kiểm thử tự động: kiểm thử đơn vị và kiểm thử hợp đồng API bằng
+pytest, kiểm thử tích hợp với PostgreSQL, kịch bản \texttt{smoke.sh} và \texttt{demo\_e2e.sh} đi
+qua luồng đăng nhập của hai vai trò.

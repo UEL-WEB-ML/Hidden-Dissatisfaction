@@ -1,6 +1,6 @@
 % =========================
 % thanh-vien.tex
-% Trang 2: danh sách thành viên + ký tên
+% Trang 2: danh sách thành viên
 % Trang 3: bảng phân công nhiệm vụ
 % =========================
 
@@ -17,19 +17,17 @@
 \vspace{0.3cm}
 
 \begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|C{1cm}|C{4.3cm}|C{2.6cm}|C{2.2cm}|C{3.6cm}|}
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{|C{1.2cm}|C{5.8cm}|C{3.2cm}|C{3.6cm}|}
 \hline
 \textbf{STT} & \textbf{HỌ VÀ TÊN} & \textbf{MSSV} &
-\textbf{MỨC ĐỘ ĐÓNG GÓP (\%)} & \textbf{KÝ TÊN} \\
+\textbf{MỨC ĐỘ ĐÓNG GÓP (\%)} \\
 \hline
-% Ô ký tên: \rule{0pt}{1.6cm} giữ chiều cao dòng.
-% Có ảnh chữ ký thì thay bằng \includegraphics[height=1.3cm]{assets/ky-ten/truc.png}
-1 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
-2 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
-3 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
-4 & Vũ Sơn Trúc & K244161819 & 100\% & \rule{0pt}{1.6cm} \\ \hline
-5 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
+1 & Lê Bảo Trân             & K244131584 & 100\% \\ \hline
+2 & Nguyễn Trần Thái Huy    & K244161784 & 100\% \\ \hline
+3 & Vòng Hữu Quân           & K244161803 & 100\% \\ \hline
+4 & Nguyễn Minh Trung       & K244161818 & 100\% \\ \hline
+5 & Vũ Sơn Trúc (Nhóm trưởng) & K244161819 & 100\% \\ \hline
 \end{tabular}
 \end{center}
 
@@ -64,28 +62,37 @@
 \hline
 \textbf{\textit{STT}} & \textbf{Họ và tên} & \multicolumn{1}{c|}{\textbf{Nhiệm vụ}} \\
 \hline
-\textbf{\textit{1}} & [Họ tên] & \nhiemvu{
-  \item Nhiệm vụ 1
-  \item Nhiệm vụ 2
+\textbf{\textit{1}} & Lê Bảo Trân & \nhiemvu{
+  \item Viết BRD, FRD và tiêu chí nghiệm thu
+  \item Phân tích quy trình nghiệp vụ, vẽ BPMN, sơ đồ Use Case và đặc tả use case
+  \item Viết mục 2 (Cơ sở lý thuyết) và mục 4.5 (Khoảng trống và cách giải quyết)
 } \\ \hline
-\textbf{\textit{2}} & [Họ tên] & \nhiemvu{
-  \item Nhiệm vụ 1
-  \item Nhiệm vụ 2
+\textbf{\textit{2}} & Nguyễn Trần Thái Huy & \nhiemvu{
+  \item Thống nhất cấu trúc dữ liệu kết quả dự đoán giữa hai môn
+  \item Tích hợp kết quả dự đoán vào hệ thống: nạp điểm rủi ro, tạo case cho đơn mới
+  \item Vẽ sơ đồ phân rã chức năng (FDD) và sơ đồ luồng dữ liệu (DFD)
+  \item Viết mục 3.2 (Dữ liệu và công cụ)
 } \\ \hline
-\textbf{\textit{3}} & [Họ tên] & \nhiemvu{
-  \item Nhiệm vụ 1
-  \item Nhiệm vụ 2
+\textbf{\textit{3}} & Vòng Hữu Quân & \nhiemvu{
+  \item Thiết kế cơ sở dữ liệu, vẽ ERD và viết từ điển dữ liệu
+  \item Viết migration PostgreSQL, ràng buộc và tài khoản mẫu cho hai vai trò
+  \item Viết mục 3.1.8 (Thiết kế cơ sở dữ liệu)
 } \\ \hline
-\textbf{\textit{4}} & Vũ Sơn Trúc & \nhiemvu{
+\textbf{\textit{4}} & Nguyễn Minh Trung & \nhiemvu{
+  \item Xây dựng máy chủ API bằng FastAPI theo API contract
+  \item Đăng nhập bằng JWT, phân quyền và kiểm tra quy tắc nghiệp vụ ở máy chủ
+  \item Đóng gói hệ thống bằng Docker Compose
+  \item Viết mục 3.3 (Công nghệ áp dụng)
+} \\ \hline
+\textbf{\textit{5}} & Vũ Sơn Trúc (Nhóm trưởng) & \nhiemvu{
   % \item Lead nhóm, lập kế hoạch và phân công nhiệm vụ
   % \item Viết Abstract, mục 1, mục 4.1 (giao diện) và mục 6
   % \item Thiết kế và xây dựng giao diện 4 màn hình
   % \item Quay video demo
-  \item Đang cập nhật
-} \\ \hline
-\textbf{\textit{5}} & [Họ tên] & \nhiemvu{
-  \item Nhiệm vụ 1
-  \item Nhiệm vụ 2
+  \item Lên kế hoạch, phân công và theo dõi tiến độ nhóm
+  \item Thiết kế wireframe trên Figma, xây dựng 9 màn hình giao diện bằng HTML, CSS, JavaScript
+  \item Viết API contract, nối giao diện với máy chủ
+  \item Kiểm thử hệ thống; viết Tóm tắt, mục 1, 4, 5, 6 và tổng hợp báo cáo
 } \\ \hline
 \end{tabular}
 \end{center}
