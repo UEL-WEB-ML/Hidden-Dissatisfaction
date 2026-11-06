@@ -55,7 +55,7 @@ Luồng học máy gồm bảy bước nối tiếp (Hình~\ref{fig:ml-flow}), t
   \draw[->] (cal) -- (thr); \draw[->] (thr) -- (score); \draw[->] (score) |- (db);
   \node[draw,dashed,fit=(csv)(gold),inner sep=4pt,label={[font=\scriptsize]above:Kho dữ liệu (PostgreSQL + dbt)}] {};
 \end{tikzpicture}
-\caption{Quy trình dữ liệu và học máy.}\label{fig:ml-flow}
+\caption{Quy trình dữ liệu và học máy}\label{fig:ml-flow}
 \end{figure}
 
 \begin{figure}[htbp]\centering
@@ -147,7 +147,7 @@ Theo nguyên tắc này, các nhóm thông tin được phép gồm thông tin �
   \node[ev] at (11.5,0) {}; \node[lab,below] at (11.5,-0.1) {Tạo đánh giá\\(nhãn $y$)};
   \draw[|-|,thick,blue!60!black] (0.2,0.6) -- (9,0.6) node[midway,above,lab]{Lịch sử của seller/danh mục từ các đơn trước $t_o$};
 \end{tikzpicture}
-\caption{Ranh giới thời gian của đặc trưng. Đặc trưng lịch sử chỉ dùng sự kiện xảy ra trước $t_o$ (cận trên mở); thông tin đánh giá và mọi sự kiện sau $t_o$ bị loại.}
+\caption{Ranh giới thời gian của đặc trưng}
 \label{fig:leakage-timeline}
 \end{figure}
 
@@ -243,7 +243,7 @@ Bên trong giai đoạn huấn luyện, các biến thể được so sánh bằ
   \node[align=left,anchor=north west,font=\scriptsize] at (0,-2.7)
     {A: lựa chọn mô hình \quad B: fit hiệu chỉnh \quad C: so sánh hiệu chỉnh \quad D: chọn ngưỡng \quad Test: test niêm phong};
 \end{tikzpicture}
-\caption{Thiết kế chia dữ liệu theo thời gian. Ba fold rolling-origin với cửa sổ mở rộng nằm trong giai đoạn huấn luyện; đoạn kiểm định của các fold lần lượt bắt đầu ngày 2017-06-01, 2017-07-18 và 2017-08-24. Mọi sản phẩm của một đơn nằm cùng một phân vùng.}
+\caption{Thiết kế chia dữ liệu theo thời gian}
 \label{fig:temporal-folds}
 \end{figure}
 
