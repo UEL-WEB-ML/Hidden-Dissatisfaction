@@ -26,7 +26,7 @@ Hình~\ref{fig:ui-queue} là hàng đợi rủi ro của nhân viên chăm sóc 
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.85\linewidth]{ui-risk-queue}
-  \caption{Hàng đợi rủi ro của nhân viên: đơn sắp theo điểm, kèm sản phẩm có điểm cao nhất của mỗi đơn (dữ liệu demo).}\label{fig:ui-queue}
+  \caption{Hàng đợi rủi ro của nhân viên (dữ liệu demo)}\label{fig:ui-queue}
 \end{figure}
 
 \FloatBarrier
@@ -41,7 +41,7 @@ Bảng sản phẩm trong đơn cho thấy điểm của từng item, và khối
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.85\linewidth]{ui-order-detail}
-  \caption{Chi tiết đơn: điểm số kèm vạch ngưỡng, luật tổng hợp, phiên bản mô hình và ngưỡng; điểm của từng sản phẩm (dữ liệu demo).}\label{fig:ui-detail}
+  \caption{Trang chi tiết đơn (dữ liệu demo)}\label{fig:ui-detail}
 \end{figure}
 
 \FloatBarrier
@@ -52,7 +52,7 @@ Màn tổng quan của quản lý (Hình~\ref{fig:ui-dashboard}) tổng hợp s�
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=\linewidth]{ui-dashboard}
-  \caption{Tổng quan rủi ro của quản lý: case theo ngày và theo mức rủi ro (dữ liệu demo, ngưỡng cố định 0,7/0,4).}\label{fig:ui-dashboard}
+  \caption{Màn tổng quan rủi ro của quản lý (dữ liệu demo)}\label{fig:ui-dashboard}
 \end{figure}
 
 Khối ``Phân bố rủi ro'' trong Hình~\ref{fig:ui-dashboard} cũng minh họa giới hạn quan trọng nhất của bản demo: với ngưỡng cố định 0,7 và 0,4, mức HIGH chiếm 29\% số case (30 trên 105 đơn), trong khi chính sách ở mục~\ref{sec:models} chỉ dành mức này cho 5\% đơn có điểm cao nhất. Nội dung này được phân tích tại mục~\ref{sec:demo-threshold} và Chương~\ref{ch:discussion}.
@@ -61,14 +61,14 @@ Bên dưới khối này, phần ``Xem theo khoảng score'' (Hình~\ref{fig:ui-
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.3\linewidth]{ui-score-bands}
-  \caption{Số đơn theo năm khoảng điểm (dữ liệu demo, điểm minh họa).}\label{fig:ui-bands}
+  \caption{Số đơn theo khoảng điểm (dữ liệu demo)}\label{fig:ui-bands}
 \end{figure}
 
 Màn tổng quan còn có chế độ ``Theo sản phẩm'', trong đó các khối thống kê được tính theo đơn vị item: 105 đơn trong bản demo gồm 114 sản phẩm. Hình~\ref{fig:ui-product} trích phần danh sách sản phẩm có điểm cao nhất của chế độ này; mỗi dòng là một item, mang mã đơn kèm số thứ tự sản phẩm trong đơn, danh mục, trạng thái của case và yếu tố minh họa nếu có. Hai chế độ tương ứng với hai đơn vị đã tách ở mục~\ref{sec:pipeline}: mô hình học và chấm điểm ở mức item, còn nhân viên xử lý ở mức đơn. Việc trình bày song song hai góc nhìn giúp người dùng phân biệt số sản phẩm rủi ro với số đơn cần liên hệ.
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=\linewidth]{ui-product-view}
-  \caption{Chế độ xem theo sản phẩm: các item có điểm cao nhất kèm danh mục, trạng thái case và yếu tố minh họa (dữ liệu demo).}\label{fig:ui-product}
+  \caption{Chế độ xem theo sản phẩm (dữ liệu demo)}\label{fig:ui-product}
 \end{figure}
 
 \FloatBarrier
@@ -87,14 +87,14 @@ Mỗi lần liên hệ được ghi qua màn hình liên lạc khách (Hình~\re
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.8\linewidth]{ui-contact-attempt}
-  \caption{Biểu mẫu ghi lần liên lạc: thời điểm, phương thức, kết quả, ngày hẹn liên lạc tiếp và minh chứng (dữ liệu demo).}\label{fig:ui-contact}
+  \caption{Biểu mẫu ghi lần liên lạc (dữ liệu demo)}\label{fig:ui-contact}
 \end{figure}
 
-Hình~\ref{fig:ui-closed} là một case đã đóng: điểm 0,68 ở mức trung bình được hiển thị cùng kết quả xử lý ``có vấn đề'', lịch sử trạng thái và quyết định tiếp theo của quản lý. Mỗi case đóng như vậy là một cặp (điểm dự báo, kết quả quan sát) gắn với đúng phiên bản mô hình đã sinh ra điểm. Hình~\ref{fig:feedback-loop} tóm tắt cách các cặp dữ liệu này được sử dụng để đánh giá và cải tiến mô hình.
+Hình~\ref{fig:ui-closed} là một case đã đóng: điểm 0,68 ở mức trung bình được hiển thị cùng kết quả xử lý ``có vấn đề'', lịch sử trạng thái và quyết định tiếp theo của quản lý. Mỗi case đóng như vậy là một cặp (điểm dự báo, kết quả quan sát) gắn với đúng phiên bản mô hình đã sinh ra điểm. Hình~\ref{fig:feedback-loop} tóm tắt cách các cặp dữ liệu này được sử dụng để đánh giá và cải tiến mô hình; đường nét đứt trong hình là bước đề tài chưa thực hiện.
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.8\linewidth]{ui-closed-case}
-  \caption{Case đã đóng: điểm dự báo, kết quả xử lý ``có vấn đề'', lịch sử trạng thái và quyết định của quản lý được lưu cùng nhau (dữ liệu demo).}\label{fig:ui-closed}
+  \caption{Case đã đóng (dữ liệu demo)}\label{fig:ui-closed}
 \end{figure}
 
 \begin{figure}[!htbp]\centering
@@ -111,7 +111,7 @@ Hình~\ref{fig:ui-closed} là một case đã đóng: điểm 0,68 ở mức tru
   \draw[->] (outcome) -- (eval); \draw[->] (review) -- (eval); \draw[->] (eval) -- (retrain);
   \draw[->,dashed] (retrain) -- node[right,font=\scriptsize]{phiên bản mới} (snap);
 \end{tikzpicture}
-\caption{Vòng phản hồi giữa ứng dụng và luồng học máy. Điểm số không được chỉnh sửa; kết quả xử lý và đánh giá sao được đối chiếu với điểm gốc để đánh giá mô hình. Đường nét đứt là bước chưa được thực hiện trong đề tài.}\label{fig:feedback-loop}
+\caption{Vòng phản hồi giữa ứng dụng và luồng học máy}\label{fig:feedback-loop}
 \end{figure}
 
 Ba nguyên tắc trên tạo tiền đề cho một thử nghiệm có đối chứng: nếu một phần đơn mức cao được chọn ngẫu nhiên để không liên hệ, dữ liệu được ghi nhận đủ để ước lượng tác động của việc liên hệ lên tỉ lệ đánh giá thấp. Nội dung này nằm ngoài phạm vi đề tài như đã xác định ở Chương~\ref{ch:method}.
@@ -139,7 +139,7 @@ Hình~\ref{fig:ui-multi} là một đơn ba sản phẩm trong bản demo: các 
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.62\linewidth]{ui-multi-item}
-  \caption{Đơn ba sản phẩm: điểm của đơn (0,93) lấy từ item có điểm cao nhất; khối yếu tố đi kèm câu nhắc không chứng minh nguyên nhân (dữ liệu demo).}\label{fig:ui-multi}
+  \caption{Đơn ba sản phẩm theo luật max-v1 (dữ liệu demo)}\label{fig:ui-multi}
 \end{figure}
 
 Theo max-v1, ba đơn giả định trong Bảng~\ref{tab:demo-maxv1} có thứ tự ưu tiên là A, B, C; theo trung bình, thứ tự là B, A, C. Khác biệt nằm ở đơn A: khi lấy trung bình, điểm 0,41 của một sản phẩm bị hai sản phẩm có điểm thấp kéo xuống còn 0,20, và đơn không còn thuộc mức cao. Đây là tình huống ``mắt xích yếu nhất'' mà luật max-v1 được thiết kế để phát hiện (mục~\ref{sec:pipeline}). Ngược lại, đơn C cho thấy hạn chế của luật: cả bốn sản phẩm đều có điểm ở mức vừa phải, nhưng điểm của đơn bằng điểm cao nhất trong bốn sản phẩm; do đó, đơn có nhiều sản phẩm có xu hướng được xếp cao hơn chỉ vì có nhiều khả năng chứa một item có điểm cao. Cột sản phẩm cần kiểm tra trên giao diện (Hình~\ref{fig:ui-queue}) giúp người dùng phân biệt hai trường hợp: điểm của đơn đến từ một item nổi bật (tình huống A) hoặc các item có điểm gần nhau (tình huống C).
@@ -166,7 +166,7 @@ Ngưỡng theo phần trăm chỉ có ý nghĩa khi gắn với một mức năn
 
 \begin{figure}[!htbp]\centering
   \includegraphics[width=\linewidth]{ui-settings-capacity}
-  \caption{Tham số năng lực xử lý: số đơn tối đa mỗi nhân viên và số lần liên lạc mỗi chu kỳ, kèm phiên bản và thời điểm hiệu lực (dữ liệu demo).}\label{fig:ui-settings}
+  \caption{Tham số năng lực xử lý (dữ liệu demo)}\label{fig:ui-settings}
 \end{figure}
 
 Hai cách đặt ngưỡng tạo ra hai hàng đợi khác nhau đáng kể. Với ngưỡng cố định, gần một phần ba số đơn thuộc mức cao, nghĩa là quản lý phải phân công khoảng 30 đơn mỗi đợt thay vì khoảng 5 đơn; khi tỉ lệ này quá lớn, mức cao không còn giúp xác định đơn cần ưu tiên. Ngưỡng theo phần trăm giữ số đơn mức cao tương ứng với năng lực xử lý, không phụ thuộc vào giá trị tuyệt đối của điểm số. Trường hợp ngược lại cũng không phù hợp: ngưỡng mức cao ghi nhận với rừng ngẫu nhiên chỉ khoảng 0,286, nên nếu giữ ngưỡng cố định 0,7 khi chuyển sang điểm thật, số đơn mức cao sẽ thấp hơn nhiều so với 5\% và một phần năng lực xử lý dành cho nhóm này không được sử dụng.
