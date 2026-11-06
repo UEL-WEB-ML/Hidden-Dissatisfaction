@@ -1,0 +1,153 @@
+% Chương 4 — Kết quả và phân tích. Số liệu kết quả để ở đây; phương pháp ở Chương 3.
+\chapter{Kết quả và phân tích}\label{ch:results}
+
+% =====================================================================
+% Mục EDA. Nguồn số liệu: notebooks/olist_open_eda.ipynb (EDA mở), notebooks/01_eda_why_lateness_dominates.ipynb
+% (5 lý do giao trễ chi phối), và script tính trên quần thể nghiên cứu dựng lại từ data/raw/olist theo đúng luật
+% int_p4_cohort.sql + int_p4_review_canonical.sql (kết quả khớp tab:funnel: 85 420 đơn / 97 878 item).
+% Hình sao chép từ notebooks/figures/ (nhãn tiếng Anh giữ nguyên).
+\section{Kết quả phân tích khám phá dữ liệu}\label{sec:eda}
+
+Trước khi huấn luyện mô hình, nhóm khảo sát dữ liệu để trả lời hai câu hỏi: dữ liệu có đủ tin cậy để dựng quần thể và đặc trưng như mô tả ở Chương~\ref{ch:method} hay không, và trong nhóm đơn giao đúng hạn còn lại những tín hiệu nào gắn với đánh giá thấp. Số liệu trong mục này thuộc ba mẫu khác nhau, và mỗi con số đều được ghi rõ mẫu của nó. Mẫu thứ nhất là toàn bộ dữ liệu Olist (99\,441 đơn). Mẫu thứ hai gồm các đơn đã giao có ngày giao và có đánh giá (95\,824 đơn), được dùng khi so sánh đơn trễ với đơn đúng hạn. Mẫu thứ ba là \emph{quần thể nghiên cứu} theo Bảng~\ref{tab:funnel}: 85\,420 đơn với 97\,878 item, dựng lại từ tệp CSV gốc bằng đúng luật lọc và luật chọn đánh giá của kho dữ liệu; snapshot dùng để huấn luyện lệch so với bản này 5 đơn và 6 item. Ở mẫu thứ hai, một đơn được xem là trễ khi \emph{ngày} giao muộn hơn ngày dự kiến, còn quần thể nghiên cứu so sánh theo mốc thời gian đầy đủ; vì vậy hai cách đếm ``đúng hạn'' chênh nhau vài nghìn đơn. Mọi kết quả trong mục là mô tả và tương quan, không mang ý nghĩa nhân quả.
+
+\subsection{Độ phủ thời gian và chất lượng dữ liệu}
+
+Dữ liệu Olist trải từ tháng 9/2016 đến tháng 10/2018 nhưng chỉ 20 tháng có mật độ đủ để phân tích (Hình~\ref{fig:eda-coverage}). Từ tháng 1/2017 đến tháng 8/2018 có 99\,092 trong tổng số 99\,441 đơn. Năm 2016 gần như trống (tháng 11/2016 không có đơn nào), còn 20 đơn của tháng 9--10/2018 chưa từng được giao. Lượng đơn tăng nhanh trong năm 2017 rồi đi ngang ở mức 6\,200--7\,300 đơn mỗi tháng suốt năm 2018; tám tháng đầu năm 2018 có 53\,991 đơn, gấp khoảng 2,35 lần cùng kỳ năm 2017 (22\,968 đơn). Ngày Black Friday 24/11/2017 ghi nhận 1\,176 đơn, trong khi trung vị một ngày năm 2018 chỉ là 227 đơn. Vì năm 2016 quá thưa, phân vùng huấn luyện ở Bảng~\ref{tab:split} tuy bắt đầu từ tháng 10/2016 nhưng phần lớn dữ liệu của nó thuộc năm 2017.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/01_coverage}
+  \caption{Số đơn theo tháng (trên) và theo ngày (dưới) trên toàn bộ 99\,441 đơn Olist. Các tháng màu xám (9--12/2016 và 9--10/2018) quá thưa để phân tích; đỉnh ngày 24/11/2017 là Black Friday.}
+  \label{fig:eda-coverage}
+\end{figure}
+
+Hành vi vận hành cũng không đứng yên theo thời gian (Hình~\ref{fig:eda-operations}, tính theo tháng mua trên các đơn đã giao). Tỉ lệ giao trễ chỉ 3--5\% trong các tháng bình thường nhưng lên 12,4\% với đơn mua tháng 11/2017, 14,1\% với tháng 2/2018 và 19,0\% với tháng 3/2018; điểm đánh giá trung bình giảm tương ứng xuống 3,91, 3,83 và 3,75, so với khoảng 4,2 ở các tháng khác. Thời gian giao dự kiến (trung vị) giảm từ 39 ngày vào tháng 1/2017 xuống khoảng 23 ngày từ giữa năm 2017 và còn 13,4 ngày vào tháng 8/2018. Cuộc đình công của tài xế xe tải cuối tháng 5/2018 kéo số đơn giao mỗi tuần từ khoảng 2\,000 xuống 634, và số người bán hoạt động mỗi tháng tăng từ 227 lên 1\,278. Những thay đổi chế độ vận hành này là bằng chứng trực tiếp cho lựa chọn chia dữ liệu theo thời gian thay vì chia ngẫu nhiên ở Chương~\ref{ch:method}: một phép chia ngẫu nhiên sẽ trộn các giai đoạn có quy tắc hứa giao và tỉ lệ trễ rất khác nhau.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/03_operations_over_time}
+  \caption{Diễn biến vận hành theo tháng mua (1/2017--8/2018, đơn đã giao): tỉ lệ giao trễ, trung vị số ngày hứa giao, trung vị số ngày giao thực tế, điểm đánh giá trung bình, số người bán hoạt động và số đơn giao mỗi tuần (3--8/2018). Vùng tô xám là tháng 11/2017 và tháng 2--3/2018.}
+  \label{fig:eda-operations}
+\end{figure}
+
+Kiểm tra chất lượng dữ liệu cho thấy bộ Olist nhìn chung sạch, nhưng có một số bẫy ảnh hưởng trực tiếp đến cách dựng quần thể. Nếu nối thẳng bảng đơn với bảng sản phẩm, thanh toán và đánh giá mà không gộp trước, kết quả có 117\,329 dòng cho 97\,916 đơn và doanh thu sản phẩm bị đếm thành 14,14 triệu real thay vì 13,59 triệu, đúng hiện tượng nhân bản dòng đã nêu ở Chương~\ref{ch:method}. Có 547 đơn mang 2--3 đánh giá, trong đó 202 đơn có các điểm số không thống nhất, nên cần một luật chọn đánh giá tất định như mô tả ở Chương~\ref{ch:method}; ngoài ra 789 mã đánh giá được dùng chung cho nhiều đơn, nên không thể khử trùng chỉ theo mã đánh giá. Về thời gian, 1\,359 đơn có mốc bàn giao vận chuyển sớm hơn mốc duyệt thanh toán và 23 đơn có mốc giao cho khách sớm hơn mốc bàn giao; các khoảng thời gian âm này cần được đánh dấu thay vì tin tưởng. Hai khoảng 16--19/7/2018 và ngày 20/6/2017 gần như không có đơn được ghi nhận giao dù việc bàn giao vận chuyển vẫn diễn ra bình thường, nhiều khả năng là khoảng trống ghi log. Trong 96\,470 đơn đã giao có ngày giao, ngoài bình luận tùy chọn thì chỉ danh mục sản phẩm (1,41\%), đánh giá (0,67\%) và khoảng cách người bán--khách hàng (0,49\%) có tỉ lệ thiếu đáng kể. Ở các bảng phụ, 610 sản phẩm không có danh mục, 26,2\% số dòng tọa độ là bản trùng hoàn toàn và 42 điểm tọa độ nằm ngoài lãnh thổ Brazil.
+
+\subsection{Phân bố điểm đánh giá và mức mất cân bằng lớp}
+
+Điểm đánh giá có dạng chữ J quen thuộc (Hình~\ref{fig:eda-reviews}). Trên toàn bộ 99\,224 dòng đánh giá, 57,8\% là 5 sao, 19,3\% là 4 sao, 8,2\% là 3 sao, 3,2\% là 2 sao và 11,5\% là 1 sao. Khách không hài lòng viết bình luận nhiều hơn hẳn: 77\% đánh giá 1 sao có bình luận, so với 31\% ở mức 4 sao. Bình luận dồn ứ ở đúng 200 ký tự (659 bình luận), dấu hiệu văn bản đã bị cắt ngắn.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/13_reviews_overview}
+  \caption{Tổng quan đánh giá trên 99\,224 dòng đánh giá Olist: phân bố điểm (trái), tỉ lệ đánh giá có bình luận theo số sao (giữa) và độ dài bình luận theo ký tự (phải).}
+  \label{fig:eda-reviews}
+\end{figure}
+
+Trong quần thể nghiên cứu, phân bố dịch về phía hài lòng: 62,45\% đơn nhận 5 sao, 20,35\% nhận 4 sao, 8,00\% nhận 3 sao, 2,63\% nhận 2 sao và 6,58\% nhận 1 sao. Tỉ lệ dương ở mức đơn vì vậy là 9,21\% (7\,865/85\,420), thấp hơn đáng kể so với 14,69\% khi tính trên mọi đơn có đánh giá. Ở mức item, tỉ lệ dương lên tới 11,41\% vì đơn nhiều sản phẩm có tỉ lệ bị đánh giá thấp cao hơn (mục~\ref{subsec:eda-ontime}) và đóng góp nhiều dòng hơn. Khác biệt giữa hai mức này cần được ghi nhớ khi đọc Bảng~\ref{tab:split}: tỉ lệ dương 10,13--13,80\% trong bảng đó được tính ở mức item; dựng lại theo cùng mốc thời gian ở mức đơn, tỉ lệ dương của năm phân vùng phát triển là 8,86--10,53\%. Theo tháng giao, tỉ lệ dương mức đơn của quần thể nghiên cứu dao động trong khoảng 7,8--10,9\%. Với khoảng một đơn dương trên mười một đơn, độ chính xác (accuracy) không phải thước đo phù hợp, như đã lập luận ở mục~\ref{sec:eval}.
+
+\subsection{Vì sao giao trễ chi phối các mô hình dự báo hiện có}\label{subsec:eda-lateness}
+
+Trên các đơn đã giao có đánh giá, giao trễ là tín hiệu mạnh nhất của đánh giá thấp. Theo định nghĩa trễ theo ngày, 6,7\% đơn bị giao trễ, và nhóm này có 62,4\% đơn bị đánh giá 1--2 sao, gấp 6,7 lần tỉ lệ 9,3\% của đơn đúng hạn. Hình~\ref{fig:eda-factors} đặt tám yếu tố trên cùng một thang đo: tỉ lệ đánh giá thấp chỉ 9\% với đơn giao sớm từ 7 ngày trở lên và 11\% với đơn giao sớm 0--6 ngày, nhưng lên 32\% khi trễ 1--3 ngày, 68\% khi trễ 4--7 ngày và 79\% khi trễ hơn 7 ngày. Quan hệ này có dạng bậc thang: giao sớm hơn hứa hẹn hầu như không cải thiện thêm, còn vượt qua ngày hứa là tỉ lệ tăng vọt. Theo bảng chi tiết của notebook, tỉ lệ đánh giá thấp là 12,4\% với đơn giao đúng ngày dự kiến, 19,6\% khi trễ một ngày và 50,4\% khi trễ ba ngày. Kết quả này phù hợp với các nghiên cứu cho thấy hiệu quả giao hàng ảnh hưởng mạnh đến điểm đánh giá~\cite{ravula2023,deshpande2023}.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/14_score_factors}
+  \caption{Tỉ lệ đơn bị đánh giá 1--2 sao theo tám yếu tố, cùng thang trục tung. Đường xám là tỉ lệ trên mọi đơn có đánh giá (14,7\%); hai ô về thời gian giao và ô khoảng cách chỉ dùng đơn đã giao. Dưới mỗi cột là số đơn của nhóm.}
+  \label{fig:eda-factors}
+\end{figure}
+
+Notebook phân tích chỉ ra năm lý do khiến các mô hình hài lòng công bố trên Olist hầu như đều ``phát hiện'' giao trễ là yếu tố quyết định (Bảng~\ref{tab:eda-reasons}). Lý do thứ hai đáng chú ý nhất vì nó nằm ở cơ chế sinh nhãn. Olist gửi khảo sát khi khách nhận hàng \emph{hoặc} khi đến ngày giao dự kiến~\cite{olist2018}, nên với đơn trễ, khách thường được hỏi về một món hàng chưa nhận được. Trong mẫu đơn trễ, 70,1\% đánh giá được trả lời trước khi hàng đến và 80,8\% số đánh giá này là 1--2 sao; ngược lại, ở đơn đúng hạn chỉ 0,3\% khảo sát được gửi trước ngày giao. Với phần lớn đơn trễ, ``đánh giá'' thực chất là lời phàn nàn hàng chưa tới, và dự báo nó từ mốc thời gian gần như là dự báo lịch gửi khảo sát. Quần thể nghiên cứu loại bỏ vấn đề này từ gốc, vì chỉ giữ đơn giao đúng hạn và có đánh giá tạo sau thời điểm giao.
+
+\begin{table}[htbp]\centering\small
+\caption{Năm lý do giao trễ chi phối các mô hình dự báo hài lòng trên Olist (mẫu: 95\,824 đơn đã giao có đánh giá; trễ tính theo ngày)}\label{tab:eda-reasons}
+\begin{tabular}{p{4.3cm}p{9.2cm}}
+\toprule
+Lý do & Bằng chứng \\
+\midrule
+Giao trễ là tín hiệu mạnh và có dạng bậc thang & 62,4\% đơn trễ bị đánh giá thấp so với 9,3\% đơn đúng hạn; trễ ba ngày đã có 50,4\% đơn bị đánh giá thấp (Hình~\ref{fig:eda-factors}) \\
+Nhãn của đơn trễ phần lớn do lịch gửi khảo sát tạo ra & 70,1\% đánh giá của đơn trễ được viết trước khi hàng đến, 80,8\% trong số đó là 1--2 sao \\
+Giao trễ quyết định các biến động theo thời gian & Tỉ lệ đánh giá thấp toàn bộ dao động 9,4--21,2\% theo tháng và tăng cùng tỉ lệ trễ (14,0\% tháng 2/2018, 18,7\% tháng 3/2018); tỉ lệ ở đơn đúng hạn chỉ dao động 7,4--10,7\% \\
+Đặc trưng thời gian đứng đầu khi gộp mọi đơn & ROC-AUC đơn biến của bốn đặc trưng thời gian đứng đầu là 0,65--0,69 trên mọi đơn, nhưng các đặc trưng này chỉ đạt 0,51--0,57 trên đơn đúng hạn; ở nhóm này số item trong đơn (0,59), tỉ lệ đánh giá thấp trước đó của người bán (0,59) và phí vận chuyển (0,58) dẫn đầu \\
+Độ chính xác che giấu vấn đề & Một mô hình boosting chẩn đoán (chia ngẫu nhiên 70/30, ngưỡng 0,5, như các nghiên cứu trước) đạt accuracy 89,8\%, chỉ hơn mức luôn dự đoán ``không tiêu cực'' (87,2\%) 2,6 điểm; 58,7\% danh sách 10\% rủi ro cao nhất là đơn trễ dù đơn trễ chỉ chiếm 6,7\%, và danh sách này bắt được 96,5\% đơn trễ bị đánh giá thấp nhưng chỉ 16,7\% đơn đúng hạn bị đánh giá thấp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hệ quả là các mô hình huấn luyện trên mọi đơn học chủ yếu cách nhận diện đơn trễ, trong khi phần lớn đánh giá thấp lại nằm ở nhóm còn lại. Trong 12\,272 đơn bị đánh giá 1--2 sao thuộc mẫu đã giao có đánh giá, 8\,289 đơn (67,5\%) đến từ đơn giao đúng hạn theo định nghĩa theo ngày; dùng định nghĩa theo mốc thời gian của quần thể nghiên cứu, con số là 8\,130 đơn (66,25\%). Đơn đúng hạn cũng là trạng thái phổ biến chứ không phải ngoại lệ (Hình~\ref{fig:eda-promise}): trung vị thời gian giao thực tế là 10,2 ngày so với 23,2 ngày hứa giao, và 93,2\% đơn đến đúng hoặc sớm hạn, trung vị sớm 12 ngày. Theo tháng, tỉ lệ đánh giá thấp của đơn đúng hạn chỉ dao động trong khoảng 7,4--10,7\% (Bảng~\ref{tab:eda-reasons}), nên nhóm khách này không bao giờ hiện lên thành một đỉnh trên biểu đồ vận hành. Đó chính là lý do sự bất mãn của họ được gọi là ``ẩn''.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/09_promise_vs_reality}
+  \caption{Hứa giao và giao thực tế trên 96\,470 đơn đã giao: phân bố số ngày từ lúc mua đến lúc giao thực tế và đến ngày dự kiến (trái); chênh lệch giữa ngày giao và ngày dự kiến, giá trị âm là giao sớm (phải).}
+  \label{fig:eda-promise}
+\end{figure}
+
+\subsection{Tín hiệu trong nhóm đơn giao đúng hạn}\label{subsec:eda-ontime}
+
+Khi đã loại giao trễ, các tín hiệu còn lại yếu hơn nhưng không biến mất. Bảng~\ref{tab:eda-segments} tóm tắt tỉ lệ đánh giá thấp mức đơn trong quần thể nghiên cứu theo các yếu tố đều biết được tại thời điểm giao. Cấu trúc đơn tạo khác biệt lớn nhất: đơn có hai người bán bị đánh giá thấp 45,7\%, gấp hơn năm lần đơn một người bán (8,7\%), và tỉ lệ tăng đều từ 7,5\% ở đơn một item lên 31,9\% ở đơn từ bốn item. Nhóm đơn nhiều người bán rất nhỏ (1\,214 đơn), nhưng tỉ lệ của nó đã tiến gần mức 54--62\% của đơn \emph{trễ} ở mục~\ref{subsec:eda-lateness}. Ở toàn bộ dữ liệu, đơn nhiều người bán còn có tỉ lệ trễ ghi nhận chỉ 1,0\% so với 6,9\% của đơn một người bán và điểm trung bình 2,86 so với 4,12, cho thấy mốc giao duy nhất của đơn nhiều khả năng chỉ phản ánh kiện hàng đến trước. Quan sát này khớp với bằng chứng rằng giao hàng tách kiện làm giảm sự hài lòng~\cite{brylla2022}.
+
+\begin{table}[htbp]\centering\small
+\caption{Tỉ lệ đơn bị đánh giá 1--2 sao trong quần thể nghiên cứu theo một số yếu tố biết được tại thời điểm giao (85\,420 đơn dựng lại; tỉ lệ chung 9,21\%)}\label{tab:eda-segments}
+\begin{tabular}{llrr}
+\toprule
+Yếu tố & Nhóm & Số đơn & Tỉ lệ đánh giá thấp \\
+\midrule
+Số người bán trong đơn & 1 & 84\,206 & 8,7\% \\
+ & 2 & 1\,157 & 45,7\% \\
+ & 3 trở lên & 57 & 63,2\% \\
+\addlinespace
+Số item trong đơn & 1 & 76\,678 & 7,5\% \\
+ & 2 & 6\,695 & 23,2\% \\
+ & 3 & 1\,191 & 27,0\% \\
+ & 4 trở lên & 856 & 31,9\% \\
+\addlinespace
+Số ngày từ mua đến giao & $\le$3 & 4\,622 & 6,6\% \\
+ & 7--14 & 38\,328 & 8,7\% \\
+ & 21--30 & 5\,164 & 14,6\% \\
+ & $>$30 & 786 & 22,4\% \\
+\addlinespace
+Số ngày giao sớm so với dự kiến & 0--3 & 4\,505 & 11,3\% \\
+ & 14--21 & 23\,515 & 8,3\% \\
+ & $>$30 & 2\,256 & 11,0\% \\
+\addlinespace
+Bàn giao vận chuyển sau hạn & Không & 79\,118 & 8,9\% \\
+ & Có & 6\,302 & 13,6\% \\
+\addlinespace
+Giá trị sản phẩm (real) & $\le$50 & 25\,911 & 7,8\% \\
+ & $>$500 & 3\,020 & 12,9\% \\
+\addlinespace
+Phí vận chuyển / giá & $\le$20\% & 38\,050 & 8,8\% \\
+ & $>$100\% & 2\,663 & 10,6\% \\
+\addlinespace
+Thanh toán đầu tiên & Thẻ tín dụng & 65\,863 & 9,2\% \\
+ & Boleto & 16\,904 & 9,2\% \\
+ & Voucher & 1\,342 & 10,5\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Đúng hạn không đồng nghĩa với nhanh. Đơn giao trong vòng ba ngày bị đánh giá thấp 6,6\%, còn đơn mất hơn 30 ngày dù vẫn kịp hạn có tỉ lệ 22,4\%: khách hàng đánh giá cả độ dài thời gian chờ chứ không chỉ việc lời hứa có được giữ hay không. Khoảng dư so với ngày dự kiến lại có dạng chữ U. Đơn kịp hạn sát nút (0--3 ngày) có tỉ lệ 11,3\%, đơn sớm 14--21 ngày có tỉ lệ thấp nhất 8,3\%, và đơn sớm hơn 30 ngày tăng trở lại 11,0\%, nhiều khả năng vì những đơn này đi kèm thời hạn hứa giao rất dài. Người bán bàn giao vận chuyển sau hạn gửi hàng nhưng hàng vẫn đến kịp có tỉ lệ 13,6\%, so với 8,9\% ở trường hợp còn lại. Lịch sử của người bán cũng mang tín hiệu: trên mẫu đơn đúng hạn theo ngày của notebook (89\,443 đơn), người bán có hơn 30\% đánh giá thấp trong quá khứ tạo ra 18,4\% đánh giá thấp, so với 6,5\% ở người bán có tỉ lệ quá khứ từ 5\% trở xuống; tỉ lệ quá khứ này chỉ tính trên các đánh giá đã có trước thời điểm mua.
+
+Danh mục sản phẩm tạo khác biệt vừa phải. Tính ở mức item trong quần thể nghiên cứu với các danh mục có từ 800 item, nội thất văn phòng có tỉ lệ dương cao nhất (22,4\% trên 1\,460 item), tiếp theo là đồ trang trí nội thất (14,9\%), chăn ga gối (14,8\%) và phụ kiện máy tính (14,0\%); thấp nhất là phụ kiện hành lý (6,5\%) và văn phòng phẩm (7,6\%). Các item thiếu danh mục có tỉ lệ 15,1\% (1\,344 item), vì vậy giữ ``thiếu danh mục'' thành một nhóm riêng có lợi hơn là điền giá trị. Các yếu tố tiền tệ dịch chuyển ít hơn: tỉ lệ tăng từ 7,8\% ở đơn dưới 50 real lên 12,9\% ở đơn trên 500 real, còn tỉ trọng phí vận chuyển (8,8--10,6\%) và phương thức thanh toán (8,5--10,5\%) gần như phẳng. Theo bang của khách (các bang có từ 1\,000 đơn), tỉ lệ dao động từ 8,6\% ở São Paulo đến 10,9\% ở Rio de Janeiro và 11,1\% ở Bahia.
+
+Ma trận tương quan Spearman trên 96\,470 đơn đã giao cho thấy vì sao các tín hiệu này khó nắm bắt bằng quan hệ tuyến tính: không biến số mức đơn nào có hệ số tương quan Spearman với điểm đánh giá vượt quá 0,25 về độ lớn; mạnh nhất là số ngày giao ($-0{,}23$), thời gian vận chuyển ($-0{,}19$), chênh lệch so với ngày dự kiến ($-0{,}18$) và số item ($-0{,}11$). Các quan hệ ở Bảng~\ref{tab:eda-segments} có dạng ngưỡng hoặc chữ U, điều mà tương quan đơn điệu đánh giá thấp. Nhiều cặp biến giải thích lại đi cùng nhau: số ngày giao và thời gian vận chuyển ($0{,}89$), giá trị đơn và tỉ trọng phí vận chuyển ($-0{,}78$), khoảng cách và số ngày hứa giao ($0{,}62$). Mô hình tuyến tính vì thế dễ gặp đa cộng tuyến, còn mô hình cây có thể tách các ngưỡng mà không cần chỉ định trước dạng quan hệ.
+
+\subsection{Nội dung đánh giá của khách không hài lòng}
+
+Văn bản đánh giá chỉ xuất hiện \emph{sau} khi khách đánh giá, nên nó không được dùng làm đặc trưng (Hình~\ref{fig:leakage-timeline}); nhóm chỉ dùng nó để hiểu nhãn. Theo luật từ khóa trên bình luận tiếng Bồ Đào Nha đã bỏ dấu (Hình~\ref{fig:eda-themes}), bình luận 1 sao chủ yếu nói hàng chưa tới (31\%), sau đó là hoàn tiền, trả hàng hoặc hủy đơn (10\%), thiếu một phần đơn (9\%), giao chậm (7\%), lỗi hoặc hư hỏng (6\%) và giao sai sản phẩm (6\%). Bình luận 4--5 sao thì xoay quanh giao nhanh và lời khen. Bình luận của đơn nhiều người bán khác hẳn: 31,3\% nói thiếu một phần đơn và 29,8\% nói chưa nhận được hàng, so với 3,0\% và 8,3\% ở đơn một người bán.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/15_text_themes}
+  \caption{Chủ đề trong bình luận đánh giá Olist, xác định bằng luật từ khóa: tỉ lệ bình luận nhắc đến từng chủ đề theo số sao (trái) và so sánh đơn một người bán với đơn nhiều người bán (phải).}
+  \label{fig:eda-themes}
+\end{figure}
+
+So sánh bình luận tiêu cực của đơn trễ và đơn đúng hạn làm rõ khác biệt về bản chất. Trong 2\,747 bình luận 1--2 sao của đơn trễ, 52,4\% nói chưa nhận được hàng và chỉ 2,0\% nói hàng sai, khác mô tả, lỗi hoặc vỡ. Trong 6\,487 bình luận 1--2 sao của đơn đúng hạn, hai tỉ lệ này lần lượt là 13,9\% và 17,9\%, và 20,3\% nói chỉ nhận được một phần đơn; riêng đơn đúng hạn có từ hai người bán, tỉ lệ nói thiếu một phần lên 51,9\%. Có 78,3\% đánh giá thấp của đơn đúng hạn kèm bình luận. Nói cách khác, khách phàn nàn về đơn trễ vì hàng \emph{chưa đến}, còn khách phàn nàn về đơn đúng hạn vì \emph{thứ đã đến}: thiếu, sai, hỏng hoặc kém chất lượng. Không vấn đề nào trong số này lộ ra qua chênh lệch giữa ngày giao và ngày dự kiến.
+
+\subsection{Hàm ý cho thiết kế đặc trưng}
+
+Kết quả khám phá dữ liệu định hướng trực tiếp các nhóm đặc trưng ở Bảng~\ref{tab:features}. Tín hiệu mạnh nhất trong nhóm đúng hạn đến từ cấu trúc đơn, nên số người bán, số danh mục, số sản phẩm, các cờ nhiều item, nhiều người bán, nhiều danh mục và chỉ số tập trung Herfindahl--Hirschman được tách thành ba nhóm riêng. Do Olist chỉ có một mốc giao cho mỗi đơn, các đặc trưng này đóng vai trò đại diện gián tiếp cho việc giao thiếu hoặc tách kiện mà bình luận phản ánh. Thời gian giao thực tế, thời gian vận chuyển và khoảng dư so với ngày dự kiến được giữ trong nhóm cơ sở vì đơn chờ lâu vẫn có rủi ro cao dù kịp hạn; quan hệ chữ U của khoảng dư là thêm một lý do để ưu tiên mô hình cây. Lịch sử đánh giá của người bán và danh mục, cùng nhóm tốc độ và độ biến động của người bán, khai thác tín hiệu từ người bán bàn giao trễ và người bán có tiền sử bị đánh giá thấp; cả hai đều phải tính với ranh giới thời gian chặt như ở Hình~\ref{fig:leakage-timeline}. Danh mục được giữ ở dạng biến phân loại kèm nhóm ``thiếu''. Các nhóm hình thái sản phẩm và độ đầy đủ nội dung nhắm đến các lời phàn nàn về hư hỏng và hàng khác mô tả. Phí vận chuyển, giá trị đơn và thanh toán chỉ cho tín hiệu yếu ở bước khám phá; chúng vẫn nằm trong nhóm cơ sở, nhưng không nên kỳ vọng đóng góp lớn từ riêng các biến này. Ngược lại, văn bản, tiêu đề, thời điểm tạo và thời điểm trả lời đánh giá bị loại khỏi tập đặc trưng: đó là thông tin chỉ có sau khi nhãn đã hình thành.
+
+\section{Kết quả đạt được}\label{sec:results}
+% TODO
+
+\section{Bảng biểu và số liệu}\label{sec:tables}
+% TODO
+
+\section{Phân tích và đánh giá}\label{sec:analysis}
+% TODO

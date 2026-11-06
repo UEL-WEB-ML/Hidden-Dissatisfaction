@@ -50,3 +50,166 @@
   eprinttype = {arxiv},
   url    = {https://arxiv.org/abs/2607.18573}
 }
+
+% --- Bổ sung cho Ch.2 (2026-11-06) ---
+% New bib entries cited in Thesis/latex/chapters/ch2.tex (sections sec:related, sec:theory-models).
+
+% verified: https://api.crossref.org/works/10.1016/j.inffus.2021.11.011 (title/authors/vol/pages) + abstract via Semantic Scholar, publisher: Elsevier
+@article{shwartzziv2022,
+  author  = {Shwartz-Ziv, Ravid and Armon, Amitai},
+  title   = {Tabular data: Deep learning is not all you need},
+  journal = {Information Fusion},
+  volume  = {81},
+  pages   = {84--90},
+  year    = {2022},
+  doi     = {10.1016/j.inffus.2021.11.011}
+}
+
+% verified: https://api.crossref.org/works/10.1177/0022243720941832 (metadata + abstract in Crossref), publisher: SAGE Publications
+@article{schoenmueller2020,
+  author  = {Schoenmueller, Verena and Netzer, Oded and Stahl, Florian},
+  title   = {The Polarity of Online Reviews: Prevalence, Drivers and Implications},
+  journal = {Journal of Marketing Research},
+  volume  = {57},
+  number  = {5},
+  pages   = {853--877},
+  year    = {2020},
+  doi     = {10.1177/0022243720941832}
+}
+
+% verified: https://api.crossref.org/works/10.1016/j.ins.2019.12.075 (metadata) + abstract via Semantic Scholar, publisher: Elsevier
+@article{devriendt2021,
+  author  = {Devriendt, Floris and Berrevoets, Jeroen and Verbeke, Wouter},
+  title   = {Why you should stop predicting customer churn and start using uplift models},
+  journal = {Information Sciences},
+  volume  = {548},
+  pages   = {497--515},
+  year    = {2021},
+  doi     = {10.1016/j.ins.2019.12.075}
+}
+
+% verified: https://api.crossref.org/works/10.1016/j.patter.2023.100804 (metadata) + abstract via Semantic Scholar, publisher: Elsevier (Cell Press)
+@article{kapoor2023,
+  author  = {Kapoor, Sayash and Narayanan, Arvind},
+  title   = {Leakage and the reproducibility crisis in machine-learning-based science},
+  journal = {Patterns},
+  volume  = {4},
+  number  = {9},
+  pages   = {100804},
+  year    = {2023},
+  doi     = {10.1016/j.patter.2023.100804}
+}
+
+% verified: https://api.crossref.org/works/10.1145/2382577.2382579 (title/authors/vol/issue/pages), publisher: ACM
+@article{kaufman2012,
+  author  = {Kaufman, Shachar and Rosset, Saharon and Perlich, Claudia and Stitelman, Ori},
+  title   = {Leakage in data mining: Formulation, detection, and avoidance},
+  journal = {ACM Transactions on Knowledge Discovery from Data},
+  volume  = {6},
+  number  = {4},
+  pages   = {1--21},
+  year    = {2012},
+  doi     = {10.1145/2382577.2382579}
+}
+
+% verified: no DOI (online textbook). WebSearch: OTexts 2021, 3rd ed., ISBN 9780987507136 (bookseller listings), free at otexts.com/fpp3; CRAN package fpp3 "Data for Forecasting: Principles and Practice (3rd Edition)". Section 5.10 "Time series cross-validation" not fetched directly (DNS failure). publisher: OTexts
+@book{hyndman2021,
+  author    = {Hyndman, Rob J. and Athanasopoulos, George},
+  title     = {Forecasting: Principles and Practice},
+  edition   = {3},
+  publisher = {OTexts},
+  location  = {Melbourne},
+  year      = {2021},
+  isbn      = {9780987507136},
+  url       = {https://otexts.com/fpp3/}
+}
+
+% verified: https://api.crossref.org/works/10.1007/s10994-020-05910-7 (authors Cerqueira/Torgo/Mozetič, vol 109(11) 1997-2028) + abstract via Semantic Scholar, publisher: Springer
+@article{cerqueira2020,
+  author  = {Cerqueira, Vitor and Torgo, Luis and Mozeti{\v{c}}, Igor},
+  title   = {Evaluating time series forecasting models: An empirical study on performance estimation methods},
+  journal = {Machine Learning},
+  volume  = {109},
+  number  = {11},
+  pages   = {1997--2028},
+  year    = {2020},
+  doi     = {10.1007/s10994-020-05910-7}
+}
+
+% verified: https://api.crossref.org/works/10.1023/A:1010933404324 (Breiman, Machine Learning 45(1) 5-32, 2001), publisher: Springer (Kluwer)
+@article{breiman2001,
+  author  = {Breiman, Leo},
+  title   = {Random Forests},
+  journal = {Machine Learning},
+  volume  = {45},
+  number  = {1},
+  pages   = {5--32},
+  year    = {2001},
+  doi     = {10.1023/A:1010933404324}
+}
+
+% verified: no DOI. WebSearch -> official proceedings page https://proceedings.neurips.cc/paper/2018/hash/14491b756b3a51daac41c24863285549-Abstract.html (5 authors) and its Metadata.json (pages 6638-6648), publisher: Curran Associates (NeurIPS)
+@inproceedings{prokhorenkova2018,
+  author    = {Prokhorenkova, Liudmila and Gusev, Gleb and Vorobev, Aleksandr and Dorogush, Anna Veronika and Gulin, Andrey},
+  title     = {{CatBoost}: Unbiased boosting with categorical features},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume    = {31},
+  pages     = {6638--6648},
+  year      = {2018},
+  url       = {https://proceedings.neurips.cc/paper/2018/hash/14491b756b3a51daac41c24863285549-Abstract.html}
+}
+
+% verified: no DOI. WebSearch: chapter in "Advances in Large Margin Classifiers", MIT Press (bibbase lists year 2000, chapter 5; most citations use 1999). Pages 61-74 NOT confirmed, so omitted. publisher: MIT Press
+@incollection{platt1999,
+  author    = {Platt, John C.},
+  title     = {Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods},
+  booktitle = {Advances in Large Margin Classifiers},
+  editor    = {Smola, Alexander J. and Bartlett, Peter and Sch{\"o}lkopf, Bernhard and Schuurmans, Dale},
+  publisher = {MIT Press},
+  location  = {Cambridge, MA},
+  year      = {1999}
+}
+
+% verified: https://api.crossref.org/works/10.1145/775047.775151 (KDD 2002, pp. 694-699), publisher: ACM
+@inproceedings{zadrozny2002,
+  author    = {Zadrozny, Bianca and Elkan, Charles},
+  title     = {Transforming classifier scores into accurate multiclass probability estimates},
+  booktitle = {Proceedings of the Eighth ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
+  pages     = {694--699},
+  year      = {2002},
+  doi       = {10.1145/775047.775151}
+}
+
+% verified: https://api.crossref.org/works/10.1145/1102351.1102430 (ICML 2005, pp. 625-632), publisher: ACM
+@inproceedings{niculescumizil2005,
+  author    = {Niculescu-Mizil, Alexandru and Caruana, Rich},
+  title     = {Predicting good probabilities with supervised learning},
+  booktitle = {Proceedings of the 22nd International Conference on Machine Learning},
+  pages     = {625--632},
+  year      = {2005},
+  doi       = {10.1145/1102351.1102430}
+}
+
+% verified: https://api.crossref.org/works/10.1371/journal.pone.0118432 (PLOS ONE 10(3) e0118432), publisher: Public Library of Science
+@article{saito2015,
+  author  = {Saito, Takaya and Rehmsmeier, Marc},
+  title   = {The Precision-Recall Plot Is More Informative than the {ROC} Plot When Evaluating Binary Classifiers on Imbalanced Datasets},
+  journal = {PLOS ONE},
+  volume  = {10},
+  number  = {3},
+  pages   = {e0118432},
+  year    = {2015},
+  doi     = {10.1371/journal.pone.0118432}
+}
+
+% verified: WebSearch -> DBLP record journals/ai/DietterichLL97 (Artif. Intell. 89(1-2): 31-71, 1997) and author PDF footer PII S0004-3702(96)00034-3 matching the DOI; Crossref not reachable at that moment (DNS failure). publisher: Elsevier
+@article{dietterich1997,
+  author  = {Dietterich, Thomas G. and Lathrop, Richard H. and Lozano-P{\'e}rez, Tom{\'a}s},
+  title   = {Solving the multiple instance problem with axis-parallel rectangles},
+  journal = {Artificial Intelligence},
+  volume  = {89},
+  number  = {1--2},
+  pages   = {31--71},
+  year    = {1997},
+  doi     = {10.1016/S0004-3702(96)00034-3}
+}
