@@ -73,6 +73,9 @@
 ]{biblatex}
 
 \addbibresource{tailieu.bib}
+\setcounter{biburlnumpenalty}{9000}
+\setcounter{biburllcpenalty}{7000}
+\setcounter{biburlucpenalty}{8000}
 
 
 % ------------------------------------------------------------
@@ -185,7 +188,7 @@
 % ============================================================
 
 % polyglossia tự đặt lại tên theo tiếng Việt, nên phải ghi đè trong \captionsvietnamese
-\gappto\captionsvietnamese{\renewcommand{\contentsname}{MỤC LỤC}}
+\gappto\captionsvietnamese{\renewcommand{\contentsname}{MỤC LỤC}\renewcommand{\listtablename}{DANH MỤC BẢNG BIỂU}\renewcommand{\listfigurename}{DANH MỤC HÌNH ẢNH}}
 
 % Chỉ hiện Section và Subsection
 % Không cho 1.1.1 chen vào mục lục

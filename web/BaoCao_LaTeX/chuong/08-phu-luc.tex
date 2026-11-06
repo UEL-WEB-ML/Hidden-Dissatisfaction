@@ -2,9 +2,73 @@
 % chuong/08-phu-luc.tex
 % MỤC 8. PHỤ LỤC
 % Outline bắt buộc: liên kết PUBLIC, full permission.
+% TODO trước khi nộp: repo GitHub đang PRIVATE (kiểm 05/11) -> chuyển public; điền link video demo.
 % =========================
 
 \section{PHỤ LỤC}
 
-\placeholder{Liên kết mã nguồn (kho public); liên kết bộ dữ liệu Olist; liên kết bản thiết kế Figma;
-liên kết video demo.}
+\subsection{Liên kết tài liệu bổ trợ}
+
+{\small
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}p{10.8cm}|}
+\caption{Liên kết tài liệu bổ trợ}\label{tab:lien-ket}\\ \hline
+\textbf{Tài liệu} & \textbf{Liên kết} \\ \hline \endfirsthead
+\hline \textbf{Tài liệu} & \textbf{Liên kết} \\ \hline \endhead
+Mã nguồn (nhánh dev) & \url{https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/tree/dev} \\ \hline
+Tài liệu BA (BRD, FRD, API, CSDL) & \url{https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/tree/dev/BA} \\ \hline
+Giao diện (mã nguồn) & \url{https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/tree/dev/frontend/prototype} \\ \hline
+Bộ dữ liệu Olist & \url{https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce} \\ \hline
+Wireframe Figma & \url{https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl} \\ \hline
+Tệp nguồn sơ đồ draw.io & Thư mục \texttt{so-do-drawio/} đi kèm báo cáo \\ \hline
+Video demo & \placeholder{[điền liên kết video]} \\ \hline
+\end{longtable}
+}
+
+\subsection{Hướng dẫn chạy hệ thống}
+
+Máy cần có Docker (kèm Docker Compose v2), GNU Make và Git.
+
+\begin{enumerate}
+    \item Tải mã nguồn: \texttt{git clone} kho mã ở Bảng~\ref{tab:lien-ket}, chuyển sang nhánh
+    \texttt{dev}.
+    \item Tạo tệp cấu hình: \texttt{cp .env.example .env}, rồi thay các mật khẩu mẫu.
+    \item Khởi động: \texttt{make start}. Giao diện ở \url{http://localhost:4200}, API ở
+    \url{http://localhost:8000}.
+    \item Tạo tài khoản thử và dữ liệu mẫu: \texttt{make demo-seed}; tài khoản được ghi ở
+    \path{data/evidence/P12-DEMO-CREDENTIALS.env}.
+    \item Dừng hệ thống: \texttt{make stop} (dữ liệu vẫn được giữ).
+\end{enumerate}
+
+\subsection{Danh sách endpoint của API}
+
+{\small
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{6.2cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{5.6cm}|}
+\caption{Danh sách endpoint nghiệp vụ (tiền tố \texttt{/api/v1})}\label{tab:endpoint}\\ \hline
+\textbf{Phương thức và đường dẫn} & \textbf{Quyền} & \textbf{Chức năng} \\ \hline \endfirsthead
+\hline \textbf{Phương thức và đường dẫn} & \textbf{Quyền} & \textbf{Chức năng} \\ \hline \endhead
+POST /auth/login & Công khai & Đăng nhập, nhận JWT \\ \hline
+POST /auth/logout & Đã đăng nhập & Đăng xuất \\ \hline
+GET, PATCH /auth/me & Đã đăng nhập & Xem hồ sơ, đổi ngôn ngữ \\ \hline
+GET /config & Đã đăng nhập & Tham số đang hiệu lực \\ \hline
+GET, POST /parameters & Quản lý & Xem, tạo phiên bản tham số \\ \hline
+GET /users & Đã đăng nhập & Danh sách người dùng \\ \hline
+GET /orders & Đã đăng nhập & Risk Queue có lọc, sắp xếp, phân trang \\ \hline
+GET /orders/summary & Đã đăng nhập & Số liệu tóm tắt đầu Risk Queue \\ \hline
+GET /orders/filter-options & Đã đăng nhập & Danh sách người bán, ngành hàng để lọc \\ \hline
+GET /orders/\{order\_id\} & Đã đăng nhập & Chi tiết đơn \\ \hline
+POST /orders/\{order\_id\}/claim & Nhân viên & Nhận đơn \\ \hline
+POST /orders/\{order\_id\}/assign & Quản lý & Giao, chuyển đơn \\ \hline
+POST /orders/\{order\_id\}/complete & Người giữ, quản lý & Hoàn tất \\ \hline
+POST /orders/\{order\_id\}/skip & Người giữ, quản lý & Bỏ qua \\ \hline
+POST /orders/\{order\_id\}/reopen & Quản lý & Mở lại \\ \hline
+POST /orders/\{order\_id\}/comments & Người giữ, quản lý & Thêm nhận xét \\ \hline
+POST /orders/\{order\_id\}/model-notes & Quản lý & Ghi chú cho mô hình \\ \hline
+POST /orders/\{order\_id\}/contacts & Nhân viên đang giữ & Ghi lần liên lạc \\ \hline
+POST /orders/\{order\_id\}/decisions & Quản lý & Ghi quyết định \\ \hline
+POST /files; GET /files/\{file\_id\} & Nhân viên; chủ tệp, quản lý & Tải lên, xem minh chứng \\ \hline
+GET /dashboard & Quản lý & Số liệu trang Tổng quan \\ \hline
+GET /audit-events & Quản lý & Lịch sử thao tác \\ \hline
+\end{longtable}
+}

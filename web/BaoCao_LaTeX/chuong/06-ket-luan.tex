@@ -5,8 +5,46 @@
 
 \section{KẾT LUẬN VÀ ĐỀ XUẤT}
 
-\subsection{Kết luận}
-\textbf{Trạng thái: exploratory-only.} Báo cáo đã chuẩn hóa bài toán hidden dissatisfaction thành hệ thống hỗ trợ quyết định: product item là đơn vị tín hiệu, order là đơn vị workflow, còn review cấp order là weak label. Kiến trúc web kết nối hàng đợi, chi tiết, xử lý và audit; score chỉ được diễn giải là ưu tiên/ranking trong bối cảnh dữ liệu, không phải nguyên nhân.
+\subsection{Tổng kết các nội dung chính}
 
-\subsection{Hướng phát triển có kiểm soát}
-Trước khi công bố metric hoặc triển khai thực tế, cần hoàn tất product-item migration, khóa protocol, tạo replacement holdout độc lập, chạy đánh giá theo gate, và lưu manifest/code/config cùng artifact. Sau đó mới xem xét calibration, subgroup audit, monitoring drift và đánh giá tác động của human review. Mọi mở rộng phải giữ provenance, quyền can thiệp của con người và giới hạn không-causal.
+Đồ án xuất phát từ một quan sát trên dữ liệu Olist: phần lớn khách không hài lòng rơi vào các đơn mà
+chỉ số giao hàng báo là tốt. Từ đó, nhóm xây dựng hệ thống web hỗ trợ phát hiện và xử lý đơn hàng có
+nguy cơ không hài lòng ẩn, gồm phân tích thiết kế đầy đủ (BPMN, FDD, DFD, Use Case, ERD), cơ sở dữ
+liệu PostgreSQL với các ràng buộc nghiệp vụ, máy chủ API FastAPI và chín màn hình giao diện cho hai
+vai trò. Hệ thống chạy được toàn bộ luồng từ kết quả dự đoán tới case, liên lạc, đóng case, quyết định
+và truy vết, đã được kiểm thử hai đợt với dữ liệu Olist thật,
+các lỗi của đợt đầu đã được sửa và kiểm lại.
+
+\subsection{Ý nghĩa thực tiễn}
+
+Về mặt kinh doanh, hệ thống giúp bộ phận chăm sóc khách hàng chuyển từ xử lý khiếu nại sau khi khách
+đã đánh giá sang phòng ngừa trước khi khách đánh giá. Quản lý có số liệu để phân bổ nhân sự theo khối
+lượng việc thực tế, và các quyết định như ``làm việc với người bán'' đưa phản hồi của khách quay lại
+chuỗi cung ứng, giúp người bán cải thiện cách đóng gói và giao hàng.
+
+
+Hệ thống cho thấy cách đưa kết quả học máy vào công việc hằng ngày của bộ phận chăm sóc khách hàng:
+điểm số trở thành danh sách việc có thứ tự, có hạn xử lý, có người chịu trách nhiệm và có kết quả được
+ghi lại. Dữ liệu kết quả xử lý được lưu có cấu trúc, là nền để sau này doanh nghiệp đo xem việc liên
+hệ chủ động có làm giảm đánh giá tiêu cực hay không. Về học tập, đồ án giúp nhóm vận dụng HTML, CSS,
+JavaScript, DOM, AJAX và JSON vào một sản phẩm có máy chủ và cơ sở dữ liệu thật.
+
+\subsection{Hướng phát triển}
+
+\begin{itemize}
+    \item Nạp kết quả của mô hình đã kiểm chứng từ môn Học máy, và nạp tự động theo lịch thay vì chạy
+    thủ công.
+    \item Tính SLA theo giờ làm việc và bắt buộc khoảng cách giữa hai lần liên lạc ở máy chủ.
+    \item Thu hồi mã JWT khi đăng xuất; dịch đầy đủ thông báo lỗi.
+    \item Bổ sung thông tin thương mại vào Chi tiết đơn để nhân viên có đủ ngữ cảnh khi gọi.
+    \item Triển khai lên máy chủ công khai, thử với người dùng thật và đo hiệu quả bằng thử nghiệm có
+    nhóm đối chứng.
+    \item Tích hợp kênh liên lạc thật (gọi điện, email) thay vì chỉ ghi nhận thủ công.
+\end{itemize}
+
+\subsection{Kiến nghị}
+
+Doanh nghiệp thương mại điện tử nên theo dõi thêm các chỉ số trải nghiệm bên cạnh tỉ lệ giao đúng
+hạn, và nên xem kết quả dự đoán là công cụ sắp xếp ưu tiên cho con người, không phải quyết định tự
+động. Khi áp dụng hệ thống, cần bắt đầu với một nhóm nhỏ, ghi nhận kết quả xử lý đầy đủ và so sánh với
+nhóm không được liên hệ để biết việc chăm sóc chủ động có thật sự hiệu quả.
