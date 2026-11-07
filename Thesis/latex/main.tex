@@ -33,8 +33,16 @@
      {\fontsize{14}{19}\selectfont HỆ THỐNG HỌC MÁY PHÁT HIỆN SỚM VÀ ƯU TIÊN CHĂM SÓC\\
       ĐƠN HÀNG CÓ NGUY CƠ BẤT MÃN ẨN TRÊN DỮ LIỆU OLIST}};
   \node[font=\bfseries\fontsize{13}{18}\selectfont,anchor=north west,align=left]
-    at ([xshift=-1.2cm,yshift=-17.3cm]current page.north)
-    {GVHD: TODO\\SVTH: TODO\\MSSV: TODO};
+    at ([xshift=-3.2cm,yshift=-16.6cm]current page.north)
+    {GVHD: TS. Trần Duy Thanh\\[6pt]
+     Nhóm sinh viên thực hiện:\\[2pt]
+     {\fontsize{12}{16}\selectfont\begin{tabular}{@{}ll@{}}
+       K244161784 & Nguyễn Trần Thái Huy\\
+       K244161819 & Vũ Sơn Trúc\\
+       K244161818 & Nguyễn Minh Trung\\
+       K244161803 & Vòng Hữu Quân\\
+       K244161779 & Vũ Anh Đào
+     \end{tabular}}};
   \node[font=\bfseries\fontsize{13}{16}\selectfont,text=white]
     at ([yshift=2.25cm]current page.south) {TP.HCM, THÁNG \,TODO/2026};
 \end{tikzpicture}
@@ -43,13 +51,11 @@
 
 \pagenumbering{roman}
 % Thứ tự theo hướng dẫn Khoa HTTT, mục II
-\chapter*{Lời cảm ơn}
-\chapter*{Lời cam kết}
+\input{chapters/frontmatter}  % Lời cảm ơn, Lời cam kết
 \tableofcontents
 \listoffigures\addcontentsline{toc}{chapter}{Danh mục hình ảnh}
 \listoftables\addcontentsline{toc}{chapter}{Danh mục bảng biểu}
-\chapter*{Danh mục từ viết tắt}\addcontentsline{toc}{chapter}{Danh mục từ viết tắt}
-% TODO: bảng 2 cột (từ viết tắt | nghĩa)
+\input{chapters/abbreviations}
 \input{chapters/summary}\addcontentsline{toc}{chapter}{Tóm tắt}  % tối đa 1 trang A4
 \clearpage\pagenumbering{arabic}
 
