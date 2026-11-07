@@ -51,31 +51,1445 @@
 
 \pagenumbering{roman}
 % Thứ tự theo hướng dẫn Khoa HTTT, mục II
-\input{chapters/frontmatter}  % Lời cảm ơn, Lời cam kết
+% Lời cảm ơn và lời cam kết (theo thứ tự hướng dẫn Khoa HTTT).
+\chapter*{Lời cảm ơn}
+\addcontentsline{toc}{chapter}{Lời cảm ơn}
+
+Trước hết, nhóm xin gửi lời cảm ơn chân thành đến TS.~Trần Duy Thanh, giảng viên hướng dẫn, đã tận tình định hướng đề tài, góp ý về phương pháp và dành thời gian theo sát nhóm trong suốt quá trình thực hiện khóa luận. Những nhận xét của Thầy giúp nhóm xác định rõ phạm vi bài toán, chú trọng tính chặt chẽ của thiết kế thực nghiệm và trình bày kết quả một cách trung thực.
+
+Nhóm cũng xin cảm ơn quý Thầy Cô Khoa Hệ thống Thông tin, Trường Đại học Kinh tế -- Luật, Đại học Quốc gia Thành phố Hồ Chí Minh, đã truyền đạt nền tảng kiến thức về phân tích dữ liệu, học máy và phát triển hệ thống thông tin, là cơ sở để nhóm hoàn thành đề tài này.
+
+Nhóm trân trọng cảm ơn Olist đã công bố bộ dữ liệu \emph{Brazilian E-Commerce Public Dataset}, cùng cộng đồng phát triển các công cụ mã nguồn mở mà nhóm sử dụng trong quá trình xây dựng kho dữ liệu, huấn luyện mô hình và phát triển ứng dụng.
+
+Cuối cùng, nhóm xin cảm ơn gia đình và bạn bè đã luôn động viên, hỗ trợ trong thời gian thực hiện khóa luận. Dù đã nỗ lực hoàn thiện, khóa luận khó tránh khỏi thiếu sót; nhóm rất mong nhận được ý kiến đóng góp của quý Thầy Cô để đề tài được hoàn thiện hơn.
+
+\vspace{1cm}
+\begin{flushright}
+\begin{minipage}{0.5\linewidth}\centering
+TP.HCM, ngày \ldots\ tháng \ldots\ năm 2026\\
+\textbf{Nhóm sinh viên thực hiện}
+\end{minipage}
+\end{flushright}
+
+\chapter*{Lời cam kết}
+\addcontentsline{toc}{chapter}{Lời cam kết}
+
+Nhóm sinh viên thực hiện xin cam kết khóa luận tốt nghiệp ``Giao đúng hạn, vẫn chưa hài lòng: Hệ thống học máy phát hiện sớm và ưu tiên chăm sóc đơn hàng có nguy cơ bất mãn ẩn trên dữ liệu Olist'' là công trình nghiên cứu của nhóm, được thực hiện dưới sự hướng dẫn của TS.~Trần Duy Thanh.
+
+Các số liệu và kết quả trình bày trong khóa luận được tạo ra từ quá trình xử lý dữ liệu và thực nghiệm của nhóm trên bộ dữ liệu công khai của Olist, có thể truy vết về cấu hình thí nghiệm và mã nguồn tương ứng. Nhóm không sao chép kết quả của công trình khác. Các tài liệu, số liệu và ý tưởng tham khảo từ nghiên cứu trước đều được trích dẫn đầy đủ và ghi rõ nguồn trong danh mục tài liệu tham khảo.
+
+Nhóm cũng cam kết trình bày trung thực phạm vi và giới hạn của kết quả: các chỉ số được báo cáo là kết quả phát triển trên các fold kiểm định theo thời gian, dữ liệu minh họa trong bản demo được ghi rõ là dữ liệu minh họa, và các kết luận mang tính dự báo, không phải kết luận nhân quả.
+
+Nhóm xin hoàn toàn chịu trách nhiệm về nội dung của khóa luận này.
+
+\vspace{1cm}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+STT & MSSV & Họ và tên \\
+\midrule
+1 & K244161784 & Nguyễn Trần Thái Huy \\
+2 & K244161819 & Vũ Sơn Trúc \\
+3 & K244161818 & Nguyễn Minh Trung \\
+4 & K244161803 & Vòng Hữu Quân \\
+5 & K244161779 & Vũ Anh Đào \\
+\bottomrule
+\end{tabular}
+\end{center}
+   % Lời cảm ơn, Lời cam kết
 \tableofcontents
 \listoffigures\addcontentsline{toc}{chapter}{Danh mục hình ảnh}
 \listoftables\addcontentsline{toc}{chapter}{Danh mục bảng biểu}
-\input{chapters/abbreviations}
-\input{chapters/summary}\addcontentsline{toc}{chapter}{Tóm tắt}  % tối đa 1 trang A4
+% Danh mục từ viết tắt (đặt sau Danh mục bảng biểu theo hướng dẫn Khoa HTTT).
+\chapter*{Danh mục từ viết tắt}
+\addcontentsline{toc}{chapter}{Danh mục từ viết tắt}
+
+\begin{longtable}{@{}p{3.2cm}p{11.5cm}@{}}
+\toprule
+\textbf{Từ viết tắt} & \textbf{Ý nghĩa} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+API     & Giao diện lập trình ứng dụng (\emph{Application Programming Interface}) \\
+AP      & Độ chính xác trung bình (\emph{Average Precision}) \\
+AUC     & Diện tích dưới đường cong (\emph{Area Under the Curve}) \\
+CSKH    & Chăm sóc khách hàng \\
+CSV     & Tệp dữ liệu phân tách bằng dấu phẩy (\emph{Comma-Separated Values}) \\
+EDA     & Phân tích khám phá dữ liệu (\emph{Exploratory Data Analysis}) \\
+F1      & Trung bình điều hòa của precision và recall \\
+HHI     & Chỉ số Herfindahl--Hirschman \\
+JWT     & Chuỗi xác thực dạng JSON (\emph{JSON Web Token}) \\
+ML      & Học máy (\emph{Machine Learning}) \\
+PR      & Precision--Recall \\
+PR-AUC  & Diện tích dưới đường cong precision--recall \\
+RF      & Rừng ngẫu nhiên (\emph{Random Forest}) \\
+ROC     & Đường cong đặc tính hoạt động của bộ thu (\emph{Receiver Operating Characteristic}) \\
+ROC-AUC & Diện tích dưới đường cong ROC \\
+SHAP    & Giá trị giải thích dựa trên lý thuyết trò chơi (\emph{SHapley Additive exPlanations}) \\
+SLA     & Cam kết thời hạn xử lý (\emph{Service Level Agreement}) \\
+SMOTE   & Kỹ thuật sinh mẫu tổng hợp cho lớp thiểu số (\emph{Synthetic Minority Over-sampling Technique}) \\
+SVM     & Máy vectơ hỗ trợ (\emph{Support Vector Machine}) \\
+\end{longtable}
+ \chapter*{Tóm tắt}
+
+Trong thương mại điện tử, giao hàng trễ thường được xem là dấu hiệu rõ nhất cho thấy khách hàng có thể không hài lòng. Tuy nhiên, thực tế cho thấy nhiều đơn hàng vẫn được giao đúng hẹn nhưng nhận đánh giá thấp. Khách hàng có thể không hài lòng vì sản phẩm không đúng kỳ vọng, hàng bị thiếu hoặc hư hỏng, đơn có nhiều người bán nên giao nhận phức tạp, hoặc trải nghiệm mua hàng không tốt dù thời gian giao vẫn nằm trong cam kết. Đề tài gọi nhóm trường hợp này là ``bất mãn ẩn'' (\emph{hidden dissatisfaction}).
+
+Đề tài sử dụng dữ liệu từ Olist, một nền tảng thương mại điện tử có các đơn hàng thuộc nhiều nhóm sản phẩm như đồ gia dụng, thời trang, làm đẹp, điện tử và nội thất. Mục tiêu là nhận diện sớm những đơn hàng đã giao đúng hạn nhưng có nguy cơ nhận đánh giá 1--2 sao, từ đó hỗ trợ nhân viên chăm sóc khách hàng biết nên kiểm tra những trường hợp nào trước cũng như hỗ trợ thêm thông tin để cấp quản lý ra quyết định, chiến lược trong thời đại thông tin lớn.
+
+Tóm tắt lại, đề tài của nhóm em được thực hiện theo quy trình chuẩn như sau: hệ thống xem xét thông tin đã có của đơn hàng tại thời điểm giao hàng, chẳng hạn sản phẩm được mua, người bán, giá trị đơn, phí vận chuyển, số lượng sản phẩm, số lượng người bán và quá trình xử lý đơn. Từ các thông tin này, mô hình ước lượng mức độ rủi ro của từng sản phẩm trong đơn, sau đó tổng hợp thành mức độ ưu tiên cho cả đơn hàng. Kết quả cuối cùng là một danh sách các đơn cần được xem xét trước thay vì xử lý toàn bộ đơn hàng theo cùng một thứ tự.
+
+Ví dụ, một khách hàng đặt hai sản phẩm từ hai người bán khác nhau và đơn hàng vẫn được giao đúng hạn. Tuy nhiên, đơn có phí vận chuyển cao, nhiều bên cùng xử lý và một người bán có quá trình giao hàng thiếu ổn định. Dù chưa có đánh giá từ khách hàng, hệ thống có thể xếp đơn này vào nhóm cần theo dõi để nhân viên kiểm tra sớm hơn các đơn có rủi ro thấp.
+
+Do dữ liệu Olist chỉ ghi nhận đánh giá ở cấp đơn hàng, đề tài không thể khẳng định sản phẩm nào là nguyên nhân trực tiếp khiến khách hàng không hài lòng. Vì vậy, kết quả của mô hình chỉ được sử dụng như một tín hiệu hỗ trợ ưu tiên, không phải kết luận về nguyên nhân hay căn cứ để tự động xử lý khách hàng.
+
+Kết quả phát triển ban đầu của nhóm cho thấy mô hình có thể hỗ trợ xếp hạng các đơn có nguy cơ nhận đánh giá thấp tốt hơn cách lựa chọn ngẫu nhiên. Bên cạnh mô hình dự báo, đề tài xây dựng hệ thống hỗ trợ nhân viên theo dõi danh sách rủi ro, xem thông tin đơn hàng, phân công xử lý, ghi nhận quá trình liên hệ và lưu lại lịch sử thao tác. Đồng thời, cấp quản lý có thể theo dõi tình hình xử lý, thiết lập ngưỡng ưu tiên phù hợp với năng lực của đội ngũ, quản lý các tham số vận hành và xem lại lịch sử quyết định. Qua đó, hệ thống không chỉ hỗ trợ nhân viên xử lý từng trường hợp mà còn cung cấp thông tin để nhà quản lý phân bổ nguồn lực, giám sát chất lượng xử lý và đưa ra quyết định phù hợp hơn.
+
+\par\medskip
+\noindent\textbf{Từ khóa:} thương mại điện tử, sự hài lòng khách hàng, bất mãn ẩn, học máy, Olist, dự báo rủi ro.
+ \addcontentsline{toc}{chapter}{Tóm tắt}  % tối đa 1 trang A4
 \clearpage\pagenumbering{arabic}
 
-\input{chapters/ch1}       % Giới thiệu (Anh Dao)
+\chapter{Giới thiệu}
+\label{chap:gioi-thieu}
 
-\input{chapters/ch2}
+\section{Bối cảnh và lý do thực hiện đề tài}
+\label{sec:boi-canh}
 
-\input{chapters/ch3}
+Trong thương mại điện tử, đánh giá của khách hàng là một nguồn phản hồi quan trọng về chất lượng dịch vụ. Một đánh giá thấp có thể phản ánh nhiều vấn đề khác nhau trong hành trình mua hàng, từ chất lượng sản phẩm, thông tin mô tả, cách xử lý đơn, phí vận chuyển cho đến trải nghiệm giao nhận. Nghiên cứu về các nền tảng thương mại điện tử cũng cho thấy hiệu quả về mặt logistics có liên hệ với điểm đánh giá của khách hàng, hành vi mua lại và doanh số của người bán (Deshpande \& Pendem, 2023).
 
+Giao hàng trễ thường là dấu hiệu rõ nhất của trải nghiệm không tốt. Khi đơn hàng đến muộn hơn thời gian đã cam kết, doanh nghiệp có thể dễ dàng đưa đơn đó vào nhóm cần kiểm tra. Tuy nhiên, giao đúng hẹn chưa đồng nghĩa với việc khách hàng hài lòng. Một đơn hàng vẫn có thể nhận đánh giá thấp nếu sản phẩm không đúng kỳ vọng, bị lỗi hoặc thiếu, nếu khách phải nhận nhiều kiện hàng vào những thời điểm khác nhau, hoặc nếu quá trình xử lý đơn tạo ra những bất tiện khác. Nghiên cứu của Ravula (2023) cho thấy khách hàng phản ứng tiêu cực rõ rệt với giao trễ; trong khi đó, Brylla và Walsh (2022) chỉ ra rằng việc giao nhanh nhưng tách đơn thành nhiều đợt vẫn có thể làm giảm sự hài lòng vì gây phiền toái cho người nhận.
+
+Từ góc nhìn này, những đơn hàng giao đúng hạn nhưng vẫn nhận đánh giá 1--2 sao là một nhóm đáng quan tâm. Đề tài gọi hiện tượng này là ``bất mãn ẩn'' (\emph{hidden dissatisfaction}). Sự bất mãn được gọi là ``ẩn'' vì nó không thể được phát hiện bằng cách chỉ theo dõi các đơn giao trễ. Nếu doanh nghiệp chỉ ưu tiên xử lý những đơn bị trễ, các trường hợp có nguy cơ đánh giá thấp do sản phẩm, người bán, cấu trúc đơn hàng hoặc các vấn đề khác sẽ dễ bị bỏ sót.
+
+Đề tài sử dụng bộ dữ liệu công khai \emph{Brazilian E-Commerce Public Dataset by Olist}. Bộ dữ liệu gồm thông tin về đơn hàng, sản phẩm, người bán, khách hàng, thanh toán, vận chuyển và đánh giá trong thị trường thương mại điện tử Brazil giai đoạn 2016--2018 (Olist, 2018). Đây là nền tảng phù hợp để nghiên cứu mối liên hệ giữa các thông tin đã có khi giao hàng và nguy cơ khách hàng để lại đánh giá thấp.
+
+\section{Vấn đề cần giải quyết}
+\label{sec:van-de}
+
+Đề tài tập trung vào các đơn hàng đã giao thành công và không muộn hơn ngày giao dự kiến. Trong nhóm này, đơn có đánh giá 1--2 sao được xem là trường hợp có rủi ro cần quan tâm. Mục tiêu không phải là kết luận nguyên nhân khiến khách hàng không hài lòng, mà là nhận diện sớm những đơn có tín hiệu rủi ro để nhân viên có thể ưu tiên kiểm tra.
+
+Mô hình được xây dựng ở cấp sản phẩm trong đơn hàng. Một đơn có thể chứa nhiều sản phẩm và do nhiều người bán cùng xử lý; vì vậy, việc xem xét từng sản phẩm giúp giữ lại các thông tin chi tiết về sản phẩm, người bán và cấu trúc đơn. Tuy nhiên, dữ liệu Olist chỉ có review ở cấp đơn hàng, không cho biết cụ thể sản phẩm nào gây ra sự bất mãn. Do đó, các sản phẩm trong cùng một đơn cùng kế thừa nhãn đánh giá của đơn. Điểm rủi ro của một sản phẩm chỉ thể hiện nguy cơ đơn hàng nhận đánh giá thấp trong bối cảnh của sản phẩm đó, không phải bằng chứng rằng sản phẩm là nguyên nhân trực tiếp.
+
+Ví dụ, một khách đặt hai sản phẩm từ hai người bán khác nhau và đơn vẫn giao đúng hạn. Tuy nhiên, đơn có phí vận chuyển cao, nhiều bên cùng tham gia xử lý, đồng thời một người bán có lịch sử giao hàng thiếu ổn định. Trước khi khách để lại review, hệ thống có thể xếp đơn này vào nhóm cần theo dõi. Nhân viên sau đó có thể kiểm tra tình trạng đơn hoặc chuẩn bị phương án hỗ trợ phù hợp thay vì chờ phản hồi tiêu cực xuất hiện.
+
+Một yêu cầu quan trọng của đề tài là chỉ sử dụng thông tin tồn tại tại thời điểm đơn được xác nhận giao hàng. Các thông tin xuất hiện sau đó như nội dung review, thời gian tạo review hoặc phản hồi của người bán không được dùng làm đầu vào. Cách tiếp cận này giúp hạn chế \emph{data leakage}, tức tình trạng mô hình vô tình sử dụng thông tin mà trong thực tế chưa có tại thời điểm dự báo (Kapoor \& Narayanan, 2023).
+
+\section{Mục tiêu của đề tài}
+\label{sec:muc-tieu}
+
+Mục tiêu tổng quát của đề tài là xây dựng một quy trình Machine Learning và hệ thống hỗ trợ vận hành nhằm nhận diện, xếp hạng và theo dõi các đơn hàng giao đúng hạn nhưng có nguy cơ nhận đánh giá thấp.
+
+Đề tài xây dựng tập dữ liệu ở cấp sản phẩm từ dữ liệu Olist, sử dụng các thông tin về sản phẩm, người bán, thanh toán, phí vận chuyển, cấu trúc đơn hàng và lịch sử vận hành trước thời điểm giao. Mô hình tạo điểm rủi ro cho từng sản phẩm, sau đó tổng hợp thành điểm của đơn hàng theo quy tắc \emph{max-v1}, nghĩa là đơn được đại diện bởi điểm cao nhất trong các sản phẩm thuộc đơn. Kết quả mô hình là \emph{Risk Queue}, trong đó các đơn có rủi ro cao hơn được đưa lên trước để phù hợp với nguồn lực kiểm tra có hạn.
+
+Bên cạnh phần dự báo, đề tài cũng xây dựng hệ thống web hỗ trợ quy trình xử lý case. Trong hệ thống, nhân viên có thể theo dõi danh sách rủi ro, xem chi tiết đơn, nhận hoặc cập nhật tình trạng chăm sóc cho từng đơn hàng, ghi nhận quá trình liên hệ và lưu lại lịch sử xử lý. Cấp quản lý có thể phân công các ca xử lý đơn hàng, theo dõi tình trạng vận hành, quản lý các tham số và xem lịch sử quyết định. Hệ thống được định hướng là công cụ hỗ trợ ra quyết định, không tự động áp dụng hành động đối với khách hàng.
+
+\section{Phạm vi và giới hạn}
+\label{sec:pham-vi}
+
+Phạm vi nghiên cứu giới hạn ở dữ liệu Olist trong giai đoạn quan sát. Quần thể chính gồm các đơn đã giao đúng hoặc sớm hơn ngày dự kiến và có review được tạo sau thời điểm giao. Kết quả chỉ phản ánh nguy cơ khách hàng để lại review 1--2 sao trong nhóm đơn có review quan sát được. Một khách không để lại review không có nghĩa là họ hài lòng, vì hành vi viết review là hành vi tự chọn (Li \& Hitt, 2008).
+
+Đề tài không khẳng định điểm rủi ro là nguyên nhân của sự bất mãn, không đo lường trực tiếp khả năng khách hàng rời bỏ và không chứng minh rằng một hành động chăm sóc cụ thể sẽ làm thay đổi kết quả. Khách có rủi ro cao cũng chưa chắc là khách phản hồi tốt nhất với can thiệp; vì vậy, điểm dự báo chỉ là thông tin hỗ trợ để con người cân nhắc, không thay thế quyết định của nhân viên hoặc quản lý (Ascarza, 2018).
+
+Các kết quả Machine Learning hiện có là kết quả phát triển và cần được diễn giải thận trọng. Chưa có đánh giá cuối cùng trên một tập kiểm tra thay thế được niêm phong trước khi chạy mô hình, vì vậy không thể xem các chỉ số hiện tại là bằng chứng xác nhận về hiệu quả triển khai thực tế. Tương tự vậy, giao diện hiện tại sử dụng dữ liệu giả lập để minh họa quy trình vận hành; phần giao diện thử nghiệm chứng minh được cách hệ thống tiếp nhận và xử lý \emph{Risk Queue}, không phải hiệu năng của mô hình trên dữ liệu Olist thật.
+
+\section{Phương pháp nghiên cứu}
+\label{sec:phuong-phap-nghien-cuu}
+
+Đề tài được thực hiện theo hướng kết hợp giữa nghiên cứu tài liệu, phân tích dữ liệu và phát triển hệ thống thông tin. Trước hết, nhóm tổng hợp các nghiên cứu liên quan đến sự hài lòng khách hàng, chất lượng giao hàng, đánh giá trực tuyến và ứng dụng Machine Learning trong thương mại điện tử. Bước này giúp xác định vấn đề nghiên cứu, giới hạn diễn giải kết quả và các yếu tố cần xem xét khi nhận diện những đơn giao đúng hạn nhưng có nguy cơ nhận đánh giá thấp.
+
+Tiếp theo, nhóm khảo sát bộ dữ liệu Olist để hiểu cấu trúc dữ liệu, mối quan hệ giữa đơn hàng, sản phẩm, người bán, thanh toán, vận chuyển và review của khách hàng. Từ dữ liệu gốc, nhóm xây dựng tập dữ liệu phục vụ mô hình, chỉ sử dụng các thông tin đã có tại thời điểm đơn hàng được xác nhận giao. Cách tiếp cận này giúp hạn chế việc sử dụng thông tin xuất hiện sau khi khách hàng đánh giá, từ đó giảm nguy cơ \emph{data leakage} trong quá trình dự báo (Kapoor \& Narayanan, 2023).
+
+Sau đó, nhóm xây dựng và so sánh các mô hình dự báo nhằm ước lượng nguy cơ review thấp. Kết quả dự báo được sử dụng để xếp thứ tự ưu tiên các đơn hàng cần xem xét, thay vì thay thế hoàn toàn quyết định của con người. Cuối cùng, nhóm phát triển hệ thống web để trình bày danh sách rủi ro, hỗ trợ nhân viên theo dõi và xử lý case, đồng thời cung cấp dashboard và lịch sử xử lý cho cấp quản lý. Phần giao diện sử dụng dữ liệu giả lập để minh họa quy trình vận hành; dữ liệu này không được sử dụng để đánh giá hiệu năng của mô hình.
+        % Giới thiệu (Anh Dao)
+
+% Chương 2 — Cơ sở lý thuyết. Ưu tiên tài liệu trong 5 năm gần đây; không dùng MDPI, Frontiers, Hindawi.
+\chapter{Cơ sở lý thuyết}\label{ch:theory}
+
+Chương này đặt nền cho các lựa chọn phương pháp ở Chương~\ref{ch:method}. Mục~\ref{sec:concepts} định nghĩa các khái niệm dùng xuyên suốt khóa luận, gồm sự hài lòng và ``bất mãn ẩn'', thời điểm dự đoán và nhãn yếu, hai tính chất cần có của một mô hình trên dữ liệu mất cân bằng, và ngân sách can thiệp. Mục~\ref{sec:related} điểm lại năm nhóm nghiên cứu liên quan và rút ra khoảng trống mà đề tài nhắm tới. Mục~\ref{sec:theory-models} trình bày cơ sở lý thuyết của từng bước trong pipeline; mỗi phần gắn với một quyết định cụ thể ở Chương~\ref{ch:method}.
+
+% =====================================================================
+\section{Tổng quan các khái niệm liên quan}\label{sec:concepts}
+
+\subsection{Sự hài lòng khách hàng và đánh giá trực tuyến}\label{sec:con-satisfaction}
+
+Sự hài lòng của khách hàng là mức độ mà trải nghiệm mua sắm thực tế đáp ứng hoặc vượt qua kỳ vọng của họ. {\sloppy Theo mô hình kỳ vọng--không xác nhận (\emph{expectation--\allowbreak disconfirmation}) của \textcite{oliver1980}, khách hình thành sự hài lòng bằng cách so sánh kết quả nhận được với kỳ vọng có từ trước khi mua: vượt kỳ vọng thì hài lòng, hụt kỳ vọng thì bất mãn.\par} Trong thương mại điện tử, kỳ vọng ấy có nhiều chiều và không chỉ phụ thuộc vào sản phẩm nhận được, mà còn vào toàn bộ quá trình mua hàng: thông tin mô tả sản phẩm, giá và phí vận chuyển, phương thức thanh toán, thời gian xử lý đơn, chất lượng giao nhận và hỗ trợ sau bán.
+
+Khác với mua sắm truyền thống, nền tảng thương mại điện tử thường thu thập phản hồi của khách hàng thông qua đánh giá trực tuyến. Các đánh giá này vừa thể hiện cảm nhận của người mua, vừa có thể ảnh hưởng đến quyết định của những khách hàng đến sau. \textcite{deshpande2023} cho thấy hiệu quả logistics có liên hệ với điểm đánh giá, hành vi mua lại và doanh số của người bán trên nền tảng thương mại điện tử. Vì vậy, review thấp không chỉ là một phản hồi riêng lẻ mà còn là tín hiệu doanh nghiệp cần theo dõi để đánh giá chất lượng dịch vụ.
+
+Tuy nhiên, sự hài lòng không quan sát được trực tiếp. Dữ liệu chỉ có điểm đánh giá từ 1 đến 5 sao mà khách tự nguyện để lại sau khi mua, và điểm này là một đại lượng đại diện với hai giới hạn. Thứ nhất, không phải người mua nào cũng chủ động viết đánh giá; người có trải nghiệm đặc biệt tích cực hoặc đặc biệt tiêu cực thường có động lực phản hồi nhiều hơn, nên tập khách hàng có review không hoàn toàn đại diện cho mọi khách đã mua~\parencite{li2008,schoenmueller2020}. Thứ hai, điểm số nén một trải nghiệm nhiều chiều vào một con số duy nhất. Do đó, review 1--2 sao trong đề tài được hiểu là kết quả quan sát được trong nhóm khách đã để lại review, không phải thước đo tuyệt đối cho sự không hài lòng của toàn bộ khách hàng.
+
+Theo quy ước của \textcite{orman2026}, đề tài xem đánh giá 1--2 sao là không hài lòng và 3--5 sao là nhóm so sánh. Cách chia này giữ cho lớp dương chỉ chứa phản hồi tiêu cực rõ ràng, phù hợp với mục tiêu xây dựng danh sách ưu tiên cho đội ngũ chăm sóc khách hàng, đồng thời cho phép đối chiếu trực tiếp với nghiên cứu trước trên cùng bộ dữ liệu. Tuy nhiên, việc một đơn nhận review thấp không tự động cho biết yếu tố nào đã gây ra trải nghiệm không tốt; kết quả mô hình vì vậy cần được diễn giải như tín hiệu dự báo rủi ro, thay vì kết luận về nguyên nhân.
+
+\subsection{Bất mãn ẩn trong các đơn hàng giao đúng hạn}\label{sec:con-hidden}
+
+Trong các chỉ số vận hành thương mại điện tử, tỷ lệ giao đúng hạn thường được xem là thước đo quan trọng của chất lượng dịch vụ. Khi đơn bị giao muộn hơn ngày đã cam kết, doanh nghiệp dễ dàng nhận diện đây là một trường hợp cần theo dõi. \textcite{ravula2023} cho thấy khách đánh giá thấp rõ rệt khi đơn đến trễ, trong khi giao sớm chỉ cải thiện điểm đánh giá ở mức nhỏ; nói cách khác, giao đúng hạn chủ yếu giúp tránh bị phạt chứ không bảo đảm khách hài lòng.
+
+Giao đúng hạn vì thế không đồng nghĩa với trải nghiệm tốt. Ngày giao dự kiến chỉ đo một chiều của kỳ vọng; khách có thể nhận hàng đúng ngày nhưng vẫn không hài lòng vì sản phẩm lỗi, không đúng mô tả, thiếu một phần đơn, phí vận chuyển cao hoặc phải nhận qua nhiều lần giao. Trong đơn có nhiều sản phẩm hoặc nhiều người bán, ngày giao ghi nhận ở cấp đơn có thể không phản ánh trải nghiệm của từng kiện hàng. \textcite{brylla2022} cho thấy việc tách đơn thành nhiều lần giao có thể làm giảm sự hài lòng và ý định mua lại, ngay cả khi khách nhận hàng sớm hơn; tốc độ giao hàng do đó không phải yếu tố duy nhất, mà sự thuận tiện, tính đầy đủ và tính nhất quán của quá trình giao nhận cũng đóng vai trò quan trọng.
+
+Trên nền đó, một đơn được xem là \emph{bất mãn ẩn} (\emph{hidden dissatisfaction}) khi thỏa đồng thời ba điều kiện: được giao thành công không muộn hơn ngày giao dự kiến (i), có đánh giá được tạo sau thời điểm giao (ii), và đánh giá đó là 1 hoặc 2 sao (iii). Đây không phải một loại đánh giá khác với review tiêu cực thông thường, mà là cách xác định nhóm đối tượng nghiên cứu. Gọi là ``ẩn'' vì các chỉ số vận hành quen thuộc như tỉ lệ giao trễ không ghi nhận điều gì bất thường ở đơn cho đến khi đánh giá xuất hiện, và lúc đó đã quá muộn để can thiệp. Điều kiện (ii) loại các đánh giá viết trước khi khách nhận hàng, bởi Chương~\ref{ch:results} cho thấy những đánh giá này chủ yếu phản ánh việc chưa nhận được hàng chứ không phải trải nghiệm với sản phẩm (mục~\ref{subsec:eda-lateness}).
+
+Việc tập trung vào nhóm đơn giao đúng hạn chuyển câu hỏi từ ``đơn nào bị giao trễ?'' sang ``trong các đơn nhìn bề ngoài vẫn vận hành bình thường, đơn nào có khả năng tạo ra trải nghiệm không tốt?''. Các tín hiệu có thể liên quan gồm đặc điểm sản phẩm, số sản phẩm và số người bán trong đơn, phí vận chuyển, thời gian giao thực tế, mức độ ổn định của người bán và lịch sử giao dịch trước đó. Tuy nhiên, các tín hiệu này chỉ cho thấy mối liên hệ dự báo: một đơn nhiều người bán có thể có rủi ro review thấp cao hơn, nhưng điều đó không chứng minh nhiều người bán là nguyên nhân; và việc mô hình xếp một đơn vào nhóm rủi ro cao không có nghĩa khách chắc chắn bất mãn hay sẽ phản ứng tích cực nếu được liên hệ. Bất mãn ẩn vì vậy được tiếp cận như một bài toán nhận diện và ưu tiên rủi ro, không phải bài toán xác định nguyên nhân hay đo lường hiệu quả can thiệp.
+
+\subsection{Thời điểm dự đoán, đơn vị phân tích và nhãn yếu}\label{sec:con-units}
+
+Một bài toán dự báo được xác định trước hết bởi thời điểm dự đoán. Trong đề tài, thời điểm dự đoán $t_o$ của đơn $o$ là lúc đơn được giao cho khách. Đây là mốc sớm nhất mà toàn bộ thông tin giao hàng đã biết, và cũng là mốc muộn nhất mà bộ phận chăm sóc khách hàng còn có thể liên hệ trước khi khách viết đánh giá. Một đặc trưng chỉ hợp lệ khi tính được hoàn toàn từ dữ liệu có trước $t_o$; dùng thông tin không thể biết tại $t_o$ là \emph{rò rỉ dữ liệu}, được hình thức hóa ở mục~\ref{sec:th-pit}.
+
+Đề tài làm việc với hai đơn vị phân tích. \emph{Item}, tức một sản phẩm trong đơn, là đơn vị học, vì phần lớn thông tin dự báo như danh mục, người bán, kích thước và phí vận chuyển gắn với sản phẩm. \emph{Đơn hàng} là đơn vị của nhãn, của phép chia dữ liệu và của vận hành, vì Olist chỉ ghi đánh giá theo đơn và nhân viên liên hệ khách theo đơn. Khi mỗi item thừa hưởng nhãn của đơn chứa nó, ta có một \emph{nhãn yếu}, tức nhãn đúng ở mức đơn nhưng có thể sai ở mức item, chẳng hạn khi chỉ một trong hai sản phẩm của đơn thực sự có vấn đề. Điểm của một item vì vậy là tín hiệu để ưu tiên đơn, không phải bằng chứng cho thấy item đó gây ra bất mãn. Việc nhãn nằm ở mức đơn trong khi dự đoán nằm ở mức item đưa bài toán vào khuôn khổ học đa thể hiện, được bàn ở mục~\ref{sec:th-aggregation}.
+
+\subsection{Mất cân bằng lớp: khả năng phân biệt và độ tin cậy của xác suất}\label{sec:con-imbalance}
+
+Trong quần thể nghiên cứu, khoảng 9\% số đơn nhận đánh giá thấp. Với tỉ lệ như vậy, cần tách hai tính chất của một mô hình xác suất. \emph{Khả năng phân biệt} (discrimination) là mức độ mô hình xếp đơn dương lên trên đơn âm; đề tài đo nó bằng PR-AUC. \emph{Độ hiệu chỉnh} (calibration) là mức độ xác suất dự đoán khớp với tần suất thực tế. Chẳng hạn, trong nhóm đơn được dự đoán 20\%, khoảng 20\% phải thực sự bị đánh giá thấp. Đề tài đo tính chất này bằng Brier score. Hai tính chất này không nhất thiết đi cùng nhau. Một mô hình có thể xếp hạng tốt mà xác suất vẫn lệch, và các kỹ thuật xử lý mất cân bằng như lấy mẫu lại hay trọng số lớp thường không cải thiện khả năng phân biệt nhưng làm xác suất bị đẩy lên một cách có hệ thống~\parencite{vandengoorbergh2022}. Đề tài cần cả hai, vì thứ tự xếp hạng quyết định đơn nào vào danh sách ưu tiên, còn xác suất giúp quản lý ước lượng khối lượng công việc. Cơ sở lý thuyết của hai loại chỉ số này nằm ở mục~\ref{sec:th-calibration} và~\ref{sec:th-metrics}.
+
+\subsection{Ngân sách can thiệp: dự báo rủi ro và hiệu quả can thiệp}\label{sec:con-budget}
+
+Bộ phận chăm sóc khách hàng chỉ liên hệ được một tỉ lệ $b$ số đơn mỗi kỳ; đề tài gọi tỉ lệ này là \emph{ngân sách} hay \emph{năng lực xử lý}. Câu hỏi vận hành vì vậy không phải ``đơn này có bị đánh giá thấp không'' mà là ``trong giới hạn $b$, nên chọn những đơn nào'', và thước đo tự nhiên là tỉ lệ đơn bị đánh giá thấp nằm trong nhóm được chọn, gọi là Recall@$b$ (mục~\ref{sec:th-metrics}). Cần phân biệt hai mục tiêu chọn đơn. Mục tiêu thứ nhất là \emph{tìm} các đơn có rủi ro cao; đây là bài toán dự báo. Mục tiêu thứ hai là \emph{cứu} các đơn mà việc liên hệ sẽ thay đổi được kết quả; đây là bài toán ước lượng hiệu quả can thiệp (uplift), và nó cần dữ liệu có nhóm được can thiệp và nhóm đối chứng~\parencite{ascarza2018}. Olist không ghi nhận can thiệp nào, nên đề tài chỉ giải quyết mục tiêu thứ nhất; ranh giới này được hình thức hóa ở cuối mục~\ref{sec:th-aggregation}.
+
+% =====================================================================
+\section{Các nghiên cứu liên quan}\label{sec:related}
+
+Mục này điểm lại năm nhóm nghiên cứu mà đề tài kế thừa hoặc phản biện, gồm các mô hình dự báo sự hài lòng trên dữ liệu thương mại điện tử, bằng chứng về tác động của giao hàng đến điểm đánh giá, cơ chế tự chọn khi khách viết đánh giá, các nghiên cứu về nhắm mục tiêu can thiệp dưới ngân sách, và các nghiên cứu phương pháp về mất cân bằng lớp và rò rỉ dữ liệu. Bảng~\ref{tab:related} tóm tắt các công trình chính, và mục~\ref{sec:rel-gaps} nêu khoảng trống mà đề tài nhắm tới.
+
+\subsection{Dự báo sự hài lòng và điểm đánh giá trong thương mại điện tử}\label{sec:rel-satisfaction}
+
+Bộ dữ liệu Olist~\parencite{olist2018} là nền tảng thực nghiệm phổ biến cho bài toán phân loại sự hài lòng, vì nó nối được đánh giá của khách với thông tin đơn, sản phẩm, người bán và vận chuyển. Công trình gần nhất với đề tài là của \textcite{orman2026}, dùng cùng quy ước nhãn (1--2 sao là không hài lòng, 3--5 sao là hài lòng) trên 108\,449 quan sát. Tác giả loại các biến văn bản đánh giá để giảm rò rỉ, so sánh tám thuật toán học máy truyền thống (trong đó có Random Forest, CatBoost, XGBoost, LightGBM) với năm kiến trúc học sâu, chia dữ liệu ngẫu nhiên có phân tầng theo tỉ lệ 80:20 và chỉ áp dụng SMOTE trên tập huấn luyện. Mô hình GRU-LSTM tốt nhất đạt accuracy 86,12\%, nhưng với lớp không hài lòng chỉ đạt recall 14,35\% và F1 24,14\%; balanced accuracy là 56,76\%. Chính tác giả kết luận rằng hiệu năng tổng thể cao có thể che giấu khả năng nhận diện lớp thiểu số rất yếu.
+
+Hai điểm thiết kế của nghiên cứu này khác với bối cảnh vận hành mà đề tài hướng tới. Thứ nhất, phép chia ngẫu nhiên cho phép mô hình học từ các đơn xảy ra sau đơn đang được đánh giá, điều không thể có khi triển khai. Thứ hai, tập đặc trưng có thuộc tính hoàn tất đơn và trạng thái đơn, và mẫu bao gồm cả các đơn giao trễ, vốn là nhóm mà riêng tín hiệu trễ hạn đã đủ để cảnh báo. Cả hai lựa chọn đều có xu hướng làm hiệu năng đo được cao hơn mức mà một hệ thống triển khai thực tế có thể đạt.
+
+\textcite{zaghloul2024} so sánh các mô hình truyền thống như Random Forest và SVM với các mạng nơ-ron trên hơn 100 nghìn đơn hàng trực tuyến và báo cáo Random Forest đạt accuracy 92\%, cao hơn các mô hình học sâu; thời gian giao và độ chính xác của đơn nằm trong nhóm yếu tố quan trọng nhất. Kết quả này cùng chiều với bằng chứng tổng quát hơn về dữ liệu bảng. \textcite{shwartzziv2022} cho thấy XGBoost vượt các mô hình học sâu chuyên cho dữ liệu bảng trên nhiều bộ dữ liệu, kể cả các bộ do chính tác giả của các mô hình học sâu đó chọn, và cần ít công tinh chỉnh hơn. Tuy nhiên, accuracy không cho biết mô hình bắt được bao nhiêu đơn bị đánh giá thấp. Khi lớp đó chỉ chiếm khoảng một phần mười, một mô hình gán mọi đơn là hài lòng cũng đạt accuracy xấp xỉ 90\%. Các kết quả trên vì thế ủng hộ việc chọn mô hình cây làm điểm khởi đầu, nhưng chưa trả lời câu hỏi vận hành của đề tài.
+
+\subsection{Hiệu quả giao hàng và đánh giá trực tuyến}\label{sec:rel-delivery}
+
+Ba nghiên cứu thực nghiệm giải thích vì sao giao hàng chi phối điểm đánh giá và vì sao ``đúng hạn'' vẫn chưa đủ. \textcite{ravula2023} ước lượng mô hình logit thứ bậc trong khung Bayes và thấy khách chấm điểm thấp hơn nhiều cho đơn giao trễ so với đơn đúng hạn, trong khi đơn giao sớm chỉ được chấm cao hơn một chút. \textcite{deshpande2023} dùng hơn 15 triệu đơn trên Tmall và mạng logistics Cainiao, kết hợp mô hình hồi quy thứ bậc kiểu Heckman để giải thích đồng thời điểm đánh giá logistics và khả năng khách có để lại đánh giá, rồi nối điểm logistics với xác suất mua và doanh số của người bán. Nghiên cứu này cho thấy chất lượng giao hàng tác động đến doanh thu thông qua đánh giá, nên một đánh giá thấp có hệ quả kinh tế vượt ra ngoài một đơn đơn lẻ.
+
+\textcite{brylla2022} chỉ ra một ma sát mà chỉ số đúng hạn không ghi nhận. Qua ba thí nghiệm và một nghiên cứu thực địa, các tác giả thấy khi đơn bị tách thành nhiều lần giao, giao nhanh hơn không cải thiện mức hoàn tất đơn, sự hài lòng hay truyền miệng; tác động tiêu cực đi qua chi phí phiền toái và cảm nhận về tác hại môi trường, và dữ liệu bán hàng thực tế cho thấy giao tách làm giảm số lần mua lại. Đặt cạnh nhau, ba kết quả này gợi ý rằng trong nhóm đơn đúng hạn vẫn còn những nguồn bất mãn gắn với thời gian chờ tuyệt đối, cấu trúc đơn và chất lượng vận hành của người bán. Olist không ghi thời điểm giao riêng cho từng item, nên việc tách kiện chỉ quan sát được gián tiếp qua số người bán và số sản phẩm trong đơn (Bảng~\ref{tab:features}).
+
+\subsection{Thiên lệch tự chọn trong đánh giá trực tuyến}\label{sec:rel-selection}
+
+Đánh giá trực tuyến không phải mẫu ngẫu nhiên của trải nghiệm khách hàng. \textcite{li2008} mô hình hóa trường hợp người mua sớm có sở thích khác người mua muộn, khiến chuỗi điểm đánh giá của một sản phẩm thay đổi có hệ thống theo thời gian; kiểm định trên đánh giá sách của Amazon, các tác giả cho thấy thiên lệch tự chọn nếu không được hiệu chỉnh sẽ làm giảm thặng dư người tiêu dùng. \textcite{schoenmueller2020} phân tích hơn 280 triệu đánh giá trên 25 nền tảng và xác nhận hiện tượng ``tự chọn theo cực'', trong đó người có trải nghiệm rất tốt hoặc rất tệ có xu hướng viết đánh giá nhiều hơn, làm phân phối điểm lệch về hai đầu và giảm lượng thông tin mà đánh giá mang lại. Mô hình Heckman của \textcite{deshpande2023} là một ví dụ xử lý trực tiếp quá trình chọn này bằng cách mô hình hóa riêng xác suất khách có đánh giá.
+
+Hệ quả cho đề tài là nhãn dương chỉ có nghĩa ``đơn nhận đánh giá 1--2 sao trong số các đơn có đánh giá''. Khách không viết đánh giá chưa chắc đã hài lòng, và các yếu tố dự báo việc khách lên tiếng có thể khác các yếu tố dự báo việc khách chấm điểm thấp. Đề tài không mô hình hóa riêng quá trình có đánh giá; giới hạn này được ghi nhận khi phát biểu bài toán ở mục~\ref{sec:pipeline}.
+
+\subsection{Dự báo rủi ro và ưu tiên can thiệp dưới ngân sách}\label{sec:rel-targeting}
+
+Nghiên cứu về giữ chân khách hàng cảnh báo rằng xếp hạng theo rủi ro và xếp hạng theo hiệu quả can thiệp là hai việc khác nhau. Kết hợp hai thí nghiệm thực địa với học máy, \textcite{ascarza2018} cho thấy khách có rủi ro rời bỏ cao nhất không nhất thiết là đối tượng nên nhắm tới, và nhắm theo mức nhạy cảm với can thiệp hiệu quả hơn đáng kể so với nhắm theo rủi ro. \textcite{devriendt2021} đi tiếp theo hướng này khi đề xuất thước đo lợi nhuận tối đa cho mô hình uplift và, trong một nghiên cứu tình huống ở ngành tài chính, so sánh trực tiếp mô hình uplift với mô hình dự báo rời bỏ. Cả hai đều cần dữ liệu có nhóm được can thiệp và nhóm đối chứng, thứ mà Olist không có.
+
+Khi chưa có dữ liệu can thiệp, câu hỏi khả thi là chọn đơn nào trong giới hạn năng lực xử lý. \textcite{gomezvargas2025} phát biểu việc chọn khách cho chiến dịch giữ chân như một bài toán tối thiểu hóa hối tiếc theo khung predict-and-optimize, dùng giá trị vòng đời của từng khách thay vì giá trị trung bình, và đạt lợi nhuận trung bình tốt nhất trên 12 bộ dữ liệu rời bỏ. Một kết quả thận trọng hơn đến từ \textcite{li2026valuesorting}, một bản tiền ấn phẩm so sánh ưu tiên lô hàng bằng học máy với việc chỉ sắp xếp theo giá trị trên ba bộ dữ liệu, trong đó có Olist. Ở ngân sách xem xét 10\%, mô hình kém luật sắp theo giá trị 5,5 điểm phần trăm trên SCMS và 4,9 điểm trên Olist, nhưng hơn 10,1 điểm trên DataCo. Tác giả gắn chênh lệch này với việc mức độ trễ có học được từ dữ liệu hay không và với độ lệch hiệu chỉnh, rồi khuyến nghị giữ luật sắp theo giá trị làm mốc so sánh thường trực và chỉ triển khai học máy sau khi đã qua đánh giá rolling-origin. Bài toán của đề tài khác ở chỗ nhãn là đánh giá thấp chứ không phải mức độ trễ, nhưng bài học về mốc so sánh đơn giản vẫn áp dụng được.
+
+\subsection{Mất cân bằng lớp, rò rỉ dữ liệu và độ tin cậy của kết quả}\label{sec:rel-imbalance}
+
+Hai nghiên cứu phương pháp định hướng cách xử lý mất cân bằng trong đề tài. Bằng mô phỏng Monte Carlo và một nghiên cứu tình huống chẩn đoán ung thư buồng trứng, \textcite{vandengoorbergh2022} cho thấy undersampling, oversampling và SMOTE đều tạo ra mô hình hồi quy logistic có xác suất lớp thiểu số bị ước lượng quá cao, trong khi diện tích dưới đường ROC không tăng; sự cân bằng giữa độ nhạy và độ đặc hiệu mà các phương pháp này mang lại cũng đạt được chỉ bằng cách dịch ngưỡng xác suất. \textcite{elor2022smote} đi đến kết luận tương tự cho các bộ phân loại mạnh. Theo nhóm tác giả, cân bằng dữ liệu có ích cho bộ phân loại yếu nhưng hầu như không cải thiện các mô hình boosting như LightGBM, XGBoost và CatBoost khi ngưỡng quyết định đã được tối ưu.
+
+Rò rỉ dữ liệu là mối đe dọa thứ hai đối với độ tin cậy của kết quả. Khảo sát của \textcite{kapoor2023} tìm thấy rò rỉ trong 294 bài báo thuộc 17 lĩnh vực ứng dụng học máy và đề xuất phân loại tám dạng rò rỉ, từ lỗi sơ đẳng như tiền xử lý trên cả tập huấn luyện và kiểm tra đến rò rỉ theo thời gian và sự phụ thuộc giữa các tập. Khi sửa các lỗi này trong bài toán dự báo nội chiến, các mô hình học máy phức tạp không còn vượt trội đáng kể so với hồi quy logistic. Kết quả này giải thích vì sao Chương~\ref{ch:method} ưu tiên kiểm soát rò rỉ trước khi so sánh mô hình.
+
+\begin{table}[htbp]\centering\footnotesize
+\caption{Tóm tắt các nghiên cứu liên quan}\label{tab:related}
+\begin{tabular}{p{2.5cm}p{3.0cm}p{3.4cm}p{5.3cm}}
+\toprule
+Nghiên cứu & Dữ liệu & Phương pháp & Kết quả chính và hạn chế đối với đề tài \\
+\midrule
+\textcite{orman2026} & Olist, 108\,449 quan sát, nhãn 1--2 sao & 8 mô hình ML, 5 mô hình học sâu; chia ngẫu nhiên 80:20; SMOTE & Accuracy 86,12\% nhưng recall lớp không hài lòng 14,35\%; không đánh giá theo thời gian, có cả đơn giao trễ \\
+\textcite{zaghloul2024} & Hơn 100 nghìn đơn trực tuyến & RF, SVM so với mạng nơ-ron & RF đạt accuracy 92\%; chỉ số tổng thể không phản ánh khả năng bắt lớp thiểu số \\
+\textcite{ravula2023} & Đánh giá đơn hàng trực tuyến & Logit thứ bậc Bayes & Giao trễ bị phạt nặng, giao sớm chỉ được thưởng nhẹ; mô hình giải thích, không dự báo \\
+\textcite{deshpande2023} & Hơn 15 triệu đơn Tmall/Cainiao & Hồi quy thứ bậc Heckman, mô hình lựa chọn & Điểm logistics liên hệ với xác suất mua và doanh số; có xử lý việc khách có đánh giá hay không \\
+\textcite{brylla2022} & 3 thí nghiệm, 1 nghiên cứu thực địa & Thí nghiệm, phân tích trung gian & Giao tách triệt tiêu lợi ích của giao nhanh, giảm mua lại; Olist không quan sát trực tiếp giao tách \\
+\textcite{schoenmueller2020} & Hơn 280 triệu đánh giá, 25 nền tảng & Phân tích đa nền tảng, thí nghiệm, khảo sát & Tự chọn theo cực làm đánh giá kém đại diện; nhãn chỉ phản ánh bất mãn được quan sát \\
+\textcite{ascarza2018} & 2 thí nghiệm thực địa & Học máy trên dữ liệu thí nghiệm & Khách rủi ro cao nhất không phải đối tượng can thiệp tốt nhất; cần dữ liệu can thiệp \\
+\textcite{gomezvargas2025} & 12 bộ dữ liệu rời bỏ & Predict-and-optimize, giá trị vòng đời cá nhân & Lợi nhuận trung bình tốt nhất; cần giả định về chi phí và phản ứng với can thiệp \\
+\textcite{li2026valuesorting} & SCMS, DataCo, Olist & So sánh ML với sắp theo giá trị ở ngân sách 10\% & ML thua trên 2/3 bộ dữ liệu, trong đó có Olist; bản tiền ấn phẩm \\
+\textcite{vandengoorbergh2022} & Mô phỏng, dữ liệu ung thư buồng trứng & Logistic với 4 cách xử lý mất cân bằng & Lấy mẫu lại làm xác suất bị đẩy lên, AUC không tăng \\
+\textcite{elor2022smote} & Nhiều bộ dữ liệu mất cân bằng & So sánh cân bằng dữ liệu với tối ưu ngưỡng & SMOTE không giúp các mô hình boosting mạnh \\
+\textcite{kapoor2023} & 294 bài báo thuộc 17 lĩnh vực & Khảo sát, phân loại 8 dạng rò rỉ & Sửa rò rỉ xóa lợi thế của mô hình phức tạp; cần kiểm soát rò rỉ trước khi so sánh \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Khoảng trống nghiên cứu}\label{sec:rel-gaps}
+
+Tổng hợp lại, các nghiên cứu trên để lại sáu khoảng trống sau.
+\begin{enumerate}
+  \item \textbf{Quần thể.} Phần lớn công trình dự báo hoặc giải thích đánh giá trên toàn bộ đơn, nơi giao trễ là tín hiệu mạnh nhất. Nhóm đơn giao đúng hoặc sớm hạn mà vẫn bị chấm 1--2 sao chưa được mô hình hóa như một đối tượng riêng.
+  \item \textbf{Thời điểm dự báo.} Các mô hình hài lòng hiện có dùng phép chia ngẫu nhiên và không cố định một mốc mà tại đó mọi đặc trưng đều đã biết, nên chưa cho biết hiệu năng khi triển khai.
+  \item \textbf{Chỉ số đánh giá.} Các nghiên cứu này báo cáo accuracy hoặc F1 tổng thể và dùng SMOTE, trong khi bằng chứng phương pháp cho thấy lấy mẫu lại làm hỏng xác suất. Chưa có đánh giá kết hợp PR-AUC, độ hiệu chỉnh và phân tích theo ngân sách cho nhóm đơn đúng hạn.
+  \item \textbf{Nhãn.} Nhãn đánh giá chịu thiên lệch tự chọn nhưng thường được dùng như sự thật nền.
+  \item \textbf{Mốc so sánh.} Một mô hình có chỉ số phân biệt tốt chưa chắc ưu tiên tốt hơn luật đơn giản, như kết quả trên Olist của \textcite{li2026valuesorting} cho thấy.
+  \item \textbf{Can thiệp.} Dữ liệu quan sát không có can thiệp nên không thể biết đơn nào ``cứu'' được.
+\end{enumerate}
+
+Đề tài lấp trực tiếp ba khoảng trống đầu. Quần thể được giới hạn ở đơn giao đúng hoặc sớm hạn, mọi đặc trưng được dựng tại thời điểm giao và kiểm định bằng rolling-origin theo thời gian, còn việc đánh giá dựa trên PR-AUC, Brier score và Recall@5\%, với trọng số lớp thay cho lấy mẫu lại. Khoảng trống thứ năm được xử lý một phần, vì Recall@5\% mới chỉ được so với mốc chọn ngẫu nhiên, còn phép so sánh với luật sắp theo giá trị là hướng cần bổ sung (mục~\ref{sec:eval}). Hai khoảng trống còn lại, thiên lệch tự chọn và hiệu quả nhân quả của can thiệp, nằm ngoài phạm vi khóa luận. Chúng đóng vai trò ranh giới diễn giải, nghĩa là mọi kết luận chỉ dừng ở mức dự báo và ưu tiên, không suy ra tác động của việc liên hệ khách hàng.
+
+% =====================================================================
+\section{Lý thuyết và mô hình áp dụng}\label{sec:theory-models}
+
+Mục này trình bày nền tảng lý thuyết của các lựa chọn phương pháp ở Chương~\ref{ch:method}, theo thứ tự của pipeline, lần lượt là ràng buộc thông tin tại thời điểm dự báo, cách ước lượng hiệu năng theo thời gian, các họ mô hình cây, hiệu chỉnh xác suất, chỉ số đánh giá cho lớp thiểu số, và cách điểm item được chuyển thành danh sách ưu tiên mức đơn.
+
+\subsection{Dự báo tại thời điểm giao hàng và rò rỉ dữ liệu}\label{sec:th-pit}
+
+\textcite{kaufman2012} định nghĩa rò rỉ là việc đưa vào quá trình học những thông tin về biến mục tiêu mà tại thời điểm dự đoán không thể biết một cách hợp lệ, và lập luận rằng cách phòng tránh căn bản là gắn mỗi quan sát và mỗi nguồn thông tin với thời điểm nó xuất hiện. Áp dụng vào đề tài, với đơn $o$ có thời điểm dự đoán $t_o$, mỗi đặc trưng của item $i \in o$ phải là hàm của tập dữ liệu $\mathcal{D}_{<t_o}$ gồm các sự kiện đã xảy ra trước $t_o$, tức là
+\begin{equation}\label{eq:th-pit}
+  \mathbf{x}_i = \phi\left(\mathcal{D}_{<t_o}\right), \qquad i \in o .
+\end{equation}
+Đặc trưng lịch sử đòi hỏi ràng buộc chặt hơn vì nó tổng hợp nhãn của các đơn khác. Gọi $\tau_{o'}$ là thời điểm tạo đánh giá của đơn $o'$; tập đơn được phép đóng góp vào lịch sử của người bán $s$ tại thời điểm $t$ là
+\begin{equation}\label{eq:th-history}
+  \mathcal{H}_s(t) = \left\{ o' : \mathrm{seller}(o') = s,\; t_{o'} < t,\; \tau_{o'} < t \right\},
+\end{equation}
+với cận trên mở. Điều kiện $\tau_{o'} < t$ loại các đơn đã giao trước $t$ nhưng chưa có đánh giá tại $t$, vì nhãn của chúng chưa tồn tại tại thời điểm dự đoán. Khi $|\mathcal{H}_s(t)|$ nhỏ, trung bình lịch sử có phương sai lớn; đó là lý do Chương~\ref{ch:method} để trống giá trị và bật cờ hỗ trợ thấp khi số quan sát dưới ngưỡng.
+
+Ràng buộc~\eqref{eq:th-pit} áp dụng cả cho các bước tiền xử lý. Trung vị dùng để điền giá trị thiếu hay danh sách mã one-hot cũng là thống kê của dữ liệu, nên nếu được tính trên toàn bộ mẫu, chúng mang thông tin của giai đoạn kiểm định vào mô hình. Phân loại của \textcite{kapoor2023} xếp lỗi này vào nhóm tiền xử lý trên cả tập huấn luyện và kiểm tra, tách biệt với rò rỉ theo thời gian và rò rỉ do các quan sát phụ thuộc nhau nằm ở hai phía của phép chia. Dạng phụ thuộc cuối cùng xuất hiện tự nhiên trong dữ liệu Olist, vì các item cùng đơn chia sẻ một nhãn, và được xử lý bằng cách đặt mọi item của một đơn vào cùng một phân vùng.
+
+\subsection{Đánh giá theo thời gian và rolling-origin}\label{sec:th-temporal}
+
+Kiểm định chéo $k$-fold ngẫu nhiên dựa trên giả định các quan sát độc lập và cùng phân phối. Dữ liệu Olist vi phạm giả định này theo hai cách. Tỉ lệ dương thay đổi giữa các giai đoạn (Bảng~\ref{tab:split}), và đặc trưng lịch sử của một đơn phụ thuộc vào các đơn trước nó. \textcite{hyndman2021} mô tả kiểm định chéo cho chuỗi thời gian dưới dạng đánh giá trên \emph{gốc dự báo cuộn} (rolling forecasting origin), trong đó mỗi tập kiểm định chỉ đi sau dữ liệu huấn luyện của nó và sai số được lấy trung bình qua các tập kiểm định. Đề tài không dự báo một chuỗi thời gian, nhưng dùng cùng nguyên tắc cho dòng sự kiện đơn hàng. Với các mốc cắt $c_1 < c_2 < \dots < c_{K+1}$, fold $k$ có
+\begin{equation}\label{eq:th-rolling}
+  \mathcal{T}_k = \{ o : t_o < c_k \}, \qquad
+  \mathcal{V}_k = \{ o : c_k \le t_o < c_{k+1} \}, \qquad
+  \bar{M} = \frac{1}{K} \sum_{k=1}^{K} M\!\left(f_{\mathcal{T}_k}; \mathcal{V}_k\right),
+\end{equation}
+trong đó $f_{\mathcal{T}_k}$ là mô hình học trên $\mathcal{T}_k$ và $M$ là chỉ số đánh giá. Cửa sổ huấn luyện mở rộng dần, mô phỏng việc huấn luyện lại định kỳ khi có thêm dữ liệu.
+
+Lựa chọn này có cơ sở thực nghiệm. So sánh các phương pháp ước lượng hiệu năng trên 174 chuỗi thực và ba chuỗi mô phỏng, \textcite{cerqueira2020} thấy kiểm định chéo theo khối dùng được cho chuỗi dừng, nhưng với chuỗi không dừng, các phương pháp ngoài mẫu, đặc biệt holdout lặp lại trên nhiều giai đoạn kiểm định, cho ước lượng chính xác nhất. Thiết kế ba fold ở Hình~\ref{fig:temporal-folds} thuộc nhóm phương pháp ngoài mẫu này. Cái giá phải trả là số fold nhỏ, khiến trung bình $\bar M$ có phương sai lớn, trong khi fold đầu học trên ít dữ liệu nhất.
+
+\subsection{Rừng ngẫu nhiên và gradient boosting}\label{sec:th-trees}
+
+Rừng ngẫu nhiên~\parencite{breiman2001} là tập hợp $B$ cây quyết định, mỗi cây học trên một mẫu bootstrap của dữ liệu và chỉ xét một tập con ngẫu nhiên các đặc trưng tại mỗi lần tách nút. Xác suất dự đoán là trung bình của các cây
+\begin{equation}\label{eq:th-rf}
+  \hat{p}_{\mathrm{RF}}(\mathbf{x}) = \frac{1}{B} \sum_{b=1}^{B} T_b(\mathbf{x}),
+\end{equation}
+với $T_b(\mathbf{x})$ là tỉ lệ dương trong lá chứa $\mathbf{x}$ của cây $b$. \textcite{breiman2001} chứng minh sai số tổng quát hóa hội tụ khi số cây tăng, và giới hạn của nó phụ thuộc vào độ mạnh của từng cây và độ tương quan giữa các cây; việc chọn ngẫu nhiên đặc trưng nhằm giảm tương quan đó. Các ràng buộc độ sâu tối đa và số mẫu tối thiểu mỗi lá ở Chương~\ref{ch:method} kiểm soát độ phức tạp của từng cây. Trọng số lớp tính lại trên từng mẫu bootstrap làm thay đổi tỉ lệ dương hiệu dụng trong các lá, nên $\hat p_{\mathrm{RF}}$ không còn là ước lượng không chệch của xác suất thực; mục~\ref{sec:th-calibration} xử lý hệ quả này.
+
+Gradient boosting xây mô hình cộng tính theo từng bước. Với hàm mất mát log-loss $L$ trên thang log-odds, bước $m$ thêm một cây $h_m$ khớp với gradient âm của $L$ tại mô hình hiện tại
+\begin{equation}\label{eq:th-gb}
+  F_m(\mathbf{x}) = F_{m-1}(\mathbf{x}) + \eta\, h_m(\mathbf{x}), \qquad
+  h_m \approx \arg\min_h \sum_{j} \left( -\frac{\partial L(y_j, F)}{\partial F}\Big|_{F=F_{m-1}(\mathbf{x}_j)} - h(\mathbf{x}_j) \right)^2,
+\end{equation}
+với $\eta$ là tốc độ học. \textcite{prokhorenkova2018} chỉ ra rằng triển khai thông thường bị \emph{dịch chuyển dự đoán} (prediction shift), vì gradient tại mỗi bước được tính trên chính các mẫu mà mô hình đã học, nên phân phối của $F_{m-1}(\mathbf{x}_j)$ trên mẫu huấn luyện khác với trên mẫu mới; đây là một dạng rò rỉ nhãn bên trong thuật toán. Vấn đề tương tự xảy ra khi mã hóa biến phân loại bằng thống kê nhãn (target statistics) tính trên toàn bộ mẫu. CatBoost giải quyết cả hai bằng một hoán vị ngẫu nhiên $\sigma$ của dữ liệu. \emph{Ordered boosting} tính phần dư của mẫu $\sigma_k$ bằng mô hình chỉ học từ các mẫu đứng trước nó, và \emph{ordered target statistics} mã hóa giá trị phân loại của mẫu đó cũng chỉ từ các mẫu đứng trước, theo công thức
+\begin{equation}\label{eq:th-ordered-ts}
+  \hat{x}_{\sigma_k} =
+  \frac{\sum_{j<k} \mathbf{1}\!\left[x_{\sigma_j} = x_{\sigma_k}\right] y_{\sigma_j} + a\,P}
+       {\sum_{j<k} \mathbf{1}\!\left[x_{\sigma_j} = x_{\sigma_k}\right] + a},
+\end{equation}
+trong đó $P$ là giá trị tiên nghiệm và $a > 0$ là trọng số của nó. Công thức~\eqref{eq:th-ordered-ts} có cùng logic với~\eqref{eq:th-history} ở chỗ mỗi quan sát chỉ được nhìn thấy ``quá khứ'' của nó. Điểm khác là thứ tự trong CatBoost là hoán vị nhân tạo, còn thứ tự trong~\eqref{eq:th-history} là thời gian thực; vì vậy cơ chế của CatBoost chống rò rỉ bên trong tập huấn luyện nhưng không thay thế cho việc chia dữ liệu theo thời gian. CatBoost cũng dùng cây đối xứng (oblivious trees), trong đó mọi nút cùng độ sâu dùng chung một điều kiện tách, làm mô hình ít bị quá khớp hơn và dự đoán nhanh hơn.
+
+\subsection{Hiệu chỉnh xác suất}\label{sec:th-calibration}
+
+Một bộ phân loại được gọi là hiệu chỉnh tốt khi, trong nhóm quan sát nhận điểm $\hat p$, tỉ lệ dương thực tế xấp xỉ $\hat p$. \textcite{niculescumizil2005} so sánh mười thuật toán học có giám sát và thấy các phương pháp biên cực đại như boosted trees đẩy xác suất ra xa 0 và 1, tạo méo dạng chữ S, trong khi naive Bayes đẩy xác suất về hai đầu; sau khi hiệu chỉnh, boosted trees, rừng ngẫu nhiên và SVM cho xác suất tốt nhất. Hai phương pháp hiệu chỉnh được dùng trong đề tài đều học một ánh xạ từ điểm thô $s$ sang xác suất trên một tập dữ liệu không dùng để huấn luyện mô hình gốc.
+
+\emph{Platt scaling}~\parencite{platt1999} giả định méo có dạng logistic và khớp hai tham số $A$ và $B$ bằng hợp lý cực đại cho hàm
+\begin{equation}\label{eq:th-platt}
+  \hat{p} = \frac{1}{1 + \exp(A s + B)} .
+\end{equation}
+\emph{Hồi quy isotonic}~\parencite{zadrozny2002} không giả định dạng hàm mà tìm hàm không giảm $g$ cực tiểu hóa sai số bình phương
+\begin{equation}\label{eq:th-isotonic}
+  \hat{g} = \arg\min_{g \text{ không giảm}} \sum_{j=1}^{n} \left( y_j - g(s_j) \right)^2 ,
+\end{equation}
+giải bằng thuật toán pool-adjacent-violators, cho kết quả là hàm bậc thang. Đổi lại sự linh hoạt, isotonic cần nhiều dữ liệu hiệu chỉnh hơn mới phát huy tác dụng và dễ quá khớp khi tập hiệu chỉnh nhỏ~\parencite{niculescumizil2005}. Đây là lý do Chương~\ref{ch:method} fit hai phương pháp trên một phân vùng và so sánh chúng bằng Brier score trên một phân vùng khác.
+
+Cả hai ánh xạ đều đơn điệu, nên không đảo thứ tự xếp hạng. Platt scaling với $A<0$ là hàm tăng ngặt và giữ nguyên hoàn toàn thứ tự; isotonic là hàm bậc thang nên có thể gộp các điểm khác nhau vào cùng một giá trị, tạo ra các cặp hòa và làm PR-AUC thay đổi nhẹ. Brier score phản ánh cả hai mặt, vì nó giảm khi xác suất gần tỉ lệ thực tế hơn và cả khi mô hình tách hai lớp tốt hơn; do đó nó dùng được làm tiêu chí so sánh phương pháp hiệu chỉnh khi thứ tự xếp hạng gần như không đổi. Một mốc tham chiếu hữu ích là dự đoán hằng số bằng tỉ lệ dương $\pi$, có Brier score bằng $\pi(1-\pi)$; một mô hình có Brier cao hơn mốc này cho xác suất kém tin cậy hơn cả việc không dùng đặc trưng nào.
+
+\subsection{Chỉ số đánh giá cho lớp thiểu số}\label{sec:th-metrics}
+
+Gọi $\pi$ là tỉ lệ dương. Một bộ phân loại gán mọi đơn vào lớp âm có accuracy $1-\pi$, khoảng 0,9 trong quần thể của đề tài, nhưng không phát hiện được đơn nào bị đánh giá thấp. ROC-AUC không phụ thuộc vào $\pi$, nhưng chính vì vậy nó che đi chi phí của các dự đoán dương sai. Tỉ lệ dương giả được chia cho tổng số đơn âm, vốn nhiều gấp khoảng mười lần số đơn dương, nên hàng trăm dương giả chỉ làm đường ROC dịch đi rất ít. Precision thì chia cho số đơn được gắn cờ, nên phản ánh trực tiếp các dương giả đó. \textcite{saito2015} cho thấy trên dữ liệu mất cân bằng, đường ROC có thể trông tốt trong khi độ chính xác của các dự đoán dương rất thấp, và đường precision--recall phản ánh điều đó trung thực hơn. Với ngưỡng thứ $n$ theo thứ tự điểm giảm dần, precision $P_n$ và recall $R_n$ được định nghĩa thông thường; average precision (AP), ước lượng của PR-AUC dùng trong đề tài, là
+\begin{equation}\label{eq:th-ap}
+  \mathrm{AP} = \sum_{n} \left( R_n - R_{n-1} \right) P_n .
+\end{equation}
+Một mô hình xếp hạng ngẫu nhiên có precision kỳ vọng bằng $\pi$ ở mọi mức recall, nên AP của nó xấp xỉ $\pi$. Mốc này thay đổi theo fold vì $\pi$ thay đổi, và nó cũng khác nhau giữa mức item và mức đơn vì tỉ lệ dương ở hai mức khác nhau; vì vậy PR-AUC chỉ nên được đọc cùng với tỉ lệ dương tương ứng.
+
+AP tóm tắt toàn bộ đường cong, còn quyết định vận hành chỉ quan tâm một điểm trên đường đó. Với ngân sách $b$ trên $N$ đơn, đặt $K = \lceil bN \rceil$ và $\mathrm{Top}_K$ là $K$ đơn có điểm cao nhất; khi đó
+\begin{equation}\label{eq:th-recallk}
+  \mathrm{Recall@}b = \frac{\sum_{o \in \mathrm{Top}_K} y_o}{\sum_{o} y_o}, \qquad
+  \mathrm{Precision@}b = \frac{1}{K} \sum_{o \in \mathrm{Top}_K} y_o .
+\end{equation}
+Chọn ngẫu nhiên $K$ đơn cho $\mathrm{E}[\mathrm{Recall@}b] = b$, nên tỉ số $\mathrm{Recall@}b / b$ là hệ số nâng (lift) so với không dùng mô hình. Recall@$b$ chỉ phụ thuộc vào thứ tự xếp hạng, không phụ thuộc giá trị tuyệt đối của xác suất; vì vậy nó bổ sung chứ không thay thế Brier score.
+
+\subsection{Gộp điểm item lên đơn và ưu tiên theo năng lực xử lý}\label{sec:th-aggregation}
+
+Cấu trúc nhãn của bài toán tương ứng với học đa thể hiện (multiple-instance learning). Mỗi đơn là một ``túi'' gồm nhiều item, nhãn chỉ có ở mức túi, và giả định chuẩn của \textcite{dietterich1997} là một túi dương khi có ít nhất một thể hiện dương. Dưới giả định đó, điểm tự nhiên nhất của túi là điểm lớn nhất của các thể hiện, đúng với luật max-v1 ở~\eqref{eq:maxv1}. Giả định này chỉ gần đúng với Olist, bởi khách có thể chấm thấp vì một sản phẩm lỗi, nhưng cũng có thể vì trải nghiệm chung của cả đơn, và nhãn item kế thừa từ đơn là nhãn yếu (mục~\ref{sec:con-units}).
+
+Luật max có một thiên lệch có thể mô tả định lượng. Nếu điểm của các item trong đơn độc lập với hàm phân phối $F$, thì
+\begin{equation}\label{eq:th-maxbias}
+  \Pr\left( \hat{r}_o \le t \right) = F(t)^{n_o},
+\end{equation}
+với $n_o$ là số item, nên phân phối của $\hat r_o$ dịch dần về phía điểm cao khi $n_o$ tăng, kể cả khi từng item không rủi ro hơn. Hai hệ quả theo sau. Đơn nhiều sản phẩm có xu hướng được xếp cao hơn; và kể cả khi xác suất item đã hiệu chỉnh tốt, $\hat r_o$ không nhất thiết là xác suất hiệu chỉnh tốt ở mức đơn. Vì vậy Brier score mức đơn~\eqref{eq:brier} cần được báo cáo riêng thay vì suy ra từ chất lượng hiệu chỉnh mức item. Mục~\ref{sec:analysis-eda} đối chiếu thiên lệch này với tỉ lệ đánh giá thấp thực tế theo số item trong đơn.
+
+Bước cuối biến điểm thành quyết định. Bộ phận chăm sóc khách hàng chỉ xử lý được $K$ đơn mỗi kỳ, nên bài toán là chọn tập $S$ với $|S| \le K$ để cực đại hóa số đơn bất mãn được tiếp cận. Nếu $\hat r_o$ là ước lượng của $\Pr(y_o = 1)$, kỳ vọng số đơn dương trong $S$ là $\sum_{o \in S} \hat r_o$, và lời giải tối ưu là chọn $K$ đơn có điểm cao nhất. Lời giải này chỉ dùng đến thứ tự của $\hat r_o$, nên vẫn đúng khi điểm đơn chưa hiệu chỉnh tốt, miễn là nó tăng đơn điệu theo xác suất thực; đây là cơ sở của các ngưỡng top 5\% và top 20\% ở Chương~\ref{ch:method}. Luật này tối ưu số đơn bất mãn được \emph{tìm thấy}, không tối ưu số đơn được \emph{cứu}. Mục tiêu thứ hai đòi hỏi xếp hạng theo hiệu ứng can thiệp
+\begin{equation}\label{eq:th-uplift}
+  u(\mathbf{x}) = \Pr\left( y = 1 \mid \mathbf{x}, \text{không liên hệ} \right) - \Pr\left( y = 1 \mid \mathbf{x}, \text{có liên hệ} \right),
+\end{equation}
+một đại lượng chỉ ước lượng được khi có dữ liệu thí nghiệm~\parencite{ascarza2018,devriendt2021}. Olist không ghi nhận can thiệp nào, nên đề tài chỉ ước lượng được số hạng thứ nhất của~\eqref{eq:th-uplift} trong điều kiện không có hành động; giá trị của danh sách ưu tiên vì thế được đánh giá bằng Recall@$b$, và mọi diễn giải đều dừng ở mức tương quan dự báo.
+ 
+% Chương 3 — Huy. Nguồn: docs/research-design.md, data-contract.md, modeling-training-plan.md, ADR-001/008/014,
+% SERVER_CONTEXT/*.md. Chỉ mô tả phương pháp; số liệu kết quả để ở Chương 4. Tên cột/bảng/phiên bản: Phụ lục A.
+\chapter{Phương pháp thực hiện}\label{ch:method}
+
+Một mô hình dự báo chỉ có giá trị vận hành khi nó được đánh giá trong đúng điều kiện mà nó sẽ được sử dụng. Toàn bộ phương pháp trong chương này được thiết kế xoay quanh nguyên tắc đó: mô hình chỉ được nhìn thấy những gì bộ phận chăm sóc khách hàng biết vào lúc đơn hàng vừa giao xong, và mọi quyết định thiết kế đều được kiểm chứng trên dữ liệu thuộc tương lai so với dữ liệu huấn luyện. Mục~\ref{sec:pipeline} phát biểu bài toán và mô tả hệ thống. Mục~\ref{sec:data} trình bày dữ liệu, cách xây dựng quần thể nghiên cứu và cơ chế chống rò rỉ thông tin. Mục~\ref{sec:models} lý giải các lựa chọn mô hình, cách chia dữ liệu, hiệu chỉnh xác suất và chọn ngưỡng. Mục~\ref{sec:eval} trình bày các chỉ số đánh giá và giới hạn khi diễn giải. Tên kỹ thuật của các bảng, cột dữ liệu và phiên bản công cụ được tập hợp ở Phụ lục~\ref{app:tech} để phần thân chương tập trung vào lập luận.
+
+% =====================================================================
+\section{Bài toán, quy trình triển khai và đặc tả hệ thống}\label{sec:pipeline}
+
+\subsection{Phát biểu bài toán}
+
+Phần lớn nghiên cứu về sự hài lòng trong thương mại điện tử chỉ ra giao hàng trễ là nguyên nhân hàng đầu của đánh giá thấp~\cite{ravula2023,deshpande2023}. Hệ quả là bộ phận vận hành thường chỉ theo dõi các đơn trễ hạn. Nghiên cứu này nhìn vào phần còn lại: những đơn được giao đúng hoặc sớm hơn ngày dự kiến nhưng khách vẫn đánh giá 1--2 sao. Với nhóm đơn này, không có tín hiệu cảnh báo hiển nhiên nào, nên sự bất mãn là ``ẩn'' cho đến khi đánh giá xuất hiện, tức là khi đã quá muộn để can thiệp. Câu hỏi nghiên cứu vì vậy là: \emph{chỉ với thông tin có tại thời điểm giao hàng, mô hình học máy có thể ước lượng rủi ro một đơn nhận đánh giá thấp tốt đến mức nào, và danh sách ưu tiên tạo ra từ mô hình có giúp bộ phận chăm sóc khách hàng tiếp cận đúng khách hàng hơn so với chọn ngẫu nhiên hay không?}
+
+Bài toán được hình thức hóa bằng bốn quy ước. Thứ nhất, \emph{đơn vị học} là từng sản phẩm trong đơn (item), vì phần lớn thông tin dự báo như danh mục, người bán, kích thước và phí vận chuyển gắn với sản phẩm chứ không gắn với đơn. Thứ hai, \emph{đơn vị chia dữ liệu và vận hành} là đơn hàng: nhân viên liên hệ khách theo đơn, và mọi item của một đơn luôn nằm cùng một phân vùng dữ liệu để mô hình không học thuộc một đơn rồi được đánh giá trên chính đơn đó. Thứ ba, \emph{thời điểm dự đoán} $t_o$ của đơn $o$ là lúc đơn được giao cho khách. Thứ tư, \emph{nhãn} $y_o = 1$ khi đơn nhận đánh giá 1 hoặc 2 sao và $y_o = 0$ khi nhận 3--5 sao, thống nhất với các nghiên cứu trước trên cùng bộ dữ liệu~\cite{orman2026}.
+
+Sự lệch pha giữa đơn vị học và đơn vị nhãn đặt ra vấn đề phương pháp quan trọng nhất của bài toán. Olist chỉ ghi nhận đánh giá ở mức đơn, không cho biết sản phẩm nào khiến khách không hài lòng. Mỗi item vì vậy thừa hưởng nhãn của đơn chứa nó, tạo thành một \emph{nhãn yếu}: trong một đơn hai sản phẩm bị đánh giá thấp, có thể chỉ một sản phẩm thực sự có vấn đề nhưng cả hai đều mang nhãn dương. Điểm $\hat p_i$ của item $i$ do đó được hiểu là rủi ro đơn nhận đánh giá thấp \emph{khi có mặt} item đó, không phải bằng chứng cho thấy item là nguyên nhân. Rủi ro của đơn được tổng hợp theo luật \emph{max-v1}:
+\begin{equation}\label{eq:maxv1}
+  \hat{r}_o = \max_{i \in o} \hat{p}_i
+\end{equation}
+Luật lấy giá trị lớn nhất phản ánh giả định ``mắt xích yếu nhất'': một sản phẩm lỗi là đủ để khách đánh giá thấp cả đơn, nên đơn phải được ưu tiên theo item rủi ro nhất thay vì bị pha loãng bởi các item bình thường như khi lấy trung bình. Đổi lại, luật này có xu hướng nâng điểm của đơn nhiều sản phẩm, vì càng nhiều item thì giá trị lớn nhất càng dễ cao. Đây là một nguồn sai lệch có thể kiểm chứng, và chính vì vậy luật được đánh số phiên bản: mọi chỉ số mức đơn đều gắn với một luật tổng hợp cụ thể, và một luật khác có thể được thay vào mà vẫn so sánh được.
+
+Một giới hạn khác đến từ cơ chế sinh ra nhãn. Việc khách có viết đánh giá hay không là một quá trình tự chọn~\cite{li2008}: người rất hài lòng hoặc rất bất mãn có xu hướng lên tiếng nhiều hơn, còn khách im lặng chưa chắc đã hài lòng. Mô hình vì thế ước lượng rủi ro bất mãn \emph{được quan sát} trong nhóm đơn có đánh giá, không ước lượng mức bất mãn của toàn bộ khách hàng. Giới hạn này không làm mất giá trị của danh sách ưu tiên, nhưng cần được ghi nhớ khi suy rộng kết quả.
+
+\subsection{Quy trình tổng thể}
+
+Hệ thống được tách thành hai luồng chỉ gặp nhau tại cơ sở dữ liệu (Hình~\ref{fig:arch}). Luồng dữ liệu và học máy chạy theo lô, ghi điểm rủi ro vào cơ sở dữ liệu; luồng vận hành phục vụ nhân viên chăm sóc khách hàng, chỉ đọc kết quả đó. Việc tách luồng có hai lợi ích: mô hình có thể được huấn luyện lại hoặc thay thế mà không ảnh hưởng ứng dụng đang chạy, và ứng dụng không bao giờ phải chờ mô hình tính toán.
+
+Luồng học máy gồm bảy bước nối tiếp (Hình~\ref{fig:ml-flow}), trong đó đầu ra của mỗi bước là đầu vào cố định của bước sau:
+\begin{enumerate}
+  \item \textbf{Nạp dữ liệu}: chín tệp CSV Olist được kiểm tra cấu trúc rồi nạp nguyên dạng vào tầng bronze. Mỗi lần nạp được ghi vào một manifest kèm mã băm của tệp nguồn, nên cùng một tệp không thể bị nạp hai lần.
+  \item \textbf{Biến đổi}: dbt chuẩn hóa dữ liệu ở tầng silver, tính quần thể và đặc trưng ở tầng intermediate, rồi tạo bảng mô hình hóa mức item ở tầng gold.
+  \item \textbf{Chia dữ liệu} theo thời điểm dự đoán thành sáu phân vùng liên tiếp (mục~\ref{sec:models}).
+  \item \textbf{Chọn mô hình} bằng kiểm định rolling-origin bên trong giai đoạn huấn luyện.
+  \item \textbf{Hiệu chỉnh xác suất} và \textbf{chọn ngưỡng}, mỗi việc trên một phân vùng riêng.
+  \item \textbf{Chấm điểm} từng item rồi tổng hợp thành điểm đơn theo luật max-v1.
+  \item \textbf{Ghi kết quả} vào bảng dự đoán và đưa các đơn đủ điều kiện vào hàng đợi rủi ro.
+\end{enumerate}
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[font=\footnotesize,
+  box/.style={draw,rounded corners,fill=#1,minimum width=3.3cm,minimum height=0.85cm,align=center},
+  box/.default=gray!10, node distance=0.45cm and 0.6cm, >={Latex}]
+  \node[box=brown!20] (csv) {CSV Olist\\(9 bảng)};
+  \node[box=brown!20,right=of csv] (bronze) {Bronze\\nạp + manifest};
+  \node[box=gray!20,right=of bronze] (silver) {Silver\\chuẩn hóa};
+  \node[box=yellow!30,below=of silver] (gold) {Intermediate $\rightarrow$ Gold\\bảng mô hình hóa mức item};
+  \node[box=blue!15,below=0.9cm of gold] (split) {Chia theo thời gian\\6 phân vùng};
+  \node[box=blue!15,left=of split] (cv) {Rolling-origin 3 fold\\chọn biến thể};
+  \node[box=teal!20,below=of cv] (cal) {Hiệu chỉnh xác suất\\sigmoid / isotonic};
+  \node[box=violet!20,right=of cal] (thr) {Chọn ngưỡng\\top 5\% / 20\%};
+  \node[box=orange!25,right=of thr] (score) {Chấm điểm item\\$\rightarrow$ max-v1};
+  \node[box=red!20,below=of thr] (db) {Bảng dự đoán\\$\rightarrow$ hàng đợi rủi ro};
+  \draw[->] (csv) -- (bronze); \draw[->] (bronze) -- (silver); \draw[->] (silver) -- (gold);
+  \draw[->] (gold) -- (split); \draw[->] (split) -- (cv); \draw[->] (cv) -- (cal);
+  \draw[->] (cal) -- (thr); \draw[->] (thr) -- (score); \draw[->] (score) |- (db);
+  \node[draw,dashed,fit=(csv)(gold),inner sep=4pt,label={[font=\scriptsize]above:Kho dữ liệu (PostgreSQL + dbt)}] {};
+\end{tikzpicture}
+\caption{Quy trình dữ liệu và học máy}\label{fig:ml-flow}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{system-architecture}
+  \caption{Kiến trúc tổng thể hệ thống}\label{fig:arch}
+\end{figure}
+
+\subsection{Đặc tả hệ thống}
+
+Hệ thống được tổ chức theo kiến trúc phân lớp, với quy tắc phụ thuộc chỉ đi từ ngoài vào trong. Lớp \emph{miền nghiệp vụ} ở trung tâm chứa các quy tắc có ý nghĩa nghiên cứu: điều kiện vào quần thể, định nghĩa nhãn và các bất biến về thời gian. Lớp này không phụ thuộc thư viện dữ liệu hay mô hình nào, nên các quy tắc có thể được kiểm thử độc lập và không bị thay đổi ngầm khi đổi công cụ. Lớp \emph{ứng dụng} điều phối các ca sử dụng như nạp dữ liệu, huấn luyện và chấm điểm thông qua các giao diện trừu tượng. Lớp \emph{hạ tầng} hiện thực các giao diện đó bằng PostgreSQL và thư viện học máy cụ thể. Lớp \emph{giao diện} ngoài cùng cung cấp dòng lệnh cho tác vụ theo lô và API cho ứng dụng web. Nhờ cách tổ chức này, việc thay mô hình học máy chỉ chạm đến lớp hạ tầng.
+
+Mô hình không được gọi theo thời gian thực mà chấm điểm theo lô. Một tác vụ chấm điểm toàn bộ item, tổng hợp điểm đơn theo max-v1, gán mức \textsc{Cao}, \textsc{Trung bình} hoặc \textsc{Thấp} theo ngưỡng đã chọn rồi ghi vào bảng dự đoán. Mỗi bản ghi lưu mã đơn, điểm rủi ro, mức ưu tiên và phiên bản mô hình, nên mọi điểm số đều truy vết được về đúng lần huấn luyện sinh ra nó. Lựa chọn này phù hợp với bản chất bài toán: thông tin đầu vào chỉ đầy đủ khi đơn đã giao, và nhân viên xử lý theo ca chứ không phản hồi từng giây, nên chấm điểm theo lô không làm mất giá trị dự báo mà giúp mọi người dùng nhìn thấy cùng một kết quả nhất quán.
+
+Ứng dụng vận hành (backend FastAPI, giao diện web tĩnh qua NGINX, đóng gói bằng Docker Compose) chỉ đọc điểm rủi ro từ bảng dự đoán, không có thao tác nào ghi đè lên dự báo, và mọi thao tác ghi đều sinh sự kiện kiểm toán chỉ thêm. Nhờ đó dữ liệu vận hành sau này vẫn dùng được để đánh giá mô hình. Chi tiết kiến trúc, vai trò người dùng, vòng đời case và API được trình bày ở mục~\ref{sec:system-api}.
+
+% =====================================================================
+\section{Dữ liệu và công cụ}\label{sec:data}
+
+\subsection{Nguồn dữ liệu}
+
+Nghiên cứu sử dụng bộ dữ liệu công khai \emph{Brazilian E-Commerce Public Dataset by Olist}~\cite{olist2018}, gồm khoảng 99\,000 đơn hàng phát sinh trên các sàn thương mại điện tử tại Brazil từ năm 2016 đến 2018. Dữ liệu gồm chín bảng liên kết qua mã đơn, mã khách hàng, mã sản phẩm và mã người bán (Bảng~\ref{tab:olist}). Bảng đơn hàng là trung tâm, ghi các mốc của vòng đời đơn: mua, duyệt, bàn giao cho đơn vị vận chuyển, giao cho khách và ngày giao dự kiến. Chính các mốc này cho phép xác định thời điểm dự đoán và lọc đơn giao đúng hạn, nên chất lượng của chúng quyết định chất lượng của toàn bộ thiết kế chống rò rỉ.
+
+\begin{table}[htbp]\centering\small
+\caption{Các bảng trong bộ dữ liệu Olist}\label{tab:olist}
+\begin{tabular}{llr}
+\toprule
+Bảng & Độ chi tiết (một dòng là) & Số dòng \\
+\midrule
+Đơn hàng                 & một đơn hàng                          &    99\,441 \\
+Sản phẩm trong đơn       & một sản phẩm trong đơn                &   112\,650 \\
+Thanh toán               & một lần thanh toán của đơn            &   103\,886 \\
+Đánh giá                 & một đánh giá                          &    99\,224 \\
+Khách hàng               & một khách hàng theo đơn               &    99\,441 \\
+Người bán                & một người bán                         &     3\,095 \\
+Sản phẩm                 & một sản phẩm                          &    32\,951 \\
+Tọa độ địa lý            & một tọa độ theo mã bưu chính          & 1\,000\,163 \\
+Dịch tên danh mục        & một danh mục (tiếng Bồ Đào Nha -- Anh) & 71 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hai bảng có độ chi tiết không khớp với đơn hàng và cần xử lý trước khi nối. Bảng đánh giá có 99\,224 dòng nhưng một số đơn có nhiều đánh giá trong khi một số đơn không có đánh giá nào. Bảng thanh toán có nhiều dòng cho một đơn khi khách trả bằng nhiều phương thức hoặc trả góp. Nếu nối trực tiếp, mỗi item sẽ bị nhân bản theo số đánh giá hoặc số lần thanh toán, làm sai lệch cả tỉ lệ nhãn lẫn trọng số của từng đơn trong quá trình học.
+
+\subsection{Xây dựng tập dữ liệu mô hình hóa}
+
+Để giữ đúng độ chi tiết mức item, bảng thanh toán và bảng đánh giá được gộp về một dòng mỗi đơn trước khi nối. Khi một đơn có nhiều đánh giá, nhóm chọn một đánh giá đại diện theo thứ tự ưu tiên: đánh giá đã được người bán trả lời, sau đó đánh giá có thời điểm trả lời hoặc tạo mới nhất, cuối cùng là mã đánh giá. Điểm quan trọng của quy tắc không nằm ở thứ tự cụ thể mà ở tính tất định: cùng dữ liệu đầu vào luôn cho cùng nhãn, nên kết quả thí nghiệm lặp lại được và có thể kiểm toán.
+
+Quần thể nghiên cứu gồm các đơn thỏa đồng thời ba điều kiện: (i) đã được giao thành công; (ii) ngày giao thực tế không muộn hơn ngày giao dự kiến; (iii) có đánh giá được tạo \emph{sau} thời điểm giao. Điều kiện (ii) định nghĩa phạm vi ``bất mãn ẩn'' của đề tài. Điều kiện (iii) ít hiển nhiên hơn nhưng không kém quan trọng: một đánh giá tạo trước hoặc đúng lúc giao là nhãn đã tồn tại tại thời điểm dự đoán, và giữ lại những đơn này sẽ đánh giá mô hình trên một tình huống không thể xảy ra trong vận hành. Bảng~\ref{tab:funnel} cho thấy số đơn và item còn lại sau mỗi bước lọc.
+
+\begin{table}[htbp]\centering\small
+\caption{Quá trình lọc quần thể nghiên cứu}\label{tab:funnel}
+\begin{tabular}{lrr}
+\toprule
+Bước lọc & Đơn & Item \\
+\midrule
+Toàn bộ đơn hàng                          & 99\,441 & 112\,650 \\
+Đã giao thành công                        & 96\,478 & 110\,197 \\
+Giao đúng hoặc sớm hạn                    & 88\,644 & 101\,475 \\
+Có đánh giá hợp lệ tạo sau thời điểm giao & 85\,420 &  97\,878 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Phễu lọc cho thấy hai điều. Bước lọc giao đúng hạn chỉ loại khoảng 8\% số đơn đã giao, nghĩa là quần thể ``giao đúng hạn'' chiếm phần lớn hoạt động của sàn chứ không phải một trường hợp biên. Trong quần thể này, tỉ lệ đơn nhận đánh giá thấp là 9,21\% (7\,865/85\,420): cứ khoảng mười một đơn giao đúng hạn lại có một đơn bị đánh giá 1--2 sao. Con số này đủ lớn để có ý nghĩa kinh doanh nhưng đủ nhỏ để tạo ra bài toán mất cân bằng lớp rõ rệt, định hướng trực tiếp các lựa chọn về xử lý mất cân bằng và chỉ số đánh giá ở các mục sau.
+
+Bảng~\ref{tab:funnel} được dựng lại từ các tệp CSV gốc để kiểm toán. Snapshot dữ liệu đóng băng dùng cho huấn luyện có 85\,425 đơn và 97\,884 item, lệch 5 đơn và 6 item so với bản dựng lại. Nhật ký dbt xác nhận snapshot được tạo thành công và qua các kiểm tra về độ chi tiết và tính duy nhất, nhưng không lưu số đếm theo từng bước lọc nên chưa giải thích được chênh lệch. Với độ lệch dưới 0,01\%, ảnh hưởng đến các chỉ số là không đáng kể; các thí nghiệm sử dụng số liệu của snapshot đóng băng.
+
+\subsection{Đặc trưng và kiểm soát rò rỉ dữ liệu}
+
+Rò rỉ dữ liệu là rủi ro lớn nhất đối với độ tin cậy của nghiên cứu, vì trong bộ Olist thông tin về đánh giá nằm ngay cạnh thông tin về đơn. Một đặc trưng như ``điểm trung bình của người bán'' nếu tính trên toàn bộ dữ liệu sẽ chứa chính điểm đánh giá của đơn đang dự đoán, giúp mô hình đạt kết quả rất tốt trong thí nghiệm nhưng vô dụng khi triển khai. Nguyên tắc chung vì vậy là: mọi đặc trưng phải biết được tại thời điểm $t_o$ (Hình~\ref{fig:leakage-timeline}).
+
+Theo nguyên tắc này, các nhóm thông tin được phép gồm thông tin đơn và thanh toán; thuộc tính sản phẩm, danh mục và người bán; vị trí của khách và người bán; giá, phí vận chuyển và cấu trúc đơn; thời gian giao và khoảng dư so với ngày dự kiến; và các đặc trưng lịch sử tính hoàn toàn từ sự kiện xảy ra trước $t_o$. Các đầu vào bị cấm gồm điểm, nội dung, tiêu đề và thời điểm của đánh giá; mọi hành động xảy ra sau đánh giá; các thống kê tính trên toàn bộ dữ liệu; và các mã định danh, vốn không mang thông tin tổng quát nhưng cho phép mô hình học thuộc từng đối tượng. Danh sách đặc trưng được khai báo tường minh và pipeline tự động từ chối mọi cột bị cấm hoặc chưa khai báo, nên một sai sót khi thêm cột mới sẽ làm pipeline dừng thay vì âm thầm làm sai kết quả.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[x=1cm,y=1cm,font=\small,
+  ev/.style={circle,fill,inner sep=1.5pt},
+  lab/.style={align=center,font=\footnotesize}]
+  \fill[green!12] (0,0) rectangle (9,1.2);
+  \fill[red!12]   (9,0) rectangle (13.5,1.2);
+  \node[lab,green!45!black] at (4.5,1.45) {Được dùng làm đặc trưng};
+  \node[lab,red!60!black]   at (11.25,1.45) {Bị cấm (rò rỉ)};
+  \draw[-{Latex}] (0,0) -- (13.7,0) node[right]{$t$};
+  \node[ev] at (3,0) {};   \node[lab,below] at (3,-0.1) {Mua hàng};
+  \node[ev] at (5.5,0) {}; \node[lab,below] at (5.5,-0.1) {Seller\\gửi hàng};
+  \draw[very thick] (9,-0.3) -- (9,1.2);
+  \node[lab,below] at (9,-0.3) {\textbf{Giao hàng}\\$t_o$ (thời điểm dự đoán)};
+  \node[ev] at (11.5,0) {}; \node[lab,below] at (11.5,-0.1) {Tạo đánh giá\\(nhãn $y$)};
+  \draw[|-|,thick,blue!60!black] (0.2,0.6) -- (9,0.6) node[midway,above,lab]{Lịch sử của seller/danh mục từ các đơn trước $t_o$};
+\end{tikzpicture}
+\caption{Ranh giới thời gian của đặc trưng}
+\label{fig:leakage-timeline}
+\end{figure}
+
+Các đặc trưng lịch sử của người bán và danh mục (số đánh giá trước đó, điểm đánh giá trung bình, thời gian xử lý và giao hàng trung bình) đòi hỏi ranh giới chặt hơn. Một đơn cũ chỉ được tính vào lịch sử khi cả thời điểm giao lẫn thời điểm đánh giá của nó đều diễn ra \emph{trước} $t_o$ của đơn đang xét. Điều kiện kép này cần thiết vì một đơn có thể đã giao trước $t_o$ nhưng được đánh giá sau $t_o$; nếu chỉ xét thời điểm giao, điểm đánh giá của đơn đó sẽ lọt vào đặc trưng dù tại thời điểm dự đoán chưa ai biết. Khi có ít hơn năm quan sát trước đó, trung bình lịch sử rất nhiễu, nên giá trị được để trống và một cờ ``hỗ trợ thấp'' được bật. Cờ này giúp mô hình phân biệt ``người bán mới, chưa có lịch sử'' với ``người bán có lịch sử tốt'', hai trường hợp có rủi ro rất khác nhau nhưng sẽ trông giống nhau nếu điền giá trị thiếu bằng trung bình chung.
+
+Tập đặc trưng cuối cùng gồm 61 đặc trưng chia thành bảy nhóm (Bảng~\ref{tab:features}; danh sách đầy đủ ở Phụ lục~\ref{app:features}). Các nhóm được xây dựng theo giả thuyết về nguồn gốc của bất mãn khi giao hàng không phải là vấn đề. Nhóm \emph{tốc độ và độ biến động của người bán} xuất phát từ quan sát rằng hiệu quả giao hàng ảnh hưởng đến điểm đánh giá~\cite{ravula2023,deshpande2023}: một người bán thường xuyên giao chậm hoặc thất thường có thể vẫn kịp hạn ở đơn đang xét nhưng phản ánh chất lượng vận hành chung thấp. Nhóm \emph{cấu trúc đơn} (số lượng, tỉ lệ và mức độ tập trung theo người bán và danh mục) được gợi ý từ bằng chứng rằng giao hàng tách thành nhiều kiện làm giảm sự hài lòng~\cite{brylla2022}. Do Olist không ghi thời điểm giao riêng cho từng item, số người bán và số sản phẩm trong đơn chỉ là đại diện gián tiếp cho việc tách kiện. Các nhóm \emph{hình thái sản phẩm} và \emph{độ đầy đủ nội dung} nhắm đến khoảng cách giữa kỳ vọng và thực tế: sản phẩm cồng kềnh dễ hư hỏng khi vận chuyển, còn trang sản phẩm thiếu ảnh hoặc mô tả dễ khiến khách nhận được thứ khác với hình dung.
+
+\begin{table}[htbp]\centering\small
+\caption{Các nhóm đặc trưng trong tập cuối cùng}\label{tab:features}
+\begin{tabular}{p{4.2cm}p{9cm}}
+\toprule
+Nhóm & Nội dung chính \\
+\midrule
+Cơ sở (24) & Giá, phí vận chuyển, thanh toán, thời gian giao, khoảng dư so với ngày dự kiến, kích thước sản phẩm, lịch sử đánh giá của seller và danh mục kèm cờ hỗ trợ thấp, danh mục, bang của khách \\
+Tốc độ và độ biến động của seller (7) & Thời gian trung bình từ duyệt đơn đến bàn giao vận chuyển và đến khi giao, độ lệch chuẩn, hệ số biến thiên, tỉ lệ phí vận chuyển \\
+Số lượng trong đơn (7) & Số seller, danh mục, sản phẩm; cờ nhiều item, nhiều seller, nhiều danh mục \\
+Tỉ lệ trong đơn (4) & Tổng phí vận chuyển, tỉ trọng phí vận chuyển, tỉ trọng giá trị lớn nhất và nhỏ nhất của item \\
+Mức độ tập trung (2) & Chỉ số Herfindahl--Hirschman theo danh mục và theo seller \\
+Hình thái sản phẩm (13) & Thể tích, mật độ, tỉ lệ kích thước, phí vận chuyển trên giá và trên khối lượng, các cờ thiếu hoặc bằng không \\
+Độ đầy đủ nội dung (4) & Độ dài tên và mô tả, số trường mô tả bị thiếu \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Công cụ}
+
+Pipeline được viết bằng Python, dùng pandas, NumPy và PyArrow để xử lý dữ liệu, scikit-learn và CatBoost để huấn luyện, joblib để lưu mô hình; kho dữ liệu dùng PostgreSQL với các phép biến đổi viết bằng dbt. Phiên bản cụ thể của từng công cụ được liệt kê ở Phụ lục~\ref{app:env}. Khả năng lặp lại được đặt lên hàng đầu: toàn bộ ranh giới thời gian, danh sách biến thể và siêu tham số được khai báo trong một tệp cấu hình có quản lý phiên bản thay vì nằm rải rác trong notebook; mọi lần chạy dùng seed cố định và giới hạn số luồng; và mỗi lần chạy xuất một báo cáo ghi lại cấu hình, số liệu theo phân vùng, chỉ số và mã commit. Nhờ vậy, mọi con số trong Chương~4 đều truy ngược được về một cấu hình và một phiên bản mã nguồn cụ thể.
+
+Kho dữ liệu được tổ chức theo kiến trúc medallion, trong đó mỗi tầng có một mức cam kết chất lượng khác nhau. Tầng \emph{bronze} lưu dữ liệu nguyên dạng kèm manifest chống nạp trùng, đóng vai trò bản gốc để mọi tầng sau có thể dựng lại. Tầng \emph{silver} chuẩn hóa kiểu dữ liệu và gộp tọa độ theo mã bưu chính. Tầng \emph{intermediate} chứa logic nghiệp vụ: quần thể nghiên cứu, đánh giá đại diện, đặc trưng lịch sử và các nhóm đặc trưng trong Bảng~\ref{tab:features}. Tầng \emph{gold} gồm các bảng sự kiện và chiều phục vụ dashboard cùng bảng mô hình hóa mức item phục vụ huấn luyện. Sau mỗi lần build, dbt tự động kiểm tra tính duy nhất của khóa và độ chi tiết của bảng, còn các đặc trưng lịch sử có kiểm thử riêng bảo đảm không sử dụng sự kiện từ tương lai. Việc đặt logic chống rò rỉ trong kho dữ liệu thay vì trong mã huấn luyện có chủ đích: đặc trưng chỉ được tính một lần, ở một nơi, và mọi mô hình đều dùng chung một định nghĩa.
+
+% =====================================================================
+\section{Mô hình và thuật toán}\label{sec:models}
+
+\subsection{Mô hình cơ sở và ứng viên}
+
+Nhóm so sánh các mô hình theo độ phức tạp tăng dần, để mỗi mức phức tạp thêm vào đều phải chứng minh được giá trị so với mức trước. Mức sàn là \emph{mô hình theo tỉ lệ nền}, dự đoán mọi item bằng tỉ lệ dương của tập huấn luyện; một ứng viên không vượt qua mức này không học được gì từ đặc trưng. Tiếp theo là \emph{hồi quy logistic} với hai mức điều chuẩn $C \in \{0{,}1;\,1\}$, đại diện cho quan hệ tuyến tính và dễ diễn giải. Ba họ mô hình cây có khả năng nắm bắt tương tác phi tuyến được đưa vào sau đó: \emph{rừng ngẫu nhiên} với hai cấu hình (độ sâu 8, tối thiểu 5 mẫu mỗi lá và độ sâu 12, tối thiểu 10 mẫu mỗi lá), \emph{HistGradientBoosting} với hai cấu hình (L2 $=1$, 31 lá và L2 $=5$, 15 lá), và \emph{CatBoost} với độ sâu 6, 8 và 10, vốn có cơ chế riêng để xử lý biến phân loại nhiều giá trị như danh mục sản phẩm. Các nghiên cứu trước trên Olist cho thấy mô hình cây thường cạnh tranh tốt với học sâu trên dữ liệu bảng~\cite{zaghloul2024}, nên nhóm không đưa mạng nơ-ron vào so sánh. Cần lưu ý rằng đây là không gian ứng viên đã khai báo; kho kết quả hiện lưu đủ số liệu theo fold cho rừng ngẫu nhiên và các cấu hình CatBoost, còn các họ khác chưa có bảng chỉ số đồng nhất (Chương~4).
+
+Song song với mô hình, nhóm thử bốn chế độ huấn luyện nhằm xử lý sự lệch pha giữa item và đơn đã nêu ở mục~\ref{sec:pipeline}. Chế độ \emph{item-unweighted} cho mọi item trọng số như nhau, khiến các đơn nhiều sản phẩm chi phối quá trình học. Chế độ \emph{order-weight} đặt trọng số mỗi item bằng nghịch đảo số item trong đơn để mỗi đơn đóng góp như nhau. Chế độ \emph{order-reference} và \emph{order-aggregate} gộp item thành một dòng mỗi đơn trước khi huấn luyện, khớp trực tiếp với mức của nhãn và của chỉ số chính, nhưng đánh đổi bằng việc mất thông tin chi tiết ở mức sản phẩm. So sánh các chế độ này cho biết việc học ở mức item có thực sự mang lại lợi ích hay không.
+
+\subsection{Tiền xử lý}
+
+Mỗi họ mô hình có một nhánh tiền xử lý riêng phù hợp với giả định của nó. Với hồi quy logistic và rừng ngẫu nhiên, biến số được điền giá trị thiếu bằng trung vị (hồi quy logistic có thêm chuẩn hóa vì nhạy với thang đo), biến phân loại được điền bằng giá trị phổ biến nhất rồi mã hóa one-hot, với các giá trị chưa gặp ở dữ liệu mới được bỏ qua thay vì gây lỗi. Với HistGradientBoosting, biến phân loại được mã hóa thứ tự để giữ ma trận dày và tận dụng cơ chế chia nhánh theo biểu đồ tần suất. CatBoost nhận trực tiếp biến phân loại. Điều kiện chung cho mọi nhánh là các bước tiền xử lý được đặt trong cùng một pipeline với mô hình và chỉ được fit trên dữ liệu huấn luyện của từng fold. Nếu trung vị hay danh sách danh mục được tính trên toàn bộ dữ liệu, thống kê của tập kiểm định sẽ lọt vào quá trình huấn luyện, một dạng rò rỉ khó phát hiện vì không liên quan đến nhãn.
+
+\subsection{Xử lý mất cân bằng lớp}
+
+Với tỉ lệ dương khoảng 9--14\% tùy giai đoạn, một mô hình không xử lý mất cân bằng có xu hướng dồn xác suất về lớp đa số. Có hai hướng tiếp cận phổ biến: thay đổi dữ liệu bằng cách lấy mẫu lại (như SMOTE), hoặc thay đổi hàm mất mát bằng trọng số lớp. Nhóm chọn trọng số lớp kết hợp với chọn ngưỡng riêng, chẳng hạn rừng ngẫu nhiên dùng trọng số cân bằng tính lại trên từng mẫu bootstrap. Lựa chọn này dựa trên hai bằng chứng. Thứ nhất, với các bộ phân loại mạnh như mô hình boosting, cân bằng dữ liệu bằng SMOTE hầu như không cải thiện so với việc chỉ tối ưu ngưỡng quyết định~\cite{elor2022smote}. Thứ hai, mọi phương pháp hiệu chỉnh mất cân bằng đều làm xác suất dự đoán bị đẩy lên một cách có hệ thống~\cite{vandengoorbergh2022}. Hệ quả thứ hai đặc biệt quan trọng với bài toán này, vì hàng đợi ưu tiên và mức rủi ro đều dựa vào xác suất. Trọng số lớp vì vậy được xem như một công cụ giúp mô hình học lớp thiểu số, còn độ lệch xác suất mà nó gây ra được sửa ở bước hiệu chỉnh. SMOTE chỉ được xem là thí nghiệm phụ và chưa được đưa vào pipeline chính.
+
+\subsection{Chia dữ liệu theo thời gian và lựa chọn mô hình}
+
+Cách chia dữ liệu quyết định con số đánh giá có phản ánh hiệu năng thực tế hay không. Các nghiên cứu trước trên Olist thường chia ngẫu nhiên 80:20~\cite{orman2026}. Cách chia này cho phép mô hình học từ các đơn diễn ra \emph{sau} đơn đang kiểm định, chẳng hạn biết một người bán bắt đầu bị đánh giá kém từ tháng sau, nên thường cho kết quả lạc quan hơn triển khai thực tế. Nhóm vì vậy sắp dữ liệu theo thời điểm dự đoán $t_o$ và chia thành sáu phân vùng liên tiếp (Bảng~\ref{tab:split}). Mỗi phân vùng là khoảng nửa mở $[\text{đầu}, \text{cuối})$, mọi item của một đơn nằm cùng phân vùng, và mỗi phân vùng chỉ phục vụ đúng một mục đích. Nguyên tắc ``một phân vùng, một quyết định'' bảo đảm không quyết định nào được đánh giá trên dữ liệu đã dùng để đưa ra một quyết định trước đó, nhờ vậy sai lệch lạc quan không tích lũy qua các bước.
+
+\begin{table}[htbp]\centering\small
+\caption{Phân vùng dữ liệu theo thời gian dự đoán}\label{tab:split}
+\begin{tabular}{lllrrr}
+\toprule
+Phân vùng & Từ & Đến (không gồm) & Đơn & Item & Tỉ lệ dương \\
+\midrule
+Huấn luyện            & 2016-10-11 & 2017-10-01 & 23\,545 & 26\,708 & 10,13\% \\
+Lựa chọn mô hình      & 2017-10-01 & 2017-12-01 &  8\,586 &  9\,957 & 11,92\% \\
+Fit hiệu chỉnh        & 2017-12-01 & 2018-02-01 & 11\,759 & 13\,444 & 12,74\% \\
+So sánh hiệu chỉnh    & 2018-02-01 & 2018-04-01 & 10\,623 & 12\,265 & 13,80\% \\
+Chọn ngưỡng           & 2018-04-01 & 2018-06-01 & 12\,351 & 14\,319 & 11,61\% \\
+Test niêm phong       & 2018-06-01 & 2018-09-01 & 18\,561 & 21\,191 & ẩn \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Bảng~\ref{tab:split} cũng cho thấy tỉ lệ dương không đứng yên mà dao động từ 10,13\% đến 13,80\% giữa các phân vùng. Các tỉ lệ này lấy từ báo cáo của lần chạy thí nghiệm và cao hơn tỉ lệ 9,21\% ở mức đơn của Bảng~\ref{tab:funnel}; chênh lệch nhiều khả năng do khác độ chi tiết tính toán (item so với đơn), vì đơn nhiều sản phẩm có tỉ lệ đánh giá thấp cao hơn và đóng góp nhiều dòng hơn. Sự dịch chuyển này là lý do trực tiếp khiến hiệu chỉnh xác suất và chọn ngưỡng phải được thực hiện trên dữ liệu gần thời điểm triển khai hơn dữ liệu huấn luyện: một mô hình được hiệu chỉnh theo tỉ lệ 10\% của năm 2017 sẽ đánh giá thấp rủi ro khi tỉ lệ thực tế đã tăng lên. Phân vùng test cuối cùng được thiết kế để niêm phong: tỉ lệ dương của nó không được báo cáo và không được dùng cho bất kỳ bước hiệu chỉnh hay chọn ngưỡng nào. Tuy nhiên, giai đoạn thời gian này đã được biết đến trong quá trình phát triển, nên nó không còn là holdout xác nhận hoàn toàn độc lập (xem mục~\ref{subsec:res-scope}).
+
+Bên trong giai đoạn huấn luyện, các biến thể được so sánh bằng kiểm định rolling-origin với cửa sổ mở rộng gồm ba fold (Hình~\ref{fig:temporal-folds}). Ở mỗi fold, mô hình học trên toàn bộ dữ liệu trước mốc cắt và được đánh giá trên đoạn ngay sau đó, mô phỏng đúng cách mô hình được huấn luyện lại định kỳ trong thực tế. Ba fold thay vì một cho phép quan sát độ ổn định của từng biến thể qua thời gian, tránh chọn nhầm một biến thể chỉ tốt nhờ may mắn ở một giai đoạn. Biến thể được chọn theo thứ tự ưu tiên: PR-AUC mức đơn (theo max-v1) trung bình qua các fold cao nhất; nếu ngang nhau thì chọn biến thể có Brier score thấp hơn; nếu vẫn ngang nhau thì chọn mô hình đơn giản hơn. Hiệu chỉnh xác suất và chọn ngưỡng không tham gia vào bước này để tách biệt câu hỏi ``mô hình nào xếp hạng tốt nhất'' khỏi câu hỏi ``xác suất có đáng tin không''.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[x=0.62cm,y=1cm,font=\footnotesize]
+  % trục: tháng 0 = 2016-10; 23 = 2018-09
+  \def\seg#1#2#3#4{\fill[#3] (#1,0) rectangle (#2,0.6); \node[font=\scriptsize] at ({(#1+#2)/2},0.3) {#4};}
+  \seg{0}{12}{blue!30}{Huấn luyện}
+  \seg{12}{14}{orange!55}{A}
+  \seg{14}{16}{teal!40}{B}
+  \seg{16}{18}{teal!25}{C}
+  \seg{18}{20}{violet!30}{D}
+  \seg{20}{23}{red!50}{Test}
+  % 3 fold rolling-origin trong train; mốc thật, đơn vị tháng từ 2016-10-01:
+  % 2017-06-01=8.0, 2017-07-18=9.57, 2017-08-24=10.77, 2017-10-01=12.0
+  \foreach \k/\s/\e in {1/8.0/9.57,2/9.57/10.77,3/10.77/12.0} {
+    \fill[blue!30] (0,-0.4*\k) rectangle (\s,-0.4*\k+0.28);
+    \fill[orange!55] (\s,-0.4*\k) rectangle (\e,-0.4*\k+0.28);
+    \node[left] at (0,-0.4*\k+0.14) {Fold \k};
+  }
+  \draw[densely dotted] (8,-1.3) -- (8,-1.55) node[below,font=\scriptsize]{2017-06};
+  \draw[-{Latex}] (0,-1.55) -- (23.6,-1.55);
+  \foreach \m/\l in {0/2016-10,12/2017-10,14/2017-12,16/2018-02,18/2018-04,20/2018-06,23/2018-09}
+    \draw (\m,-1.5) -- (\m,-1.6) node[below,rotate=40,anchor=north east,font=\scriptsize]{\l};
+  \node[align=left,anchor=north west,font=\scriptsize] at (0,-2.7)
+    {A: lựa chọn mô hình \quad B: fit hiệu chỉnh \quad C: so sánh hiệu chỉnh \quad D: chọn ngưỡng \quad Test: test niêm phong};
+\end{tikzpicture}
+\caption{Thiết kế chia dữ liệu theo thời gian}
+\label{fig:temporal-folds}
+\end{figure}
+
+\subsection{Hiệu chỉnh xác suất và ngưỡng ưu tiên}
+
+Một mô hình có thể xếp hạng tốt nhưng xác suất sai: nếu mô hình nói ``rủi ro 40\%'' cho một nhóm đơn mà thực tế chỉ 15\% bị đánh giá thấp, quản lý sẽ ước lượng sai khối lượng công việc và mức độ nghiêm trọng. Trọng số lớp và sự dịch chuyển tỉ lệ dương theo thời gian đều gây ra loại sai lệch này, nên nhóm hiệu chỉnh xác suất sau khi đã chọn mô hình. Mô hình gốc được huấn luyện lại trên phân vùng huấn luyện và lựa chọn. Hai phương pháp hiệu chỉnh được fit trên phân vùng \emph{fit hiệu chỉnh}: sigmoid (Platt scaling), giả định độ lệch có dạng hàm logistic và ổn định khi dữ liệu ít, và isotonic, không giả định dạng hàm nhưng dễ quá khớp. Hai phương pháp sau đó được so sánh bằng Brier score trên phân vùng \emph{so sánh hiệu chỉnh} độc lập; nếu không phương pháp nào cải thiện so với mô hình gốc, mô hình gốc được giữ nguyên. Việc tách hai phân vùng giúp kết quả so sánh không bị lạc quan do đánh giá trên chính dữ liệu đã dùng để fit, một sai lầm đặc biệt dễ xảy ra với isotonic. Với mô hình rừng ngẫu nhiên được giữ lại, Brier score trên phân vùng so sánh là 0,220 khi chưa hiệu chỉnh, 0,106 với isotonic và 0,105 với sigmoid, nên sigmoid được chọn. Hiệu chỉnh là phép biến đổi đơn điệu nên không làm thay đổi thứ tự xếp hạng, do đó PR-AUC và Recall@5\% không bị ảnh hưởng, chỉ độ tin cậy của xác suất được cải thiện.
+
+Ngưỡng ưu tiên được chọn trên phân vùng \emph{chọn ngưỡng}: các đơn thuộc 5\% điểm rủi ro cao nhất được gán mức \textsc{Cao}, các đơn còn lại trong 20\% cao nhất được gán mức \textsc{Trung bình}. Nhóm chọn ngưỡng theo tỉ lệ phần trăm thay vì một ngưỡng xác suất cố định như 0,5 vì ràng buộc thực sự của bộ phận chăm sóc khách hàng là số đơn có thể xử lý mỗi ngày, không phải mức xác suất. Ngưỡng phần trăm biến năng lực xử lý thành tham số trực tiếp của mô hình, và vẫn giữ nguyên ý nghĩa khi tỉ lệ dương dịch chuyển, điều mà một ngưỡng xác suất cố định không làm được. Cách tiếp cận này phù hợp với quan điểm rằng giá trị của mô hình nằm ở việc phân bổ nguồn lực can thiệp có hạn~\cite{gomezvargas2025}.
+
+% =====================================================================
+\section{Phương pháp đánh giá}\label{sec:eval}
+
+Với lớp dương chỉ chiếm khoảng một phần mười, độ chính xác (accuracy) không có ý nghĩa: một mô hình dự đoán mọi đơn đều tốt đã đạt khoảng 90\%. Nhóm dùng ba chỉ số, mỗi chỉ số trả lời một câu hỏi khác nhau về mô hình, tính trên đoạn kiểm định của từng fold rồi lấy trung bình qua ba fold.
+
+\textbf{PR-AUC} (diện tích dưới đường cong precision--recall) trả lời câu hỏi \emph{mô hình xếp hạng tốt đến đâu} và là chỉ số chính. Khác với ROC-AUC, PR-AUC tập trung vào lớp dương và không bị thổi phồng bởi số lượng lớn các đơn âm dễ phân loại, nên phù hợp với bài toán mất cân bằng. Chỉ số được đo ở cả mức item và mức đơn (sau khi tổng hợp bằng max-v1); mức đơn là mức quyết định vì đó là đơn vị nhân viên xử lý. PR-AUC của một mô hình xếp hạng ngẫu nhiên xấp xỉ tỉ lệ dương, nên tỉ lệ dương của từng fold là mốc so sánh tự nhiên.
+
+\textbf{Brier score} trả lời câu hỏi \emph{xác suất có đáng tin không}:
+\begin{equation}\label{eq:brier}
+  \mathrm{BS} = \frac{1}{N}\sum_{j=1}^{N}\left(\hat{p}_j - y_j\right)^2
+\end{equation}
+trong đó $\hat p_j$ là xác suất dự đoán ở mức đơn và $y_j \in \{0,1\}$ là nhãn thực tế; giá trị càng thấp càng tốt. Brier score phạt cả xếp hạng kém lẫn xác suất lệch, nên hai mô hình có cùng PR-AUC vẫn có thể có Brier score khác nhau. Đây cũng là tiêu chí so sánh các phương pháp hiệu chỉnh ở mục~\ref{sec:models}.
+
+\textbf{Recall@5\%} trả lời câu hỏi vận hành: \emph{nếu chỉ xử lý được 5\% số đơn, nhóm này bắt được bao nhiêu phần đơn bị đánh giá thấp?} Mức 5\% tương ứng với nhóm ưu tiên \textsc{Cao}. Chọn ngẫu nhiên 5\% số đơn chỉ cho recall kỳ vọng 5\%, nên tỉ số giữa Recall@5\% của mô hình và 5\% cho biết mô hình giúp bộ phận chăm sóc khách hàng hiệu quả gấp bao nhiêu lần so với không có mô hình. Mức tham chiếu ngẫu nhiên là mốc tối thiểu; các nghiên cứu về ưu tiên hóa cho thấy những luật xếp hạng đơn giản như sắp theo giá trị đơn đôi khi đã khó vượt qua~\cite{li2026valuesorting}, nên đây là hướng so sánh cần bổ sung.
+
+Ba chỉ số này đo khả năng \emph{dự báo} chứ không đo hiệu quả \emph{can thiệp}. Một đơn rủi ro cao không nhất thiết là đơn mà việc liên hệ sẽ thay đổi được kết quả; nghiên cứu về giữ chân khách hàng đã chỉ ra rằng nhắm vào khách có rủi ro cao nhất không phải lúc nào cũng mang lại hiệu quả cao nhất~\cite{ascarza2018}. Đánh giá hiệu quả can thiệp đòi hỏi thử nghiệm có đối chứng và nằm ngoài phạm vi đề tài. Ngoài ra, các kết quả trình bày ở Chương~4 là kết quả trên các fold phát triển. Phân vùng test chưa được dùng để chấm điểm; vì giai đoạn này đã được biết trong quá trình phát triển, một đánh giá xác nhận hợp lệ cần một holdout thay thế mới. Các con số ở Chương~4 vì vậy mang tính thăm dò, chưa phải ước lượng cuối cùng về hiệu năng khi triển khai.
+ 
 % Chương 4 -- Kết quả và phân tích: EDA, kết quả, hệ thống (Quân, Grunt), bảng, phân tích, ứng dụng (Trúc)
-\input{chapters/ch4}
-\input{chapters/ch4_demo}
+% Chương 4 — Kết quả và phân tích. Số liệu kết quả để ở đây; phương pháp ở Chương 3.
+% Nguồn số liệu mô hình (4.2–4.4): SERVER_CONTEXT/chapter3_evidence.md, chapter4_evidence.md, model_variant_fold_metrics.md,
+% reports/P5-accuracy-coursework-summary.md, P5-accuracy-failure-analysis.md, P5-S2/S4/S6/S10-*.md.
+% Mọi kết quả mô hình là development/exploratory; không có kết quả test niêm phong. Brier so sánh hiệu chỉnh
+% tính ở mức item, không trọng số (src/hidden_dissatisfaction/modeling/training.py, _select_calibration).
+\chapter{Kết quả và phân tích}\label{ch:results}
 
-\input{chapters/ch5}       % Thảo luận (Trúc)
+% =====================================================================
+% Mục EDA. Nguồn số liệu: notebooks/olist_open_eda.ipynb (EDA mở), notebooks/01_eda_why_lateness_dominates.ipynb
+% (5 lý do giao trễ chi phối), và script tính trên quần thể nghiên cứu dựng lại từ data/raw/olist theo đúng luật
+% int_p4_cohort.sql + int_p4_review_canonical.sql (kết quả khớp tab:funnel: 85 420 đơn / 97 878 item).
+% Hình sao chép từ notebooks/figures/ (nhãn tiếng Anh giữ nguyên).
+\section{Kết quả phân tích khám phá dữ liệu}\label{sec:eda}
 
-\input{chapters/ch6}
+Trước khi huấn luyện mô hình, nhóm khảo sát dữ liệu để trả lời hai câu hỏi. Câu thứ nhất là dữ liệu có đủ tin cậy để dựng quần thể và đặc trưng như mô tả ở Chương~\ref{ch:method} hay không; câu thứ hai là trong nhóm đơn giao đúng hạn còn lại những tín hiệu nào gắn với đánh giá thấp. Số liệu trong mục này thuộc ba mẫu khác nhau, và mỗi con số đều được ghi rõ mẫu của nó như sau.
+\begin{itemize}
+  \item \emph{Toàn bộ dữ liệu} Olist: 99\,441 đơn.
+  \item \emph{Mẫu đã giao có đánh giá}: 95\,824 đơn đã giao, có ngày giao và có đánh giá, dùng khi so sánh đơn trễ với đơn đúng hạn. Ở mẫu này, một đơn được xem là trễ khi \emph{ngày} giao muộn hơn ngày dự kiến.
+  \item \emph{Quần thể nghiên cứu} theo Bảng~\ref{tab:funnel}: 85\,420 đơn với 97\,878 item, dựng lại từ tệp CSV gốc bằng đúng luật lọc và luật chọn đánh giá của kho dữ liệu. Quần thể này so sánh ngày giao với ngày dự kiến theo mốc thời gian đầy đủ, nên số đơn ``đúng hạn'' của nó chênh vài nghìn đơn so với cách đếm theo ngày. Snapshot dùng để huấn luyện lệch so với bản dựng lại 5 đơn và 6 item.
+\end{itemize}
+Mọi kết quả trong mục là mô tả và tương quan, không mang ý nghĩa nhân quả.
 
+\subsection{Độ phủ thời gian và chất lượng dữ liệu}\label{subsec:eda-coverage}
+
+Dữ liệu Olist trải từ tháng 9/2016 đến tháng 10/2018 nhưng chỉ 20 tháng có mật độ đủ để phân tích (Hình~\ref{fig:eda-coverage}, các tháng tô xám là giai đoạn quá thưa). Từ tháng 1/2017 đến tháng 8/2018 có 99\,092 trong tổng số 99\,441 đơn. Năm 2016 gần như trống (tháng 11/2016 không có đơn nào), còn 20 đơn của tháng 9--10/2018 chưa từng được giao. Lượng đơn tăng nhanh trong năm 2017 rồi đi ngang ở mức 6\,200--7\,300 đơn mỗi tháng suốt năm 2018; tám tháng đầu năm 2018 có 53\,991 đơn, gấp khoảng 2,35 lần cùng kỳ năm 2017 (22\,968 đơn). Ngày Black Friday 24/11/2017 ghi nhận 1\,176 đơn, trong khi trung vị một ngày năm 2018 chỉ là 227 đơn. Vì năm 2016 quá thưa, phân vùng huấn luyện ở Bảng~\ref{tab:split} tuy bắt đầu từ tháng 10/2016 nhưng phần lớn dữ liệu của nó thuộc năm 2017.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/01_coverage}
+  \caption{Số đơn Olist theo tháng và theo ngày}
+  \label{fig:eda-coverage}
+\end{figure}
+
+Hành vi vận hành cũng không đứng yên theo thời gian (Hình~\ref{fig:eda-operations}, tính theo tháng mua trên các đơn đã giao). Tỉ lệ giao trễ chỉ 3--5\% trong các tháng bình thường nhưng lên 12,4\% với đơn mua tháng 11/2017, 14,1\% với tháng 2/2018 và 19,0\% với tháng 3/2018 (vùng tô xám trong hình); điểm đánh giá trung bình giảm tương ứng xuống 3,91, 3,83 và 3,75, so với khoảng 4,2 ở các tháng khác. Thời gian giao dự kiến (trung vị) giảm từ 39 ngày vào tháng 1/2017 xuống khoảng 23 ngày từ giữa năm 2017 và còn 13,4 ngày vào tháng 8/2018. Cuộc đình công của tài xế xe tải cuối tháng 5/2018 kéo số đơn giao mỗi tuần từ khoảng 2\,000 xuống 634, và số người bán hoạt động mỗi tháng tăng từ 227 lên 1\,278. Những thay đổi chế độ vận hành này là bằng chứng trực tiếp cho lựa chọn chia dữ liệu theo thời gian thay vì chia ngẫu nhiên ở Chương~\ref{ch:method}, bởi một phép chia ngẫu nhiên sẽ trộn các giai đoạn có quy tắc hứa giao và tỉ lệ trễ rất khác nhau.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/03_operations_over_time}
+  \caption{Diễn biến vận hành theo tháng mua}
+  \label{fig:eda-operations}
+\end{figure}
+
+Kiểm tra chất lượng dữ liệu cho thấy bộ Olist nhìn chung sạch, nhưng có một số bẫy ảnh hưởng trực tiếp đến cách dựng quần thể. Nếu nối thẳng bảng đơn với bảng sản phẩm, thanh toán và đánh giá mà không gộp trước, kết quả có 117\,329 dòng cho 97\,916 đơn và doanh thu sản phẩm bị đếm thành 14,14 triệu real thay vì 13,59 triệu, đúng hiện tượng nhân bản dòng đã nêu ở Chương~\ref{ch:method}. Có 547 đơn mang 2--3 đánh giá, trong đó 202 đơn có các điểm số không thống nhất, nên cần một luật chọn đánh giá tất định như mô tả ở Chương~\ref{ch:method}; ngoài ra 789 mã đánh giá được dùng chung cho nhiều đơn, nên không thể khử trùng chỉ theo mã đánh giá.
+
+Các mốc thời gian cũng có điểm bất thường. Có 1\,359 đơn có mốc bàn giao vận chuyển sớm hơn mốc duyệt thanh toán và 23 đơn có mốc giao cho khách sớm hơn mốc bàn giao; các khoảng thời gian âm này cần được đánh dấu thay vì tin tưởng. Hai khoảng 16--19/7/2018 và ngày 20/6/2017 gần như không có đơn được ghi nhận giao dù việc bàn giao vận chuyển vẫn diễn ra bình thường, nhiều khả năng là khoảng trống ghi log. Trong 96\,470 đơn đã giao có ngày giao, ngoài bình luận tùy chọn thì chỉ danh mục sản phẩm (1,41\%), đánh giá (0,67\%) và khoảng cách giữa người bán và khách hàng (0,49\%) có tỉ lệ thiếu đáng kể. Ở các bảng phụ, 610 sản phẩm không có danh mục, 26,2\% số dòng tọa độ là bản trùng hoàn toàn và 42 điểm tọa độ nằm ngoài lãnh thổ Brazil.
+
+\subsection{Phân bố điểm đánh giá và mức mất cân bằng lớp}\label{subsec:eda-labels}
+
+Điểm đánh giá có dạng chữ J quen thuộc (Hình~\ref{fig:eda-reviews}). Trên toàn bộ 99\,224 dòng đánh giá, 57,8\% là 5 sao, 19,3\% là 4 sao, 8,2\% là 3 sao, 3,2\% là 2 sao và 11,5\% là 1 sao. Khách không hài lòng viết bình luận nhiều hơn hẳn, với 77\% đánh giá 1 sao có bình luận so với 31\% ở mức 4 sao. Bình luận dồn ứ ở đúng 200 ký tự (659 bình luận), dấu hiệu văn bản đã bị cắt ngắn.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/13_reviews_overview}
+  \caption{Phân bố điểm và bình luận đánh giá}
+  \label{fig:eda-reviews}
+\end{figure}
+
+Trong quần thể nghiên cứu, phân bố dịch về phía hài lòng, với 62,45\% đơn nhận 5 sao, 20,35\% nhận 4 sao, 8,00\% nhận 3 sao, 2,63\% nhận 2 sao và 6,58\% nhận 1 sao. Tỉ lệ dương ở mức đơn vì vậy là 9,21\% (7\,865/85\,420), thấp hơn đáng kể so với 14,69\% khi tính trên mọi đơn có đánh giá. Ở mức item, tỉ lệ dương lên tới 11,41\% vì đơn nhiều sản phẩm có tỉ lệ bị đánh giá thấp cao hơn (mục~\ref{subsec:eda-ontime}) và đóng góp nhiều dòng hơn.
+
+Khác biệt giữa hai mức này cần được ghi nhớ khi đọc Bảng~\ref{tab:split}. Tỉ lệ dương 10,13--13,80\% trong bảng đó được tính ở mức item, còn nếu dựng lại theo cùng mốc thời gian ở mức đơn thì tỉ lệ dương của năm phân vùng phát triển là 8,86--10,53\%. Theo tháng giao, tỉ lệ dương mức đơn của quần thể nghiên cứu dao động trong khoảng 7,8--10,9\%. Với khoảng một đơn dương trên mười một đơn, accuracy không phải thước đo phù hợp, như đã lập luận ở mục~\ref{sec:th-metrics}; tỉ lệ dương mức đơn này cũng là mốc ngẫu nhiên khi đọc PR-AUC ở mục~\ref{sec:results-analysis}.
+
+\subsection{Vì sao giao trễ chi phối các mô hình dự báo hiện có}\label{subsec:eda-lateness}
+
+Trên các đơn đã giao có đánh giá, giao trễ là tín hiệu mạnh nhất của đánh giá thấp. Theo định nghĩa trễ theo ngày, 6,7\% đơn bị giao trễ, và nhóm này có 62,4\% đơn bị đánh giá 1--2 sao, gấp 6,7 lần tỉ lệ 9,3\% của đơn đúng hạn. Hình~\ref{fig:eda-factors} đặt tám yếu tố trên cùng một thang đo, với đường xám là tỉ lệ chung 14,7\% trên mọi đơn có đánh giá; các ô về thời gian giao và khoảng cách chỉ tính trên đơn đã giao. Tỉ lệ đánh giá thấp chỉ 9\% với đơn giao sớm từ 7 ngày trở lên và 11\% với đơn giao sớm 0--6 ngày, nhưng lên 32\% khi trễ 1--3 ngày, 68\% khi trễ 4--7 ngày và 79\% khi trễ hơn 7 ngày. Quan hệ này có dạng bậc thang. Giao sớm hơn hứa hẹn hầu như không cải thiện thêm, nhưng chỉ cần vượt qua ngày hứa là tỉ lệ tăng vọt. Theo bảng chi tiết của notebook, tỉ lệ đánh giá thấp là 12,4\% với đơn giao đúng ngày dự kiến, 19,6\% khi trễ một ngày và 50,4\% khi trễ ba ngày. Dạng bất đối xứng này khớp với kết quả của \textcite{ravula2023} và với bằng chứng về tác động của chất lượng giao hàng lên điểm đánh giá~\parencite{deshpande2023}.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/14_score_factors}
+  \caption{Tỉ lệ đánh giá 1--2 sao theo tám yếu tố}
+  \label{fig:eda-factors}
+\end{figure}
+
+Phân tích trong notebook chỉ ra năm lý do khiến các mô hình hài lòng trên Olist hầu như đều ``phát hiện'' giao trễ là yếu tố quyết định (Bảng~\ref{tab:eda-reasons}). Lý do thứ hai đáng chú ý nhất vì nó nằm ở cơ chế sinh nhãn. Olist gửi khảo sát khi khách nhận hàng \emph{hoặc} khi đến ngày giao dự kiến~\parencite{olist2018}, nên với đơn trễ, khách thường được hỏi về một món hàng chưa nhận được. Trong mẫu đơn trễ, 70,1\% đánh giá được trả lời trước khi hàng đến và 80,8\% số đánh giá này là 1--2 sao; ngược lại, ở đơn đúng hạn chỉ 0,3\% khảo sát được gửi trước ngày giao. Với phần lớn đơn trễ, ``đánh giá'' thực chất là lời phàn nàn hàng chưa tới, và dự báo nó từ mốc thời gian gần như là dự báo lịch gửi khảo sát. Quần thể nghiên cứu loại bỏ vấn đề này từ gốc, vì chỉ giữ đơn giao đúng hạn và có đánh giá tạo sau thời điểm giao.
+
+\begin{table}[htbp]\centering\small
+\caption{Năm lý do giao trễ chi phối các mô hình dự báo hài lòng trên Olist (mẫu: 95\,824 đơn đã giao có đánh giá; trễ tính theo ngày)}\label{tab:eda-reasons}
+\begin{tabular}{p{4.3cm}p{9.2cm}}
+\toprule
+Lý do & Bằng chứng \\
+\midrule
+Giao trễ là tín hiệu mạnh và có dạng bậc thang & 62,4\% đơn trễ bị đánh giá thấp so với 9,3\% đơn đúng hạn; trễ ba ngày đã có 50,4\% đơn bị đánh giá thấp (Hình~\ref{fig:eda-factors}) \\
+Nhãn của đơn trễ phần lớn do lịch gửi khảo sát tạo ra & 70,1\% đánh giá của đơn trễ được viết trước khi hàng đến, 80,8\% trong số đó là 1--2 sao \\
+Giao trễ quyết định các biến động theo thời gian & Tỉ lệ đánh giá thấp toàn bộ dao động 9,4--21,2\% theo tháng và tăng cùng tỉ lệ trễ (14,0\% tháng 2/2018, 18,7\% tháng 3/2018); tỉ lệ ở đơn đúng hạn chỉ dao động 7,4--10,7\% \\
+Đặc trưng thời gian đứng đầu khi gộp mọi đơn & ROC-AUC đơn biến của bốn đặc trưng thời gian đứng đầu là 0,65--0,69 trên mọi đơn, nhưng các đặc trưng này chỉ đạt 0,51--0,57 trên đơn đúng hạn; ở nhóm này số item trong đơn (0,59), tỉ lệ đánh giá thấp trước đó của người bán (0,59) và phí vận chuyển (0,58) dẫn đầu \\
+Accuracy che giấu vấn đề & Một mô hình boosting chẩn đoán (chia ngẫu nhiên 70/30, ngưỡng 0,5, như các nghiên cứu trước) đạt accuracy 89,8\%, chỉ hơn mức luôn dự đoán ``không tiêu cực'' (87,2\%) 2,6 điểm; 58,7\% danh sách 10\% rủi ro cao nhất là đơn trễ dù đơn trễ chỉ chiếm 6,7\%, và danh sách này bắt được 96,5\% đơn trễ bị đánh giá thấp nhưng chỉ 16,7\% đơn đúng hạn bị đánh giá thấp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hệ quả là các mô hình huấn luyện trên mọi đơn học chủ yếu cách nhận diện đơn trễ, trong khi phần lớn đánh giá thấp lại nằm ở nhóm còn lại. Trong 12\,272 đơn bị đánh giá 1--2 sao thuộc mẫu đã giao có đánh giá, 8\,289 đơn (67,5\%) đến từ đơn giao đúng hạn theo định nghĩa theo ngày; dùng định nghĩa theo mốc thời gian của quần thể nghiên cứu, con số là 8\,130 đơn (66,25\%). Đơn đúng hạn cũng là trạng thái phổ biến chứ không phải ngoại lệ (Hình~\ref{fig:eda-promise}). Trung vị thời gian giao thực tế là 10,2 ngày so với 23,2 ngày hứa giao, và 93,2\% đơn đến đúng hoặc sớm hạn với trung vị sớm 12 ngày. Theo tháng, tỉ lệ đánh giá thấp của đơn đúng hạn chỉ dao động trong khoảng 7,4--10,7\% (Bảng~\ref{tab:eda-reasons}), nên nhóm khách này không bao giờ hiện lên thành một đỉnh trên biểu đồ vận hành. Đó chính là lý do sự bất mãn của họ được gọi là ``ẩn''.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/09_promise_vs_reality}
+  \caption{Thời gian giao thực tế so với thời gian hứa giao}
+  \label{fig:eda-promise}
+\end{figure}
+
+\subsection{Tín hiệu trong nhóm đơn giao đúng hạn}\label{subsec:eda-ontime}
+
+Khi đã loại giao trễ, các tín hiệu còn lại yếu hơn nhưng không biến mất. Bảng~\ref{tab:eda-segments} tóm tắt tỉ lệ đánh giá thấp mức đơn trong quần thể nghiên cứu theo các yếu tố đều biết được tại thời điểm giao. Cấu trúc đơn tạo khác biệt lớn nhất. Đơn có hai người bán bị đánh giá thấp 45,7\%, gấp hơn năm lần đơn một người bán (8,7\%), và tỉ lệ tăng đều từ 7,5\% ở đơn một item lên 31,9\% ở đơn từ bốn item. Nhóm đơn nhiều người bán rất nhỏ (1\,214 đơn), nhưng tỉ lệ 45,7--63,2\% của nó đã ngang với mức 62,4\% của đơn \emph{trễ} ở mục~\ref{subsec:eda-lateness}. Ở toàn bộ dữ liệu, đơn nhiều người bán còn có tỉ lệ trễ ghi nhận chỉ 1,0\% so với 6,9\% của đơn một người bán và điểm trung bình 2,86 so với 4,12, cho thấy mốc giao duy nhất của đơn nhiều khả năng chỉ phản ánh kiện hàng đến trước. Quan sát này khớp với bằng chứng rằng giao hàng tách kiện làm giảm sự hài lòng~\parencite{brylla2022}.
+
+\begin{table}[htbp]\centering\small
+\caption{Tỉ lệ đơn bị đánh giá 1--2 sao trong quần thể nghiên cứu theo một số yếu tố biết được tại thời điểm giao (85\,420 đơn dựng lại; tỉ lệ chung 9,21\%; mỗi yếu tố chỉ trình bày một số nhóm tiêu biểu)}\label{tab:eda-segments}
+\begin{tabular}{llrr}
+\toprule
+Yếu tố & Nhóm & Số đơn & Tỉ lệ đánh giá thấp \\
+\midrule
+Số người bán trong đơn & 1 & 84\,206 & 8,7\% \\
+ & 2 & 1\,157 & 45,7\% \\
+ & 3 trở lên & 57 & 63,2\% \\
+\addlinespace
+Số item trong đơn & 1 & 76\,678 & 7,5\% \\
+ & 2 & 6\,695 & 23,2\% \\
+ & 3 & 1\,191 & 27,0\% \\
+ & 4 trở lên & 856 & 31,9\% \\
+\addlinespace
+Số ngày từ mua đến giao & $\le$3 & 4\,622 & 6,6\% \\
+ & 7--14 & 38\,328 & 8,7\% \\
+ & 21--30 & 5\,164 & 14,6\% \\
+ & $>$30 & 786 & 22,4\% \\
+\addlinespace
+Số ngày giao sớm so với dự kiến & 0--3 & 4\,505 & 11,3\% \\
+ & 14--21 & 23\,515 & 8,3\% \\
+ & $>$30 & 2\,256 & 11,0\% \\
+\addlinespace
+Bàn giao vận chuyển sau hạn & Không & 79\,118 & 8,9\% \\
+ & Có & 6\,302 & 13,6\% \\
+\addlinespace
+Giá trị sản phẩm (real) & $\le$50 & 25\,911 & 7,8\% \\
+ & $>$500 & 3\,020 & 12,9\% \\
+\addlinespace
+Phí vận chuyển / giá & $\le$20\% & 38\,050 & 8,8\% \\
+ & $>$100\% & 2\,663 & 10,6\% \\
+\addlinespace
+Thanh toán đầu tiên & Thẻ tín dụng & 65\,863 & 9,2\% \\
+ & Boleto & 16\,904 & 9,2\% \\
+ & Voucher & 1\,342 & 10,5\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Đúng hạn không đồng nghĩa với nhanh. Đơn giao trong vòng ba ngày bị đánh giá thấp 6,6\%, còn đơn mất hơn 30 ngày dù vẫn kịp hạn có tỉ lệ 22,4\%. Khách đánh giá cả độ dài thời gian chờ chứ không chỉ việc lời hứa có được giữ hay không. Khoảng dư so với ngày dự kiến lại có dạng chữ U. Đơn kịp hạn sát nút (0--3 ngày) có tỉ lệ 11,3\%, đơn sớm 14--21 ngày có tỉ lệ thấp nhất 8,3\%, và đơn sớm hơn 30 ngày tăng trở lại 11,0\%, nhiều khả năng vì những đơn này đi kèm thời hạn hứa giao rất dài. Người bán bàn giao vận chuyển sau hạn gửi hàng nhưng hàng vẫn đến kịp có tỉ lệ 13,6\%, so với 8,9\% ở trường hợp còn lại. Lịch sử của người bán cũng mang tín hiệu. Trên mẫu đơn đúng hạn theo ngày của notebook (89\,443 đơn), người bán có hơn 30\% đánh giá thấp trong quá khứ tạo ra 18,4\% đánh giá thấp, so với 6,5\% ở người bán có tỉ lệ quá khứ từ 5\% trở xuống; tỉ lệ quá khứ này chỉ tính trên các đánh giá đã có trước thời điểm mua.
+
+Danh mục sản phẩm tạo khác biệt vừa phải. Tính ở mức item trong quần thể nghiên cứu với các danh mục có từ 800 item, nội thất văn phòng có tỉ lệ dương cao nhất (22,4\% trên 1\,460 item), tiếp theo là đồ trang trí nội thất (14,9\%), chăn ga gối (14,8\%) và phụ kiện máy tính (14,0\%); thấp nhất là phụ kiện hành lý (6,5\%) và văn phòng phẩm (7,6\%). Các item thiếu danh mục có tỉ lệ 15,1\% (1\,344 item), vì vậy giữ ``thiếu danh mục'' thành một nhóm riêng có lợi hơn là điền giá trị. Các yếu tố tiền tệ dịch chuyển ít hơn. Tỉ lệ tăng từ 7,8\% ở đơn dưới 50 real lên 12,9\% ở đơn trên 500 real, còn tỉ trọng phí vận chuyển (8,8--10,6\%) và phương thức thanh toán (8,5--10,5\%) gần như phẳng. Theo bang của khách (các bang có từ 1\,000 đơn), tỉ lệ dao động từ 8,6\% ở São Paulo đến 10,9\% ở Rio de Janeiro và 11,1\% ở Bahia.
+
+Ma trận tương quan Spearman trên 96\,470 đơn đã giao cho thấy vì sao các tín hiệu này khó nắm bắt bằng quan hệ tuyến tính. Không biến số mức đơn nào có hệ số tương quan Spearman với điểm đánh giá vượt quá 0,25 về độ lớn; mạnh nhất là số ngày giao ($-0{,}23$), thời gian vận chuyển ($-0{,}19$), chênh lệch so với ngày dự kiến ($-0{,}18$) và số item ($-0{,}11$). Các quan hệ ở Bảng~\ref{tab:eda-segments} có dạng ngưỡng hoặc chữ U, điều mà tương quan đơn điệu đánh giá thấp. Nhiều cặp biến giải thích lại đi cùng nhau, như số ngày giao và thời gian vận chuyển ($0{,}89$), giá trị đơn và tỉ trọng phí vận chuyển ($-0{,}78$), khoảng cách và số ngày hứa giao ($0{,}62$). Mô hình tuyến tính vì thế dễ gặp đa cộng tuyến, còn mô hình cây có thể tách các ngưỡng mà không cần chỉ định trước dạng quan hệ.
+
+\subsection{Nội dung đánh giá của khách không hài lòng}\label{subsec:eda-text}
+
+Văn bản đánh giá chỉ xuất hiện \emph{sau} khi khách đánh giá, nên nó không được dùng làm đặc trưng (Hình~\ref{fig:leakage-timeline}); nhóm chỉ dùng nó để hiểu nhãn. Theo luật từ khóa trên bình luận tiếng Bồ Đào Nha đã bỏ dấu (Hình~\ref{fig:eda-themes}), bình luận 1 sao chủ yếu nói hàng chưa tới (31\%), sau đó là hoàn tiền, trả hàng hoặc hủy đơn (10\%), thiếu một phần đơn (9\%), giao chậm (7\%), lỗi hoặc hư hỏng (6\%) và giao sai sản phẩm (6\%). Bình luận 4--5 sao thì xoay quanh giao nhanh và lời khen. Bình luận của đơn nhiều người bán khác hẳn, với 31,3\% nói thiếu một phần đơn và 29,8\% nói chưa nhận được hàng, so với 3,0\% và 8,3\% ở đơn một người bán.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\linewidth]{eda/15_text_themes}
+  \caption{Chủ đề trong bình luận đánh giá}
+  \label{fig:eda-themes}
+\end{figure}
+
+So sánh bình luận tiêu cực của đơn trễ và đơn đúng hạn làm rõ khác biệt về bản chất. Trong 2\,747 bình luận 1--2 sao của đơn trễ, 52,4\% nói chưa nhận được hàng và chỉ 2,0\% nói hàng sai, khác mô tả, lỗi hoặc vỡ. Trong 6\,487 bình luận 1--2 sao của đơn đúng hạn, hai tỉ lệ này lần lượt là 13,9\% và 17,9\%, và 20,3\% nói chỉ nhận được một phần đơn; riêng đơn đúng hạn có từ hai người bán, tỉ lệ nói thiếu một phần lên 51,9\%. Có 78,3\% đánh giá thấp của đơn đúng hạn kèm bình luận. Nói cách khác, khách phàn nàn về đơn trễ vì hàng \emph{chưa đến}, còn khách phàn nàn về đơn đúng hạn vì \emph{thứ đã đến} bị thiếu, sai, hỏng hoặc kém chất lượng. Không vấn đề nào trong số này lộ ra qua chênh lệch giữa ngày giao và ngày dự kiến.
+
+\subsection{Hàm ý cho thiết kế đặc trưng}\label{subsec:eda-implications}
+
+Kết quả khám phá dữ liệu định hướng trực tiếp các nhóm đặc trưng ở Bảng~\ref{tab:features}. Tín hiệu mạnh nhất trong nhóm đúng hạn đến từ cấu trúc đơn, nên số người bán, số danh mục, số sản phẩm, các cờ nhiều item, nhiều người bán, nhiều danh mục và chỉ số tập trung Herfindahl--Hirschman được tách thành ba nhóm riêng. Do Olist chỉ có một mốc giao cho mỗi đơn, các đặc trưng này đóng vai trò đại diện gián tiếp cho việc giao thiếu hoặc tách kiện mà bình luận phản ánh. Thời gian giao thực tế, thời gian vận chuyển và khoảng dư so với ngày dự kiến được giữ trong nhóm cơ sở vì đơn chờ lâu vẫn có rủi ro cao dù kịp hạn; quan hệ chữ U của khoảng dư là thêm một lý do để ưu tiên mô hình cây.
+
+Lịch sử đánh giá của người bán và danh mục, cùng nhóm tốc độ và độ biến động của người bán, khai thác tín hiệu từ người bán bàn giao trễ và người bán có tiền sử bị đánh giá thấp; cả hai đều phải tính với ranh giới thời gian chặt như ở Hình~\ref{fig:leakage-timeline}. Danh mục được giữ ở dạng biến phân loại kèm nhóm ``thiếu''. Các nhóm hình thái sản phẩm và độ đầy đủ nội dung nhắm đến các lời phàn nàn về hư hỏng và hàng khác mô tả. Phí vận chuyển, giá trị đơn và thanh toán chỉ cho tín hiệu yếu ở bước khám phá; chúng vẫn nằm trong nhóm cơ sở, nhưng không nên kỳ vọng đóng góp lớn từ riêng các biến này. Ngược lại, văn bản, tiêu đề, thời điểm tạo và thời điểm trả lời đánh giá bị loại khỏi tập đặc trưng, vì đó là thông tin chỉ có sau khi nhãn đã hình thành. Mục~\ref{sec:analysis-eda} kiểm tra lại các kỳ vọng này bằng kết quả thực nghiệm.
+
+% =====================================================================
+\section{Kết quả đạt được}\label{sec:results}
+
+\subsection{Các thành phần đã hoàn thành}\label{subsec:res-summary}
+
+Quá trình thực nghiệm tạo ra một pipeline đầy đủ từ dữ liệu thô đến điểm rủi ro mức đơn, cùng một mô hình được chọn theo quy tắc đã định trước ở mục~\ref{sec:models}. Bảng~\ref{tab:res-summary} tóm tắt các thành phần chính. Mô hình giữ lại là rừng ngẫu nhiên 200 cây, độ sâu tối đa 8, tối thiểu 5 mẫu mỗi lá, trọng số lớp cân bằng tính lại trên từng mẫu bootstrap, huấn luyện ở chế độ order-weight, tức mỗi item có trọng số bằng nghịch đảo số item trong đơn. Tập đặc trưng cuối cùng gồm 61 đặc trưng thuộc bảy nhóm ở Bảng~\ref{tab:features}, là kết quả của mười giai đoạn thử nghiệm có kiểm soát. Chín giai đoạn đầu mỗi lần thêm một nhóm đặc trưng ứng viên và chỉ giữ nhóm đó khi nó cải thiện PR-AUC mức đơn trung bình qua ba fold rolling-origin; giai đoạn cuối kiểm tra lại các nhóm đã giữ bằng cách bỏ từng nhóm một.
+
+\begin{table}[htbp]\centering\small
+\caption{Tóm tắt kết quả thực nghiệm (kết quả phát triển, mang tính thăm dò)}\label{tab:res-summary}
+\begin{tabular}{p{3.6cm}p{9.9cm}}
+\toprule
+Thành phần & Kết quả \\
+\midrule
+Dữ liệu mô hình hóa & Snapshot đóng băng 85\,425 đơn, 97\,884 item \\
+Tập đặc trưng & 61 đặc trưng, 7 nhóm: nhóm cơ sở và các nhóm từ 3 giai đoạn thử nghiệm được giữ \\
+Mô hình giữ lại & Rừng ngẫu nhiên, độ sâu 8, lá tối thiểu 5, chế độ order-weight \\
+Hiệu chỉnh & Sigmoid; Brier mức item trên phân vùng so sánh giảm từ 0,2203 xuống 0,1049 \\
+Ngưỡng ưu tiên & Top 5\% đơn là \textsc{Cao}, top 20\% là \textsc{Trung bình} trở lên \\
+PR-AUC mức đơn & 0,1465 (trung bình ba fold; mô hình ban đầu 0,1363) \\
+Recall@5\% & 0,1212 (trung bình ba fold; mốc chọn ngẫu nhiên 0,05) \\
+Brier mức đơn chưa hiệu chỉnh & 0,1907 (trung bình ba fold; mô hình ban đầu 0,2018) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+So với mô hình ban đầu cùng họ và cùng chế độ huấn luyện nhưng chỉ dùng nhóm đặc trưng cơ sở, PR-AUC mức đơn trung bình tăng 0,0102 (khoảng 7,5\%) và Brier score giảm 0,0112. Mục tiêu dừng PR-AUC 0,25 của kế hoạch cải thiện không đạt; kế hoạch kết thúc khi các thử nghiệm tiếp theo, kể cả ba cấu hình CatBoost chạy trên GPU và chế độ gộp item thành đơn trước khi huấn luyện, không vượt được mô hình đã giữ trên chỉ số chính.
+
+\subsection{Hệ thống hỗ trợ vận hành}\label{sec:system-api}
+
+Bên cạnh mô hình, đề tài hoàn thành một ứng dụng đưa điểm rủi ro vào quy trình chăm sóc khách hàng (kiến trúc ở Hình~ef{fig:arch}).
+
+Luồng ngoại tuyến nạp dữ liệu, tạo đặc trưng, huấn luyện và chấm điểm theo lô. Luồng trực tuyến chỉ đọc snapshot điểm đã được ghi để tạo hàng đợi, phân công và ghi nhận xử lý. Việc tách hai luồng loại trừ một rủi ro cơ bản: một thao tác trên giao diện không được làm thay đổi dữ liệu, ngưỡng hay phiên bản mô hình.
+
+PostgreSQL lưu kho dữ liệu Bronze/Silver/Gold, schema \texttt{ml} lưu release, snapshot và ngưỡng, còn schema \texttt{app} lưu case và lịch sử xử lý. Snapshot là điểm nối giữa hai phần. Nó ghi score, phiên bản model, phiên bản ngưỡng, thời điểm chấm điểm và nguồn dữ liệu. Case có thể thay đổi người phụ trách hoặc trạng thái; score và mức rủi ro của snapshot không được sửa qua API. Vì vậy, một quyết định sau này luôn có thể được đối chiếu với thông tin đã có khi hàng đợi được tạo.
+
+API dùng Bearer JWT, còn kiểm soát quyền được thực hiện ở backend. \texttt{SPECIALIST} xem hàng đợi, nhận các case thấp/trung bình hợp lệ và ghi liên lạc. \texttt{MANAGER} phân công case HIGH, mở lại case, đặt quyết định, xem audit và thay đổi tham số. Sự phân vai này không chứng minh hiệu quả CSKH; nó chỉ xác định ai được phép thực hiện bước nào trong quy trình.
+
+Case đi qua \texttt{PENDING}, \texttt{IN\_PROGRESS}, \texttt{COMPLETED} hoặc \texttt{SKIPPED}. Specialist không thể nhận case đã có người xử lý, case HIGH hoặc case vượt năng lực. Khi case được đóng hoặc mở lại, backend tạo và kiểm tra giao dịch thay vì để giao diện tự suy diễn trạng thái. Contact, comment, decision và parameter version được ghi thêm thay vì ghi đè; audit event ghi lại thay đổi workflow. Các quy tắc này phục vụ khả năng kiểm tra, không phải là một lớp trang trí cho giao diện.
+
+Các endpoint dưới tiền tố \texttt{/api/v1} phản ánh các ranh giới trên: \texttt{/auth} cho phiên làm việc; \texttt{/orders} cho hàng đợi và nhận case; \texttt{/contacts}, \texttt{/comments}, \texttt{/decisions} cho bằng chứng xử lý; \texttt{/dashboard}, \texttt{/audit-events} và \texttt{/parameters} cho giám sát. Hàng đợi mặc định sắp theo score giảm dần, tiếp đến SLA và thời gian chờ. Do đó score chỉ quyết định thứ tự cần xem xét, không tự gắn nhãn khách hàng hoặc tự gửi liên hệ.
+
+\subsection{Phạm vi của bằng chứng}\label{subsec:res-scope}
+
+Mọi số liệu mô hình trong chương này là kết quả phát triển, tính trên ba fold rolling-origin bên trong phân vùng huấn luyện, và mang tính thăm dò. Phân vùng test lịch sử đã bị lộ trong quá trình phát triển, nên quy trình hoàn tất không cho phép chấm điểm trên phân vùng đó; muốn có kết luận xác nhận cần một tập kiểm tra mới, được niêm phong trước khi xem xét. Do chưa có lần chạy hoàn tất nào, các kết quả sau đây \emph{chưa} được tính, gồm chỉ số trên tập test, khoảng tin cậy bootstrap theo cụm đơn, đường cong precision--recall và đường cong hiệu chỉnh, kết quả ở các ngân sách 10\% và 20\%, mốc so sánh theo giá trị đơn, và giá trị SHAP. Báo cáo thực nghiệm cũng không ghi ROC-AUC theo fold, Brier mức item theo fold và tỉ lệ dương của từng đoạn kiểm định; nhóm không suy ra các đại lượng này.
+
+Các con số dưới đây vì vậy trả lời câu hỏi ``trong giai đoạn phát triển, mô hình xếp hạng và ước lượng xác suất tốt đến đâu, và mức đó có ổn định qua thời gian không'', chứ chưa phải ước lượng cuối cùng về hiệu năng khi triển khai.
+
+% =====================================================================
+\section{Bảng biểu và số liệu}\label{sec:tables}
+
+\subsection{Hiệu năng của mô hình giữ lại theo fold}\label{subsec:tab-folds}
+
+Bảng~\ref{tab:res-folds} trình bày bốn chỉ số của mô hình giữ lại trên từng fold. Cột cuối là hệ số nâng tại ngân sách 5\%, tức Recall@5\% chia cho 0,05, mức recall kỳ vọng khi chọn ngẫu nhiên (công thức~\eqref{eq:th-recallk}). Ba fold có đoạn kiểm định lần lượt bắt đầu ngày 1/6/2017, 18/7/2017 và 24/8/2017 (Hình~\ref{fig:temporal-folds}).
+
+\begin{table}[htbp]\centering\small
+\caption{Kết quả của mô hình giữ lại theo fold rolling-origin (rừng ngẫu nhiên, order-weight, chưa hiệu chỉnh)}\label{tab:res-folds}
+\begin{tabular}{crrrrr}
+\toprule
+Fold & PR-AUC item & PR-AUC đơn & Brier đơn & Recall@5\% & Hệ số nâng \\
+\midrule
+1 & 0,1538 & 0,1425 & 0,1883 & 0,1141 & 2,28 \\
+2 & 0,1883 & 0,1507 & 0,1899 & 0,1309 & 2,62 \\
+3 & 0,1860 & 0,1463 & 0,1938 & 0,1187 & 2,37 \\
+\midrule
+Trung bình & 0,1760 & 0,1465 & 0,1907 & 0,1212 & 2,42 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hình~\ref{fig:res-folds} so sánh mô hình giữ lại với mô hình ban đầu trên cùng ba fold. Mô hình giữ lại tốt hơn ở cả ba fold, theo cả PR-AUC mức đơn lẫn Recall@5\%. Mức cải thiện PR-AUC lần lượt là 0,0120, 0,0060 và 0,0125; Recall@5\% tăng 0,0121, 0,0123 và 0,0158.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[x=1cm,y=25cm,font=\footnotesize]
+  % y: 0,16 = 4 cm
+  \foreach \ox/\ttl in {0/{PR-AUC mức đơn},6.6/{Recall@5\%}} {
+    \begin{scope}[xshift=\ox cm]
+      \draw (0,0) -- (5.4,0);
+      \draw (0,0) -- (0,0.165);
+      \foreach \t/\l in {0/0,0.05/{0,05},0.10/{0,10},0.15/{0,15}} {
+        \draw (-0.08,\t) -- (0,\t) node[left,font=\scriptsize]{\l};
+        \draw[gray!25] (0,\t) -- (5.4,\t);
+      }
+      \node[font=\small] at (2.7,0.185) {\ttl};
+      \foreach \k in {1,2,3} \node[below,font=\scriptsize] at (1.6*\k-0.5,0) {Fold \k};
+    \end{scope}
+  }
+  % PR-AUC mức đơn: ban đầu / giữ lại
+  \foreach \k/\a/\b/\la/\lb in {1/0.1305/0.1425/{0,131}/{0,143},2/0.1447/0.1507/{0,145}/{0,151},3/0.1338/0.1463/{0,134}/{0,146}} {
+    \fill[gray!45] (1.6*\k-1.0,0) rectangle (1.6*\k-0.52,\a);
+    \fill[blue!55] (1.6*\k-0.48,0) rectangle (1.6*\k,\b);
+    \node[above,font=\tiny] at (1.6*\k-0.76,\a) {\la};
+    \node[above,font=\tiny] at (1.6*\k-0.24,\b) {\lb};
+  }
+  % Recall@5%: ban đầu / giữ lại
+  \begin{scope}[xshift=6.6cm]
+    \foreach \k/\a/\b/\la/\lb in {1/0.1019/0.1141/{0,102}/{0,114},2/0.1185/0.1309/{0,119}/{0,131},3/0.1029/0.1187/{0,103}/{0,119}} {
+      \fill[gray!45] (1.6*\k-1.0,0) rectangle (1.6*\k-0.52,\a);
+      \fill[blue!55] (1.6*\k-0.48,0) rectangle (1.6*\k,\b);
+      \node[above,font=\tiny] at (1.6*\k-0.76,\a) {\la};
+      \node[above,font=\tiny] at (1.6*\k-0.24,\b) {\lb};
+    }
+    \draw[red!70!black,dashed] (0,0.05) -- (5.4,0.05);
+  \end{scope}
+  % chú giải
+  \fill[gray!45] (0.4,-0.03) rectangle (0.7,-0.022); \node[right,font=\scriptsize] at (0.7,-0.026) {Mô hình ban đầu (chỉ nhóm cơ sở)};
+  \fill[blue!55] (5.8,-0.03) rectangle (6.1,-0.022); \node[right,font=\scriptsize] at (6.1,-0.026) {Mô hình giữ lại};
+  \draw[red!70!black,dashed] (8.7,-0.026) -- (9.3,-0.026); \node[right,font=\scriptsize] at (9.3,-0.026) {Chọn ngẫu nhiên 5\%};
+\end{tikzpicture}
+\caption{PR-AUC mức đơn và Recall@5\% theo fold}
+\label{fig:res-folds}
+\end{figure}
+
+\subsection{Đóng góp của các nhóm đặc trưng}\label{subsec:tab-features}
+
+Bảng~\ref{tab:res-phases} liệt kê chín giai đoạn thêm nhóm đặc trưng. Ba nhóm được giữ được thêm nối tiếp nhau, nên PR-AUC tăng từ 0,1363 lên 0,1407 sau giai đoạn 2, lên 0,1445 sau giai đoạn 4 và lên 0,1465 sau giai đoạn 6. Sáu nhóm còn lại bị loại vì mức cải thiện tốt nhất không vượt ngưỡng hoặc làm giảm chỉ số. Cả ba nhóm được giữ đều cải thiện PR-AUC ở từng fold riêng lẻ, không chỉ ở giá trị trung bình.
+
+\begin{table}[htbp]\centering\small
+\caption{Kết quả các giai đoạn thử nghiệm nhóm đặc trưng (thay đổi PR-AUC mức đơn trung bình ba fold so với tập đang giữ)}\label{tab:res-phases}
+\begin{tabular}{clrl}
+\toprule
+Giai đoạn & Nhóm đặc trưng ứng viên & Thay đổi PR-AUC & Quyết định \\
+\midrule
+1 & Lịch sử nhãn của người bán và danh mục (làm trơn) & $+0{,}0015$ (tốt nhất) & Loại \\
+2 & Tốc độ và độ biến động vận hành của người bán & $+0{,}0044$ & Giữ \\
+3 & Địa lý và tuyến vận chuyển & $-0{,}0024$ (tốt nhất) & Loại \\
+4 & Cấu trúc đơn: số lượng, tỉ lệ, mức độ tập trung & $+0{,}0038$ & Giữ \\
+5 & Hành vi thanh toán & $+0{,}0006$ (tốt nhất) & Loại \\
+6 & Hình thái sản phẩm và độ đầy đủ nội dung & $+0{,}0020$ & Giữ \\
+7 & Lịch và khối lượng đơn trước đó & $-0{,}0004$ (tốt nhất) & Loại \\
+8 & Cờ chất lượng dữ liệu & $-0{,}0024$ & Loại \\
+9 & Tương tác có kiểm soát & $-0{,}0005$ & Loại \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Giai đoạn 10 kiểm tra lại ba nhóm được giữ bằng cách bỏ từng nhóm một (leave-one-group-out). Bảng~\ref{tab:res-loo} cho thấy bỏ nhóm nào cũng làm PR-AUC giảm ít nhất bằng dung sai 0,002 đặt trước, nên tập đặc trưng rút gọn trùng với tập đầy đủ. Nhóm hình thái và nội dung sản phẩm nằm đúng ở ranh giới này. Cột cuối là PR-AUC mức đơn trên phân vùng lựa chọn mô hình (Bảng~\ref{tab:split}), một tập kiểm định đơn lẻ được báo cáo như bằng chứng phụ.
+
+\begin{table}[htbp]\centering\small
+\caption{Bỏ từng nhóm đặc trưng khỏi tập giữ lại (trung bình ba fold, trừ cột cuối)}\label{tab:res-loo}
+\begin{tabular}{p{5.6cm}rrrr}
+\toprule
+Tập đặc trưng & PR-AUC đơn & Thay đổi & Brier đơn & PR-AUC lựa chọn \\
+\midrule
+Đầy đủ (7 nhóm) & 0,1465 & -- & 0,1907 & 0,2108 \\
+Bỏ tốc độ và độ biến động người bán & 0,1424 & $-0{,}0042$ & 0,1956 & 0,2113 \\
+Bỏ cấu trúc đơn & 0,1415 & $-0{,}0050$ & 0,1902 & 0,1999 \\
+Bỏ hình thái và nội dung sản phẩm & 0,1445 & $-0{,}0020$ & 0,1946 & 0,2185 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{So sánh với các cấu hình CatBoost}\label{subsec:tab-catboost}
+
+Ba cấu hình CatBoost xử lý biến phân loại trực tiếp được chạy trên cùng tập đặc trưng và cùng ba fold (Bảng~\ref{tab:res-catboost}). Kho lưu trữ chỉ giữ số liệu theo fold của rừng ngẫu nhiên và ba cấu hình này; số liệu của mô hình tỉ lệ nền, hồi quy logistic và HistGradientBoosting không còn, nên bảng không phải là bảng xếp hạng đầy đủ năm họ mô hình đã khai báo ở mục~\ref{sec:models}.
+
+\begin{table}[htbp]\centering\small
+\caption{Rừng ngẫu nhiên giữ lại so với ba cấu hình CatBoost (chế độ order-weight, cùng tập đặc trưng)}\label{tab:res-catboost}
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{3}{c}{Trung bình ba fold} & Phân vùng lựa chọn \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-5}
+Mô hình & PR-AUC đơn & Brier đơn & Recall@5\% & PR-AUC đơn \\
+\midrule
+Rừng ngẫu nhiên, độ sâu 8, lá 5 & \textbf{0,1465} & 0,1907 & 0,1212 & 0,2108 \\
+CatBoost, độ sâu 6, L2 $=8$ & 0,1458 & 0,1681 & \textbf{0,1319} & \textbf{0,2239} \\
+CatBoost, độ sâu 8 & 0,1357 & 0,1468 & 0,1229 & 0,2004 \\
+CatBoost, độ sâu 10, L2 $=8$ & 0,1374 & \textbf{0,1310} & 0,1180 & 0,1986 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Theo thứ tự ưu tiên đã định, rừng ngẫu nhiên được giữ vì có PR-AUC trung bình ba fold cao nhất, dù cấu hình CatBoost độ sâu 6 cao hơn trên phân vùng lựa chọn mô hình và ở Recall@5\%. Không có cấu hình nào đạt mức cải thiện ổn định 0,005 cần thiết để ghép thành mô hình kết hợp.
+
+\subsection{Hiệu chỉnh xác suất và ngưỡng ưu tiên}\label{subsec:tab-calibration}
+
+Mô hình giữ lại được huấn luyện lại trên phân vùng huấn luyện và lựa chọn, hai bộ hiệu chỉnh được fit trên phân vùng fit hiệu chỉnh, rồi cả ba phương án được so sánh bằng Brier score trên phân vùng so sánh hiệu chỉnh (Bảng~\ref{tab:res-calibration}). Brier ở bước này được tính trên xác suất mức item, không có trọng số, nên không so sánh trực tiếp được với Brier mức đơn ở Bảng~\ref{tab:res-folds}. Dòng cuối là dự đoán hằng số bằng tỉ lệ dương mức item của phân vùng so sánh (13,80\%), có Brier bằng $\pi(1-\pi)$, được tính thêm làm mốc tham chiếu.
+
+\begin{table}[htbp]\centering\small
+\caption{Brier score mức item trên phân vùng so sánh hiệu chỉnh (2/2018--3/2018)}\label{tab:res-calibration}
+\begin{tabular}{lr}
+\toprule
+Phương án & Brier \\
+\midrule
+Không hiệu chỉnh & 0,2203 \\
+Isotonic & 0,1057 \\
+Sigmoid (được chọn) & \textbf{0,1049} \\
+\midrule
+\emph{Tham chiếu:} dự đoán hằng số $\pi = 0{,}138$ & 0,1189 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Với ứng viên CatBoost độ sâu 6, bước hiệu chỉnh cũng chọn sigmoid, với Brier 0,1071 trên cùng phân vùng. Ngưỡng ưu tiên theo chính sách phát triển là 5\% đơn có điểm cao nhất cho mức \textsc{Cao} và 20\% cho mức \textsc{Trung bình} trở lên. Trong một lần chạy rừng ngẫu nhiên trước đó, hai ngưỡng này tương ứng với điểm 0,2858 và 0,1119; đây là ngưỡng chọn trên phân vùng chọn ngưỡng, chưa phải kết quả vận hành trên tập test.
+
+% =====================================================================
+\section{Phân tích và đánh giá}\label{sec:results-analysis}
+
+Mục này đánh giá các kết quả ở mục~\ref{sec:tables} theo bốn câu hỏi, gồm mô hình xếp hạng tốt hơn ngẫu nhiên đến mức nào, mức đó có ổn định qua thời gian không, xác suất có đáng tin không, và kết quả có nhất quán với những gì dữ liệu cho thấy ở bước khám phá không.
+
+\subsection{Khả năng xếp hạng so với mốc ngẫu nhiên}\label{sec:analysis-ranking}
+
+PR-AUC chỉ có nghĩa khi đặt cạnh tỉ lệ dương, vì một mô hình xếp hạng ngẫu nhiên có PR-AUC xấp xỉ tỉ lệ dương (mục~\ref{sec:th-metrics}). Báo cáo thực nghiệm không ghi tỉ lệ dương mức đơn của từng đoạn kiểm định. Nếu tỉ lệ này nằm trong khoảng 8,86--10,53\% như ở các phân vùng phát triển (mục~\ref{subsec:eda-labels}), PR-AUC mức đơn trung bình 0,1465 gấp khoảng 1,4 đến 1,65 lần mốc ngẫu nhiên. Mô hình vì thế học được tín hiệu thật, nhưng tín hiệu đó yếu, vì phần lớn các đơn có điểm cao vẫn là đơn không bị đánh giá thấp.
+
+Ở mức vận hành, Recall@5\% trung bình 0,1212 cho hệ số nâng 2,42, dao động 2,28--2,62 giữa các fold. Nếu bộ phận chăm sóc khách hàng chỉ liên hệ được 5\% số đơn giao đúng hạn, danh sách theo mô hình chứa khoảng 12\% số đơn sẽ bị đánh giá thấp, so với 5\% khi chọn ngẫu nhiên. Từ công thức~\eqref{eq:th-recallk}, $\mathrm{Precision@}b = \mathrm{Recall@}b \cdot \pi / b$; với $\pi$ trong khoảng 8,86--10,53\% như trên, khoảng 21--26\% số đơn được gắn mức \textsc{Cao} thực sự bị đánh giá thấp, tức chừng một trong bốn hoặc năm đơn, so với khoảng một trong mười đơn nếu chọn ngẫu nhiên. Đây là ước tính suy ra, chưa phải số đo trực tiếp.
+
+PR-AUC mức item (0,1760) cao hơn mức đơn (0,1465), nhưng chênh lệch này chủ yếu đến từ mốc so sánh chứ không phải từ chất lượng xếp hạng. Trong quần thể nghiên cứu, tỉ lệ dương mức item là 11,41\%, cao hơn mức đơn 9,21\%, vì đơn nhiều sản phẩm vừa có tỉ lệ đánh giá thấp cao hơn vừa đóng góp nhiều dòng hơn. Chia cho tỉ lệ dương tương ứng của quần thể, cả hai chỉ số đều ở khoảng 1,5--1,6 lần mốc ngẫu nhiên. Ngoài ra, các item trong cùng một đơn dương có đặc trưng mức đơn giống nhau và cùng nhãn, nên PR-AUC mức item được lợi từ việc đếm lặp. Vì đơn hàng là đơn vị nhân viên xử lý, PR-AUC mức đơn mới là chỉ số phản ánh giá trị vận hành, đúng như lựa chọn ở mục~\ref{sec:eval}.
+
+\subsection{Độ ổn định qua thời gian và lựa chọn mô hình}\label{sec:analysis-stability}
+
+PR-AUC mức đơn của mô hình giữ lại dao động từ 0,1425 đến 0,1507 giữa ba fold, với độ lệch chuẩn khoảng 0,004. Con số này cho một thang đo để đọc Bảng~\ref{tab:res-phases}. Mỗi nhóm đặc trưng được giữ chỉ cải thiện 0,0020--0,0044, tức xấp xỉ một độ lệch chuẩn giữa các fold. Một mức cải thiện trung bình cỡ đó có thể là nhiễu, và đó là lý do quyết định giữ nhóm còn dựa vào việc nhóm có cải thiện ở từng fold hay không. Mức cải thiện cộng dồn 0,0102 bằng khoảng 2,5 lần độ lệch chuẩn và xuất hiện ở cả ba fold (Hình~\ref{fig:res-folds}), nên đáng tin hơn bất kỳ bước riêng lẻ nào. Fold 1 có PR-AUC mức item thấp nhất (0,1538); đây cũng là fold học trên ít dữ liệu nhất, phù hợp với nhận xét ở mục~\ref{sec:th-temporal}, dù với ba fold thì chưa thể tách tác động của cỡ mẫu khỏi đặc điểm của từng giai đoạn.
+
+Cùng thang đo đó cho thấy rừng ngẫu nhiên và CatBoost độ sâu 6 gần như ngang nhau. Chênh lệch PR-AUC ba fold giữa hai mô hình chỉ là 0,0007, nhỏ hơn nhiều so với độ lệch chuẩn giữa các fold. Ở Recall@5\%, CatBoost độ sâu 6 cao hơn 0,0107 và không kém rừng ngẫu nhiên ở fold nào (0,1408, 0,1309 và 0,1240 so với 0,1141, 0,1309 và 0,1187). Quy tắc chọn theo PR-AUC đã được cố định trước khi chạy và được áp dụng đúng; tuy vậy, kết quả này cho thấy nếu ngân sách 5\% là ràng buộc vận hành chính, Recall@5\% có lý do để trở thành tiêu chí phụ trong lần lựa chọn sau. Trên phân vùng lựa chọn mô hình, thứ hạng hai mô hình đảo ngược (0,2239 so với 0,2108); ý nghĩa của sự đảo ngược này đối với cách đánh giá được bàn ở mục~\ref{sec:disc-findings}.
+
+Kết quả bỏ từng nhóm cũng cho thấy giới hạn của một tập kiểm định đơn lẻ. Bỏ nhóm hình thái và nội dung sản phẩm làm PR-AUC ba fold giảm 0,0020 nhưng làm PR-AUC trên phân vùng lựa chọn \emph{tăng} từ 0,2108 lên 0,2185 (Bảng~\ref{tab:res-loo}). Hai nguồn bằng chứng chỉ ra hai hướng ngược nhau, và nhóm này được giữ có điều kiện theo chỉ số chính. Ngược lại, nhóm cấu trúc đơn làm giảm cả hai chỉ số khi bị bỏ, nên là nhóm có bằng chứng vững nhất.
+
+\subsection{Độ tin cậy của xác suất}\label{sec:analysis-calibration}
+
+Trước hiệu chỉnh, xác suất của mô hình kém tin cậy. Brier mức đơn trung bình ba fold là 0,1907, trong khi một dự đoán hằng số bằng tỉ lệ dương mức đơn 8,86--10,53\% cho Brier $\pi(1-\pi)$ khoảng 0,081--0,094. Trên phân vùng so sánh hiệu chỉnh, Brier mức item của mô hình gốc là 0,2203, cao gần gấp đôi mốc hằng số 0,1189. Đây đúng là hệ quả mà mục~\ref{sec:th-trees} đã dự đoán. Trọng số lớp cân bằng làm tỉ lệ dương hiệu dụng trong các lá cao hơn thực tế, nên xác suất bị đẩy lên một cách có hệ thống, phù hợp với kết quả của \textcite{vandengoorbergh2022}. Ba cấu hình CatBoost có Brier ba fold thấp hơn (0,1310--0,1681), cho thấy mức méo phụ thuộc vào mô hình nhưng không biến mất.
+
+Hiệu chỉnh sửa được phần lớn độ lệch này. Sigmoid giảm Brier mức item từ 0,2203 xuống 0,1049, tức giảm 52\%, và đưa mô hình xuống dưới mốc hằng số 0,1189 khoảng 12\%. Isotonic cho kết quả gần như bằng (0,1057). Khi tập fit hiệu chỉnh có 11\,759 đơn, nguy cơ quá khớp của isotonic mà \textcite{niculescumizil2005} cảnh báo không thể hiện rõ; sigmoid được chọn vì Brier thấp hơn và vì nó giữ nguyên hoàn toàn thứ tự xếp hạng (mục~\ref{sec:th-calibration}). Rừng ngẫu nhiên sau hiệu chỉnh cũng nhỉnh hơn CatBoost độ sâu 6 sau hiệu chỉnh (0,1049 so với 0,1071).
+
+Kết quả này còn một khoảng trống. Brier sau hiệu chỉnh đã có ở mức item, nhưng Brier mức đơn sau hiệu chỉnh và sau khi gộp bằng max-v1 chưa được báo cáo. Mục~\ref{sec:th-aggregation} đã chỉ ra rằng xác suất item hiệu chỉnh tốt không bảo đảm điểm đơn hiệu chỉnh tốt, vì giá trị lớn nhất của nhiều xác suất có xu hướng cao hơn từng xác suất. Do đó, điểm đơn hiển thị trên giao diện nên được đọc như thứ hạng ưu tiên hơn là xác suất chính xác, cho đến khi Brier mức đơn sau hiệu chỉnh được đo.
+
+\subsection{Đối chiếu với kết quả khám phá dữ liệu}\label{sec:analysis-eda}
+
+Kết quả chọn đặc trưng khớp với các tín hiệu tìm thấy ở mục~\ref{subsec:eda-ontime}. Nhóm cấu trúc đơn, nơi bước khám phá ghi nhận khác biệt lớn nhất (45,7\% ở đơn hai người bán, 31,9\% ở đơn từ bốn item), là nhóm được giữ có đóng góp lớn nhất khi bỏ ra ($-0{,}0050$). Nhóm vận hành của người bán tương ứng với tín hiệu bàn giao vận chuyển sau hạn (13,6\% so với 8,9\%) và được giữ với mức giảm $-0{,}0042$ khi bỏ. Nhóm sản phẩm tương ứng với khác biệt giữa các danh mục và tỉ lệ cao ở item thiếu danh mục. Ở chiều ngược lại, các yếu tố gần như phẳng ở bước khám phá đều bị loại khi thử nghiệm. Thanh toán (8,5--10,5\% theo phương thức) chỉ cải thiện tốt nhất 0,0006, còn địa lý (8,6--11,1\% theo bang) làm giảm PR-AUC.
+
+Ngoại lệ đáng chú ý là lịch sử nhãn. Bước khám phá cho thấy người bán có tiền sử nhiều đánh giá thấp tạo ra tỉ lệ đánh giá thấp gấp gần ba lần (18,4\% so với 6,5\%), nhưng nhóm lịch sử nhãn làm trơn ở giai đoạn 1 chỉ cải thiện tốt nhất 0,0015 và bị loại. Hai kết quả này không mâu thuẫn, bởi nhóm cơ sở đã có số đánh giá trước đó và điểm trung bình trước đó của người bán và danh mục, nên các phép mã hóa mới chủ yếu lặp lại thông tin đã có. Ý nghĩa của việc đặc trưng vận hành vượt lịch sử đánh giá được thảo luận ở mục~\ref{sec:disc-findings}.
+
+Bước khám phá cũng cho phép đánh giá một phần thiên lệch của luật max-v1. Công thức~\eqref{eq:th-maxbias} dự đoán max-v1 nâng điểm đơn nhiều item ngay cả khi từng item không rủi ro hơn. Trong quần thể nghiên cứu, đơn nhiều item thực sự rủi ro hơn, với tỉ lệ 23,2--31,9\% so với 7,5\% ở đơn một item (Bảng~\ref{tab:eda-segments}). Thiên lệch của max-v1 vì vậy cùng chiều với rủi ro thật, nên nó ít có khả năng đẩy sai đơn lên đầu danh sách. Tuy nhiên, chưa thể biết max-v1 nâng điểm các đơn này vừa đủ hay quá mức, vì dự đoán mức đơn theo số item chưa được lưu lại để kiểm tra.
+
+\subsection{Đánh giá tổng hợp}\label{sec:analysis-summary}
+
+Trong phạm vi bằng chứng phát triển, kết quả đáp ứng hai tiêu chí tối thiểu của mục~\ref{sec:eval}. Mô hình xếp hạng tốt hơn ngẫu nhiên ở cả mức đơn lẫn ngân sách 5\%, và mức vượt đó xuất hiện ở cả ba fold chứ không chỉ ở giá trị trung bình. Xác suất sau hiệu chỉnh tốt hơn dự đoán hằng số ở mức item. Ba giới hạn ảnh hưởng trực tiếp đến cách đọc các con số. Thứ nhất, tín hiệu còn yếu, khi PR-AUC chỉ khoảng 1,4--1,65 lần mốc ngẫu nhiên, và khoảng 88\% số đơn bị đánh giá thấp nằm ngoài nhóm 5\% đầu danh sách. Thứ hai, độ chính xác của phép lựa chọn bị giới hạn bởi ba fold; phần lớn chênh lệch giữa các phương án cạnh tranh nhỏ hơn độ dao động giữa các fold. Thứ ba, các kết quả chưa được xác nhận trên tập test niêm phong và chưa có mốc so sánh theo giá trị đơn. Chương~\ref{ch:discussion} đặt các kết quả này cạnh mục tiêu ban đầu và bàn về nguyên nhân của mức tín hiệu thấp; mục tiếp theo trình bày cách điểm rủi ro được dùng trong ứng dụng.
+
+Vì vậy, bước tiếp theo không phải tiếp tục tô đậm metric hiện có. Cần khóa một replacement holdout chưa được quan sát, chốt model, calibration, aggregation và ngưỡng trước khi đánh giá, rồi xuất metric kèm khoảng tin cậy và artefact dự đoán. Chỉ khi đó mới có thể chuyển từ bằng chứng phát triển sang một kết luận xác nhận.
+ % Chương 4 — mục Ứng dụng điểm rủi ro (Trúc), nạp ngay sau ch4.tex.
+% Nguồn: BA/*.md, reports/P13-full-flow-audit-2026-10-31.md, SERVER_CONTEXT/chapter4_evidence.md (nhánh thesis),
+% ảnh chụp 05/11/2026 từ stack Docker nhánh dev (commit 1a8a767).
+% Phần này trả lời câu hỏi: điểm số của mô hình được đưa vào quy trình chăm sóc khách hàng như thế nào.
+% Chia việc Ch.4: Quân (EDA, dữ liệu) · Trung (hệ thống/API) · Huy (bảng metric) · Trúc (giao diện/demo).
+% Không lặp kiến trúc/API (phần Trung) và kết quả kiểm thử web (để ở báo cáo kiểm thử, không đưa vào khóa luận ML).
+
+\section{Ứng dụng điểm rủi ro vào quy trình chăm sóc khách hàng}\label{sec:demo}
+
+Giá trị của điểm rủi ro phụ thuộc vào việc điểm số đó có được sử dụng trong quyết định xử lý đơn hàng hay không. Mục này trình bày cách đầu ra của luồng học máy ở Chương~\ref{ch:method} được đưa vào ứng dụng vận hành: cách điểm số được chuyển thành thứ tự ưu tiên, nơi người dùng đọc và diễn giải điểm số, và những dữ liệu hệ thống ghi nhận để phục vụ đánh giá mô hình về sau. Hai phần cuối mục minh họa ảnh hưởng của luật tổng hợp và ngưỡng ưu tiên đến danh sách đơn hàng. Dữ liệu đầu vào và kiến trúc hệ thống được trình bày ở các mục khác của chương này và không được nhắc lại tại đây.
+
+Cần lưu ý rằng điểm số trong bản demo không phải là kết quả suy luận của mô hình rừng ngẫu nhiên được lựa chọn ở mục trước. Bản demo sử dụng 100 đơn hàng Olist thật (thông tin đơn hàng, người bán, danh mục) gắn với điểm minh họa có tính tất định, cùng 5 đơn hàng giả lập; phiên bản mô hình hiển thị trên giao diện là \texttt{olist-ui-demo-v1}. Lý do và hệ quả của lựa chọn này được phân tích tại mục~\ref{sec:demo-limits}. Do đó, mục này đánh giá cách hệ thống sử dụng điểm số, không đánh giá chất lượng của điểm số.
+
+% ---------------------------------------------------------------------
+\subsection{Từ điểm số đến hàng đợi ưu tiên}
+
+Giữa luồng học máy và ứng dụng chỉ có một điểm nối là bảng dự đoán trong cơ sở dữ liệu (Hình~\ref{fig:arch}). Mỗi lần chấm điểm theo lô tạo ra một \emph{snapshot dự đoán} bất biến, gồm điểm của từng item, điểm của đơn tổng hợp theo luật max-v1 (Phương trình~\ref{eq:maxv1}), mức rủi ro theo ngưỡng của phiên bản mô hình, các yếu tố liên quan và các mã phiên bản. Tại mỗi thời điểm chỉ một snapshot ở trạng thái hoạt động. Ứng dụng đọc snapshot này để tạo các \emph{case} cần xử lý; mỗi case giữ mã dự đoán và luật tổng hợp tại thời điểm được tạo, nên khi mô hình được chấm lại, các case đang mở vẫn được xử lý theo đúng điểm số đã sinh ra chúng thay vì bị đổi điểm giữa chừng.
+
+Hình~\ref{fig:ui-queue} là hàng đợi rủi ro của nhân viên chăm sóc khách hàng. Ba quyết định thiết kế ở đây xuất phát trực tiếp từ đặc điểm của mô hình:
+
+\begin{itemize}
+  \item \textbf{Xếp theo điểm, sau đó theo hạn xử lý.} Đơn được sắp theo điểm rủi ro giảm dần, rồi theo hạn SLA gần nhất và thời gian chờ. Do điểm số chỉ mang ý nghĩa thứ tự (mục~\ref{sec:eval}), giao diện sử dụng điểm số để sắp xếp thay vì chuyển thành nhãn ``sẽ bị đánh giá thấp''.
+  \item \textbf{Hiện sản phẩm có điểm cao nhất ngay trên dòng của đơn.} Cột ``Sản phẩm cần kiểm tra'' cho biết item quyết định điểm của đơn theo luật max-v1, kèm số sản phẩm còn lại. Thông tin này giúp nhân viên xác định sản phẩm cần trao đổi với khách hàng trước, đồng thời cho biết nguồn gốc điểm số của đơn.
+  \item \textbf{Mức rủi ro quyết định ai xử lý.} Đơn mức cao do quản lý phân công, đơn mức trung bình và thấp nhân viên tự nhận. Vì vậy, ngưỡng rủi ro đóng vai trò quy tắc phân bổ nguồn lực, không chỉ là nhãn hiển thị, phù hợp với lập luận chọn ngưỡng theo năng lực xử lý ở mục~\ref{sec:models}.
+\end{itemize}
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.85\linewidth]{ui-risk-queue}
+  \caption{Hàng đợi rủi ro của nhân viên (dữ liệu demo)}\label{fig:ui-queue}
+\end{figure}
+
+\FloatBarrier
+% ---------------------------------------------------------------------
+\subsection{Diễn giải điểm số ở mức đơn hàng}
+
+Trang chi tiết đơn (Hình~\ref{fig:ui-detail}) là nơi người dùng xem xét điểm số chi tiết nhất, do đó cũng là nơi có nguy cơ diễn giải sai cao nhất. Khối ``Kết quả model của đơn'' hiển thị bốn thông tin đi cùng điểm số: thanh điểm có vạch ngưỡng của mức trung bình và mức cao, luật tổng hợp, phiên bản mô hình và thời điểm dự báo, phiên bản ngưỡng. Các thông tin này cho phép truy vết mọi con số trên màn hình về đúng lần chấm điểm đã tạo ra nó, cùng nguyên tắc với việc lưu cấu hình và mã commit của từng lần huấn luyện ở mục~\ref{sec:data}.
+
+Bên dưới điểm số là một dòng lưu ý cố định: điểm rủi ro dùng để ưu tiên kiểm tra, không phải kết luận khách không hài lòng. Dòng lưu ý này xuất phát từ hai giới hạn đã nêu ở Chương~\ref{ch:method}. Thứ nhất, nhãn yếu ở mức item: điểm của sản phẩm là rủi ro đơn bị đánh giá thấp khi đơn có chứa sản phẩm đó, không phải bằng chứng sản phẩm gây ra bất mãn. Thứ hai, chỉ số đánh giá đo khả năng xếp hạng, không đo xác suất đúng của từng đơn.
+
+Bảng sản phẩm trong đơn cho thấy điểm của từng item, và khối ``Yếu tố liên quan tới score'' được dành cho giải thích ở mức item. Trong bản demo, một số item có danh sách yếu tố minh họa đi kèm điểm số (Hình~\ref{fig:ui-multi}), số còn lại hiển thị ``chưa có giải thích''. Các yếu tố này là nhãn minh họa của dữ liệu demo, không phải giá trị SHAP; khối này được thiết kế sẵn cho bước giải thích mô hình ở giai đoạn tiếp theo (mục~\ref{sec:demo-limits}). Hai chi tiết thiết kế giúp hạn chế việc diễn giải sai: khi chưa có giải thích, giao diện ghi rõ trạng thái này thay vì để trống, tránh việc người dùng hiểu rằng đơn hàng không có yếu tố rủi ro; khi có giải thích, bên dưới luôn kèm dòng ``các yếu tố này đi kèm điểm cao, không chứng minh nguyên nhân'', nhất quán với quan điểm rằng giá trị SHAP phản ánh cách mô hình sử dụng đặc trưng, không phản ánh tác động nhân quả.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.85\linewidth]{ui-order-detail}
+  \caption{Trang chi tiết đơn (dữ liệu demo)}\label{fig:ui-detail}
+\end{figure}
+
+\FloatBarrier
+% ---------------------------------------------------------------------
+\subsection{Theo dõi phân bố rủi ro}
+
+Màn tổng quan của quản lý (Hình~\ref{fig:ui-dashboard}) tổng hợp số case theo mức rủi ro và theo ngày vào hàng đợi. Ngoài mục đích điều phối công việc, các khối này còn là công cụ giám sát đơn giản đối với đầu ra của mô hình: khi tỉ lệ đơn mức cao hoặc số case mới mỗi ngày thay đổi đột ngột giữa hai lần chấm điểm, quản lý có thể nhận biết trực tiếp trên giao diện mà không cần đến báo cáo kỹ thuật. Theo Bảng~\ref{tab:split}, tỉ lệ dương dao động từ 10\% đến gần 14\% giữa các giai đoạn, do đó việc theo dõi phân bố theo thời gian là cần thiết khi mô hình được sử dụng lâu dài.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\linewidth]{ui-dashboard}
+  \caption{Màn tổng quan rủi ro của quản lý (dữ liệu demo)}\label{fig:ui-dashboard}
+\end{figure}
+
+Khối ``Phân bố rủi ro'' trong Hình~\ref{fig:ui-dashboard} cũng minh họa giới hạn quan trọng nhất của bản demo: với ngưỡng cố định 0,7 và 0,4, mức HIGH chiếm 29\% số case (30 trên 105 đơn), trong khi chính sách ở mục~\ref{sec:models} chỉ dành mức này cho 5\% đơn có điểm cao nhất. Nội dung này được phân tích tại mục~\ref{sec:demo-threshold} và Chương~\ref{ch:discussion}.
+
+Bên dưới khối này, phần ``Xem theo khoảng score'' (Hình~\ref{fig:ui-bands}) chia các đơn theo năm khoảng điểm. Với dữ liệu demo, số đơn phân bố tương đối đều giữa các khoảng: lần lượt 15, 20, 26, 26 và 18 đơn từ khoảng thấp nhất đến cao nhất, với điểm trung bình khoảng 0,52. Nếu đây là xác suất đã hiệu chỉnh, kết quả này hàm ý khoảng một nửa số đơn giao đúng hạn sẽ bị đánh giá thấp, trong khi tỉ lệ thực tế chỉ khoảng 10\%. Với một mô hình được hiệu chỉnh tốt, trung bình xác suất dự đoán phải xấp xỉ tỉ lệ dương, và phần lớn đơn hàng sẽ tập trung ở các khoảng điểm thấp. Do đó, bảng khoảng điểm có thể được sử dụng như một phép kiểm tra nhanh ở phía vận hành: nếu điểm trung bình lệch xa tỉ lệ đơn bị đánh giá thấp quan sát được, hoặc hình dạng phân bố thay đổi mạnh giữa hai lần chấm điểm, cần rà soát lại bước hiệu chỉnh hoặc dữ liệu đầu vào.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.3\linewidth]{ui-score-bands}
+  \caption{Số đơn theo khoảng điểm (dữ liệu demo)}\label{fig:ui-bands}
+\end{figure}
+
+Màn tổng quan còn có chế độ ``Theo sản phẩm'', trong đó các khối thống kê được tính theo đơn vị item: 105 đơn trong bản demo gồm 114 sản phẩm. Hình~\ref{fig:ui-product} trích phần danh sách sản phẩm có điểm cao nhất của chế độ này; mỗi dòng là một item, mang mã đơn kèm số thứ tự sản phẩm trong đơn, danh mục, trạng thái của case và yếu tố minh họa nếu có. Hai chế độ tương ứng với hai đơn vị đã tách ở mục~\ref{sec:pipeline}: mô hình học và chấm điểm ở mức item, còn nhân viên xử lý ở mức đơn. Việc trình bày song song hai góc nhìn giúp người dùng phân biệt số sản phẩm rủi ro với số đơn cần liên hệ.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\linewidth]{ui-product-view}
+  \caption{Chế độ xem theo sản phẩm (dữ liệu demo)}\label{fig:ui-product}
+\end{figure}
+
+\FloatBarrier
+% ---------------------------------------------------------------------
+\subsection{Dữ liệu vận hành phục vụ đánh giá mô hình}
+
+Như đã nêu ở mục~\ref{sec:eval}, các chỉ số hiện tại chỉ đo khả năng dự báo, chưa đo hiệu quả can thiệp. Ứng dụng được thiết kế để tích lũy loại dữ liệu cần thiết cho bước đánh giá này, theo ba nguyên tắc:
+
+\begin{enumerate}
+  \item \textbf{Điểm số chỉ đọc.} Không có thao tác nào sửa điểm hay mức rủi ro. Quản lý có thể thêm ghi chú về mô hình cho một đơn, nhưng ghi chú được lưu riêng. Nhờ đó, điểm gốc có thể được so sánh với kết quả thực tế mà không chịu ảnh hưởng của điều chỉnh thủ công.
+  \item \textbf{Kết quả xử lý có cấu trúc.} Khi đóng case, nhân viên phải chọn một kết quả trong danh mục cố định (có vấn đề, không có vấn đề, trùng case) hoặc một lý do bỏ qua (không liên lạc được, khách từ chối, \ldots). Mỗi lần liên lạc được ghi lại với cách liên lạc và kết quả. Kết quả ``có vấn đề'' và ``không có vấn đề'' là một nguồn nhãn độc lập với đánh giá sao, có thể dùng để đo precision của nhóm HIGH trong vận hành thật.
+  \item \textbf{Lịch sử chỉ thêm, không sửa.} Mọi thao tác đều được ghi lại với thời điểm và người thực hiện, cho phép tái dựng việc đơn nào đã được liên hệ, vào thời điểm nào và sau bao lâu kể từ khi có điểm, phục vụ đối chiếu với nhãn quan sát được về sau.
+\end{enumerate}
+
+Mỗi lần liên hệ được ghi qua màn hình liên lạc khách (Hình~\ref{fig:ui-contact}) với thời điểm, phương thức, kết quả và ngày hẹn liên hệ tiếp. Đây là dữ liệu về can thiệp, loại dữ liệu mà bộ Olist không có. Khi sử dụng cho mục đích đánh giá, cần phân biệt hai trường hợp: nếu sau số lần liên hệ tối đa vẫn không liên lạc được với khách hàng, case tự động chuyển sang trạng thái bỏ qua với lý do ``không liên lạc được'', nghĩa là can thiệp chưa diễn ra; trường hợp này khác với trường hợp can thiệp đã diễn ra nhưng khách hàng vẫn đánh giá thấp. Nếu gộp hai nhóm, hiệu quả can thiệp sẽ bị ước lượng thấp hơn thực tế.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.8\linewidth]{ui-contact-attempt}
+  \caption{Biểu mẫu ghi lần liên lạc (dữ liệu demo)}\label{fig:ui-contact}
+\end{figure}
+
+Hình~\ref{fig:ui-closed} là một case đã đóng: điểm 0,68 ở mức trung bình được hiển thị cùng kết quả xử lý ``có vấn đề'', lịch sử trạng thái và quyết định tiếp theo của quản lý. Mỗi case đóng như vậy là một cặp (điểm dự báo, kết quả quan sát) gắn với đúng phiên bản mô hình đã sinh ra điểm. Hình~\ref{fig:feedback-loop} tóm tắt cách các cặp dữ liệu này được sử dụng để đánh giá và cải tiến mô hình; đường nét đứt trong hình là bước đề tài chưa thực hiện.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.8\linewidth]{ui-closed-case}
+  \caption{Case đã đóng (dữ liệu demo)}\label{fig:ui-closed}
+\end{figure}
+
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[font=\footnotesize, >={Latex}, node distance=0.55cm and 0.9cm,
+  box/.style={draw,rounded corners,fill=#1,minimum width=3.4cm,minimum height=0.9cm,align=center}, box/.default=gray!10]
+  \node[box=blue!15] (snap) {Snapshot dự đoán\\điểm, mức, phiên bản};
+  \node[box=orange!20,right=of snap] (case) {Case trong\\hàng đợi ưu tiên};
+  \node[box=teal!20,right=of case] (contact) {Liên hệ khách\\(các lần liên lạc)};
+  \node[box=green!20,below=of contact] (outcome) {Kết quả xử lý\\có / không có vấn đề};
+  \node[box=yellow!30,left=of outcome] (eval) {Cặp (điểm, kết quả)\\precision nhóm HIGH};
+  \node[box=violet!20,left=of eval] (retrain) {Hiệu chỉnh, chọn ngưỡng\\hoặc huấn luyện lại};
+  \node[box=red!15,below=of eval] (review) {Đánh giá sao của khách\\(nhãn $y$ ở Chương~3)};
+  \draw[->] (snap) -- (case); \draw[->] (case) -- (contact); \draw[->] (contact) -- (outcome);
+  \draw[->] (outcome) -- (eval); \draw[->] (review) -- (eval); \draw[->] (eval) -- (retrain);
+  \draw[->,dashed] (retrain) -- node[right,font=\scriptsize]{phiên bản mới} (snap);
+\end{tikzpicture}
+\caption{Vòng phản hồi giữa ứng dụng và luồng học máy}\label{fig:feedback-loop}
+\end{figure}
+
+Ba nguyên tắc trên tạo tiền đề cho một thử nghiệm có đối chứng: nếu một phần đơn mức cao được chọn ngẫu nhiên để không liên hệ, dữ liệu được ghi nhận đủ để ước lượng tác động của việc liên hệ lên tỉ lệ đánh giá thấp. Nội dung này nằm ngoài phạm vi đề tài như đã xác định ở Chương~\ref{ch:method}.
+
+\FloatBarrier
+% ---------------------------------------------------------------------
+\subsection{Minh họa luật tổng hợp max-v1}\label{sec:demo-maxv1}
+
+Luật max-v1 quyết định thứ tự của đơn hàng trong hàng đợi, vì vậy cần làm rõ điểm khác biệt giữa luật này và cách lấy trung bình. Bảng~\ref{tab:demo-maxv1} sử dụng ba đơn với điểm item giả định, nhằm minh họa cơ chế tổng hợp; mức rủi ro được gán theo ngưỡng của lần chạy rừng ngẫu nhiên đã nêu ở mục~\ref{sec:demo-limits} (mức cao từ 0,286, mức trung bình từ 0,112).
+
+\begin{table}[htbp]\centering\small
+\caption{Điểm đơn theo luật max-v1 và theo trung bình (điểm item giả định)}\label{tab:demo-maxv1}
+\begin{tabular}{lp{3.4cm}cccc}
+\toprule
+Đơn & Điểm các item & max-v1 & Mức & Trung bình & Mức \\
+\midrule
+A & 0,08; 0,12; 0,41       & 0,41 & \textsc{Cao}        & 0,20 & \textsc{Trung bình} \\
+B & 0,30                   & 0,30 & \textsc{Cao}        & 0,30 & \textsc{Cao} \\
+C & 0,15; 0,16; 0,18; 0,20 & 0,20 & \textsc{Trung bình} & 0,17 & \textsc{Trung bình} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hình~\ref{fig:ui-multi} là một đơn ba sản phẩm trong bản demo: các item có điểm 0,93, 0,79 và 0,43, điểm của đơn là 0,93 theo max-v1, trong khi trung bình chỉ là 0,72. Giao diện đánh dấu item quyết định điểm của đơn ở dòng đầu bảng sản phẩm, giúp người dùng xác định nguồn gốc điểm số của đơn.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.62\linewidth]{ui-multi-item}
+  \caption{Đơn ba sản phẩm theo luật max-v1 (dữ liệu demo)}\label{fig:ui-multi}
+\end{figure}
+
+Theo max-v1, ba đơn giả định trong Bảng~\ref{tab:demo-maxv1} có thứ tự ưu tiên là A, B, C; theo trung bình, thứ tự là B, A, C. Khác biệt nằm ở đơn A: khi lấy trung bình, điểm 0,41 của một sản phẩm bị hai sản phẩm có điểm thấp kéo xuống còn 0,20, và đơn không còn thuộc mức cao. Đây là tình huống ``mắt xích yếu nhất'' mà luật max-v1 được thiết kế để phát hiện (mục~\ref{sec:pipeline}). Ngược lại, đơn C cho thấy hạn chế của luật: cả bốn sản phẩm đều có điểm ở mức vừa phải, nhưng điểm của đơn bằng điểm cao nhất trong bốn sản phẩm; do đó, đơn có nhiều sản phẩm có xu hướng được xếp cao hơn chỉ vì có nhiều khả năng chứa một item có điểm cao. Cột sản phẩm cần kiểm tra trên giao diện (Hình~\ref{fig:ui-queue}) giúp người dùng phân biệt hai trường hợp: điểm của đơn đến từ một item nổi bật (tình huống A) hoặc các item có điểm gần nhau (tình huống C).
+
+\FloatBarrier
+% ---------------------------------------------------------------------
+\subsection{Tác động của ngưỡng lên danh sách ưu tiên}\label{sec:demo-threshold}
+
+Bảng~\ref{tab:demo-threshold} so sánh tỉ lệ các mức rủi ro trong bản demo (ngưỡng cố định 0,7 và 0,4, đếm trên 105 case ở Hình~\ref{fig:ui-dashboard}) với tỉ lệ mà chính sách ngưỡng ở mục~\ref{sec:models} tạo ra. Vì điểm của bản demo không phải đầu ra của mô hình, bảng không so sánh hai bộ điểm mà so sánh hai cách đặt ngưỡng.
+
+\begin{table}[htbp]\centering\small
+\caption{Tỉ lệ các mức rủi ro: ngưỡng cố định của bản demo và chính sách theo phần trăm}\label{tab:demo-threshold}
+\begin{tabular}{lcccc}
+\toprule
+Cách đặt ngưỡng & Ngưỡng cao / trung bình & \textsc{Cao} & \textsc{Trung bình} & \textsc{Thấp} \\
+\midrule
+Cố định (bản demo, 105 case)        & 0,7 / 0,4         & 29\% (30) & 38\% (40) & 33\% (35) \\
+Theo phần trăm (chính sách)         & $\approx$0,286 / $\approx$0,112 & 5\%  & 15\% & 80\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ngưỡng theo phần trăm chỉ có ý nghĩa khi gắn với một mức năng lực xử lý cụ thể. Trong ứng dụng, mức năng lực này là tham số vận hành do quản lý cài đặt (Hình~\ref{fig:ui-settings}): mỗi nhân viên giữ tối đa 5 đơn đang xử lý và liên hệ tối đa 3 lần mỗi chu kỳ. Với hai nhân viên trong bản demo, hệ thống xử lý cùng lúc khoảng 10 đơn, trong khi hàng đợi có 30 đơn mức cao và 40 đơn mức trung bình. Tương tự mô hình và ngưỡng, mỗi thay đổi tham số tạo ra một phiên bản mới kèm thời điểm hiệu lực và lý do, cho phép xác định mức năng lực áp dụng cho từng đơn khi đánh giá về sau.
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\linewidth]{ui-settings-capacity}
+  \caption{Tham số năng lực xử lý (dữ liệu demo)}\label{fig:ui-settings}
+\end{figure}
+
+Hai cách đặt ngưỡng tạo ra hai hàng đợi khác nhau đáng kể. Với ngưỡng cố định, gần một phần ba số đơn thuộc mức cao, nghĩa là quản lý phải phân công khoảng 30 đơn mỗi đợt thay vì khoảng 5 đơn; khi tỉ lệ này quá lớn, mức cao không còn giúp xác định đơn cần ưu tiên. Ngưỡng theo phần trăm giữ số đơn mức cao tương ứng với năng lực xử lý, không phụ thuộc vào giá trị tuyệt đối của điểm số. Trường hợp ngược lại cũng không phù hợp: ngưỡng mức cao ghi nhận với rừng ngẫu nhiên chỉ khoảng 0,286, nên nếu giữ ngưỡng cố định 0,7 khi chuyển sang điểm thật, số đơn mức cao sẽ thấp hơn nhiều so với 5\% và một phần năng lực xử lý dành cho nhóm này không được sử dụng.
+
+\FloatBarrier
+% ---------------------------------------------------------------------
+\subsection{Giới hạn của bản demo}\label{sec:demo-limits}
+
+Bản demo cho thấy luồng xử lý từ điểm số đến hành động vận hành được từ đầu đến cuối, nhưng chưa chứng minh mô hình mang lại giá trị trong vận hành thực tế. Giữa bản demo và kết quả nghiên cứu còn ba khoảng cách:
+
+\begin{enumerate}
+  \item \textbf{Điểm số minh họa thay vì điểm của mô hình.} Mô hình rừng ngẫu nhiên được giữ lại chưa được đóng gói và đưa vào ứng dụng. Lần rà soát toàn luồng ngày 31/10/2026 ghi nhận tệp mô hình nạp được và dự đoán được khi gọi trực tiếp, nhưng không đọc được qua bộ chuyển đổi của ứng dụng vì khác định dạng đóng gói. Ngoài ra, chấm điểm chính thức trên giai đoạn kiểm tra cần chờ một tập kiểm tra chưa từng được xem, như đã nêu ở mục~\ref{sec:eval}.
+  \item \textbf{Ngưỡng cố định thay vì ngưỡng theo năng lực.} Bản demo dùng ngưỡng 0,7 và 0,4. Với mô hình thật, ngưỡng được chọn theo tỉ lệ phần trăm trên phân vùng chọn ngưỡng; lần chạy rừng ngẫu nhiên trước đó ghi nhận ngưỡng mức cao khoảng 0,286 và mức trung bình khoảng 0,112 (mục~\ref{sec:demo-threshold}).
+  \item \textbf{Chưa có giải thích mô hình.} Khối yếu tố rủi ro trên giao diện đã có chỗ, nhưng chưa có lần tính SHAP nào được lưu, do đó nhân viên mới chỉ thấy điểm số mà chưa thấy cơ sở của điểm số.
+\end{enumerate}
+
+Do ứng dụng chỉ đọc dữ liệu từ bảng dự đoán, cả ba khoảng cách này đều có thể được khắc phục ở phía luồng học máy: chấm điểm bằng mô hình thật, ghi ngưỡng tương ứng vào bảng ngưỡng và bổ sung yếu tố rủi ro vào snapshot mới; giao diện và quy trình xử lý không cần thay đổi.
+ 
+% Chương 5 — Thảo luận (Trúc). Nguồn số liệu: SERVER_CONTEXT/chapter4_evidence.md, model_variant_fold_metrics.md,
+% TODO: đối chiếu mọi số metric với bảng Huy gửi cho Ch.4 trước khi nộp.
+% reports/P5-accuracy-coursework-summary.md, P5-accuracy-failure-analysis.md (nhánh dev); mục "Giới hạn diễn giải"
+% chuyển từ _moved_from_ch3.tex. Chỉ dùng số đã có trong evidence; không suy thêm chỉ số chưa được tính.
+\chapter{Thảo luận}\label{ch:discussion}
+
+Chương này đặt các kết quả của Chương~4 trở lại câu hỏi nghiên cứu ở Chương~\ref{ch:method}: chỉ với thông tin có tại thời điểm giao hàng, mô hình ước lượng rủi ro đánh giá thấp ở mức độ nào, và danh sách ưu tiên có giúp bộ phận chăm sóc khách hàng tiếp cận đúng khách hàng hơn so với lựa chọn ngẫu nhiên hay không. Mục~\ref{sec:disc-goals} so sánh kết quả với mục tiêu; mục~\ref{sec:disc-sw} trình bày điểm mạnh và hạn chế; mục~\ref{sec:disc-findings} nêu các phát hiện đáng chú ý. Mọi số liệu trong chương là kết quả trên các fold phát triển và mang tính thăm dò.
+
+% =====================================================================
+\section{So sánh với mục tiêu ban đầu}\label{sec:disc-goals}
+
+Bảng~\ref{tab:disc-goals} đối chiếu từng mục tiêu với kết quả đạt được. Mốc so sánh cho PR-AUC là tỉ lệ dương, vì đó là PR-AUC kỳ vọng của một cách xếp hạng ngẫu nhiên; tỉ lệ dương của phân vùng huấn luyện là 10,13\% (Bảng~\ref{tab:split}). Mốc so sánh cho Recall@5\% là 5\%, mức recall kỳ vọng khi chọn ngẫu nhiên 5\% số đơn.
+
+\begin{table}[htbp]\centering\small
+\caption{Đối chiếu kết quả với mục tiêu}\label{tab:disc-goals}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.1cm}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.6cm}}
+\toprule
+Mục tiêu & Kết quả & Mốc so sánh & Đánh giá \\
+\midrule
+Xếp hạng tốt hơn ngẫu nhiên ở mức đơn & PR-AUC mức đơn trung bình 0,1465 (ba fold: 0,1425--0,1507) & khoảng 0,10 & Đạt, mức vượt khiêm tốn \\
+Tìm đúng đơn khi chỉ xử lý được 5\% & Recall@5\% trung bình 0,1212 & 0,05 & Đạt, gấp khoảng 2,4 lần \\
+Mục tiêu dừng của kế hoạch cải thiện & PR-AUC lăn 0,1465 & 0,25 & Chưa đạt \\
+Cải thiện so với mô hình ban đầu & PR-AUC lăn tăng từ 0,1363 lên 0,1465 & mô hình ban đầu & Đạt (+7,5\%) \\
+Ước lượng cuối cùng trên tập kiểm tra niêm phong & Chưa thực hiện & -- & Chưa đạt \\
+Hệ thống xử lý case dựa trên điểm số & Chạy đủ luồng từ điểm số đến xử lý case & -- & Đạt, dùng điểm minh họa \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Kết quả trả lời câu hỏi nghiên cứu trên hai phương diện. Về khả năng xếp hạng, mô hình tốt hơn ngẫu nhiên nhưng ở mức hạn chế: PR-AUC cao hơn mốc ngẫu nhiên khoảng 45\%, và mức chênh lệch này ổn định qua cả ba fold thay vì chỉ xuất hiện ở một giai đoạn. Về giá trị vận hành, Recall@5\% bằng 0,1212 nghĩa là nếu bộ phận chăm sóc khách hàng chỉ liên hệ được 5\% số đơn giao đúng hạn, danh sách theo mô hình chứa khoảng 12\% số đơn sẽ bị đánh giá thấp, gấp khoảng 2,4 lần so với chọn ngẫu nhiên. Như vậy, với cùng ngân sách liên hệ, mô hình giúp tiếp cận số khách hàng có nguy cơ nhiều hơn khoảng 2,4 lần; tuy nhiên, gần 88\% số đơn bị đánh giá thấp vẫn nằm ngoài danh sách.
+
+Mục tiêu PR-AUC 0,25 không đạt. Kế hoạch cải thiện gồm mười giai đoạn có kiểm soát, giữ lại ba nhóm đặc trưng và kết thúc khi các thử nghiệm tiếp theo không còn mang lại cải thiện ổn định. Điểm dừng này cũng là một kết quả có ý nghĩa: khi cả mô hình phức tạp hơn và tập đặc trưng phong phú hơn đều không vượt được mô hình đã chọn, có khả năng giới hạn nằm ở lượng tín hiệu sẵn có trong dữ liệu tại thời điểm giao hàng hơn là ở thuật toán (mục~\ref{sec:disc-findings}).
+
+% =====================================================================
+\section{Điểm mạnh và hạn chế}\label{sec:disc-sw}
+
+\subsection{Điểm mạnh}
+
+\textbf{Đánh giá trong đúng điều kiện sử dụng.} Ba quyết định thiết kế giúp kết quả, dù ở mức khiêm tốn, phản ánh sát hơn điều kiện sử dụng thực tế: chia dữ liệu theo thời gian thay vì ngẫu nhiên, đặc trưng lịch sử chỉ dùng các đơn đã giao và đã được đánh giá trước thời điểm dự đoán, và mỗi phân vùng dữ liệu chỉ phục vụ một quyết định. Các nghiên cứu chia dữ liệu ngẫu nhiên trên cùng bộ dữ liệu cho phép mô hình học từ thông tin tương lai~\cite{orman2026}, vì vậy kết quả của các nghiên cứu đó không thể so sánh trực tiếp với kết quả của đề tài; đề tài đo hiệu năng của mô hình trong điều kiện được sử dụng ngay sau khi đơn hàng được giao.
+
+\textbf{Mỗi lựa chọn đều có mốc đối chứng.} Mô hình được chọn bằng trung bình ba fold rolling-origin thay vì một tập kiểm định, mỗi nhóm đặc trưng chỉ được giữ khi cải thiện chỉ số chính, và việc bỏ từng nhóm (leave-one-group-out) xác nhận cả ba nhóm được giữ đều cần thiết. Nhờ đó, mỗi thành phần của mô hình cuối cùng đều có bằng chứng thực nghiệm riêng.
+
+\textbf{Kết nối được với vận hành.} Ngưỡng theo phần trăm biến năng lực xử lý thành tham số của mô hình; luật max-v1 được đánh số phiên bản; điểm số được ghi kèm phiên bản mô hình và ngưỡng; ứng dụng không cho phép sửa điểm và ghi lại kết quả xử lý có cấu trúc (mục~\ref{sec:demo}). Đây là nền tảng cần thiết để đánh giá hiệu quả can thiệp ở giai đoạn sau, một nội dung chưa được đề cập trong các nghiên cứu dự báo sự hài lòng mà đề tài đã tham khảo.
+
+\subsection{Hạn chế}
+
+\textbf{Kết quả chưa phải ước lượng cuối cùng.} Giai đoạn kiểm tra lịch sử đã bị lộ trong quá trình phát triển, nên mọi kết quả trên giai đoạn này được xếp loại thăm dò. Kết luận xác nhận cần một tập kiểm tra mới, được niêm phong trước khi đánh giá. Cùng với đó, khoảng tin cậy bootstrap theo cụm đơn hàng, đường cong precision--recall và đường cong hiệu chỉnh trên tập kiểm tra chưa được tính.
+
+\textbf{So sánh chưa đầy đủ.} Kho lưu trữ chỉ giữ số liệu theo fold của rừng ngẫu nhiên và ba cấu hình CatBoost; số liệu của mô hình tỉ lệ nền, hồi quy logistic và HistGradientBoosting không còn, nên chưa có một bảng so sánh công bằng giữa năm họ mô hình trên cùng bộ đặc trưng. Đề tài cũng chưa so với chính sách xếp theo giá trị đơn, một mốc đơn giản mà nghiên cứu gần đây cho thấy đôi khi khó vượt qua~\cite{li2026valuesorting}.
+
+\textbf{Nhãn yếu và tự chọn.} Mỗi item thừa hưởng nhãn của đơn, nên trong đơn nhiều sản phẩm, mô hình học cả những item không liên quan tới sự bất mãn. Nhãn chỉ có ở các đơn có đánh giá, mà việc viết đánh giá là một quá trình tự chọn~\cite{li2008}.
+
+\textbf{Chưa có giải thích mô hình và chưa có điểm thật trong ứng dụng.} Chưa có lần tính SHAP nào, do đó chưa xác định được mô hình dựa vào đặc trưng nào đối với từng đơn. Ứng dụng đang chạy với điểm minh họa và ngưỡng cố định (mục~\ref{sec:demo-limits}).
+
+\subsection{Giới hạn khi diễn giải kết quả}
+
+Kết quả của đề tài cần được hiểu trong các giới hạn sau:
+\begin{itemize}
+  \item Không có đánh giá không có nghĩa là khách hài lòng, do quá trình tự chọn khi viết đánh giá~\cite{li2008}.
+  \item Đánh giá thấp không đồng nghĩa với việc khách rời bỏ hoặc gây thiệt hại doanh thu.
+  \item Điểm rủi ro cao không có nghĩa là khách sẽ phản hồi tốt với can thiệp. Thực nghiệm cho thấy nhóm khách rủi ro cao nhất và nhóm nhạy cảm nhất với can thiệp có thể chỉ trùng nhau ở mức gần như ngẫu nhiên~\cite{ascarza2018}.
+  \item Các mối liên hệ mô hình học được là liên hệ dự báo, không phải quan hệ nhân quả: một đặc trưng có ích cho dự báo không có nghĩa là thay đổi đặc trưng đó sẽ thay đổi sự hài lòng.
+  \item Kết luận chỉ áp dụng cho giai đoạn dữ liệu Olist 2016--2018, trừ khi được kiểm định trên dữ liệu bên ngoài.
+\end{itemize}
+
+% =====================================================================
+\section{Phát hiện đáng chú ý}\label{sec:disc-findings}
+
+\subsection{Đặc trưng vận hành của người bán quan trọng hơn lịch sử đánh giá}
+
+Trong mười giai đoạn cải thiện, các nhóm đặc trưng được giữ lại là tốc độ và độ biến động vận hành của người bán, cấu trúc đơn hàng, và hình thái cùng độ đầy đủ nội dung của sản phẩm. Khi bỏ từng nhóm, PR-AUC lăn giảm lần lượt 0,0042, 0,0050 và 0,0020. Ngược lại, nhóm lịch sử mục tiêu, tức điểm đánh giá trước đó của người bán và danh mục được mã hóa mạnh hơn, chỉ cải thiện tốt nhất 0,0015 và bị loại; các nhóm địa lý, thanh toán, lịch và chất lượng dữ liệu cũng bị loại.
+
+Kết quả này đáng chú ý vì trực giác thông thường cho rằng người bán từng nhận đánh giá thấp sẽ tiếp tục nhận đánh giá thấp. Tuy nhiên, khi đã có thông tin cơ bản về lịch sử đánh giá, việc bổ sung các phép mã hóa phức tạp hơn của cùng thông tin đó không cải thiện mô hình; các đặc trưng mang lại cải thiện là những đặc trưng mô tả cách người bán vận hành, như thời gian từ duyệt đơn tới bàn giao vận chuyển và độ thất thường của thời gian giao. Một cách giải thích khả dĩ là: với đơn hàng giao đúng hạn, khách hàng không phàn nàn về thời gian giao, nhưng người bán có hoạt động vận hành thất thường cũng có thể chuẩn bị và đóng gói hàng kém ổn định. Đây là giả thuyết cần kiểm chứng bằng nội dung đánh giá, không phải kết luận nhân quả. Nhóm cấu trúc đơn được giữ lại cũng phù hợp với bằng chứng rằng giao hàng tách thành nhiều kiện làm giảm sự hài lòng~\cite{brylla2022}.
+
+\subsection{Một tập kiểm định đơn lẻ có thể chọn sai mô hình}
+
+Cấu hình CatBoost tốt nhất đạt PR-AUC 0,2239 trên phân vùng lựa chọn mô hình, cao hơn rõ rệt so với 0,2108 của rừng ngẫu nhiên. Nếu lựa chọn dựa trên một tập kiểm định duy nhất, CatBoost sẽ được chọn. Tuy nhiên, khi lấy trung bình trên ba fold rolling-origin, CatBoost đạt 0,1458, thấp hơn 0,1465 của rừng ngẫu nhiên; do đó, theo quy tắc đã xác định trước, rừng ngẫu nhiên được giữ lại. Khoảng cách giữa hai cách đánh giá lớn hơn nhiều so với khoảng cách giữa hai mô hình, cho thấy với lớp dương hiếm và tỉ lệ dương dịch chuyển theo thời gian, thứ hạng của các mô hình trên một giai đoạn đơn lẻ chủ yếu phản ánh nhiễu của giai đoạn đó. Đây là bằng chứng thực nghiệm cho lựa chọn đánh giá trên nhiều fold ở Chương~\ref{ch:method}.
+
+Bên cạnh đó, PR-AUC trên phân vùng lựa chọn mô hình (khoảng 0,21) cao hơn trung bình ba fold (khoảng 0,15). Một phần chênh lệch đến từ tỉ lệ dương của phân vùng này cao hơn (11,92\% so với 10,13\%), vì mốc ngẫu nhiên của PR-AUC chính là tỉ lệ dương. Vì vậy, hai con số này không nên được so sánh trực tiếp với nhau.
+
+\subsection{Trọng số lớp làm xác suất kém tin cậy hơn dự đoán hằng số}
+
+Brier score trung bình ba fold của rừng ngẫu nhiên là 0,1907. Một dự đoán hằng số bằng tỉ lệ dương khoảng 0,10 cho Brier score xấp xỉ $0{,}10 \times 0{,}90 = 0{,}09$, tức thấp hơn gần một nửa. Như vậy, mô hình xếp hạng tốt hơn ngẫu nhiên nhưng xác suất dự đoán lại kém tin cậy hơn một dự đoán hằng số. Nguyên nhân là trọng số lớp cân bằng đẩy xác suất dự đoán lên một cách có hệ thống, phù hợp với cảnh báo của~\textcite{vandengoorbergh2022}; ba cấu hình CatBoost có Brier trung bình fold từ khoảng 0,13 đến 0,17 cũng cho thấy mức độ lệch phụ thuộc vào mô hình. Phát hiện này cho thấy bước hiệu chỉnh xác suất ở mục~\ref{sec:models} là bắt buộc: nếu hiển thị xác suất chưa hiệu chỉnh trên giao diện, quản lý có thể ước lượng số đơn có vấn đề cao hơn thực tế. Với ứng viên CatBoost, Brier score sau hiệu chỉnh sigmoid trên phân vùng so sánh là 0,1071; số liệu tương ứng của rừng ngẫu nhiên sau hiệu chỉnh chưa được lưu trong kho và cần được bổ sung.
+
+\subsection{Ngưỡng là quyết định vận hành, không phải tham số kỹ thuật}
+
+Khi đối chiếu bản demo với kết quả nghiên cứu (Bảng~\ref{tab:demo-threshold}), cùng nhãn ``HIGH'' mang hai ý nghĩa khác nhau. Trong bản demo với ngưỡng cố định 0,7, mức HIGH chiếm 29\% số case; theo chính sách nghiên cứu, mức HIGH là 5\% đơn có điểm cao nhất, tương ứng ngưỡng khoảng 0,286 với rừng ngẫu nhiên. Nếu mang ngưỡng 0,7 sang mô hình thật, số đơn vượt ngưỡng sẽ ít hơn nhiều so với 5\%, vì ngưỡng của nhóm 5\% cao nhất chỉ khoảng 0,286; nếu mang tỉ lệ 29\% sang vận hành, quản lý phải tự phân công gần một phần ba số đơn. Cả hai trường hợp đều làm mất tác dụng của hàng đợi ưu tiên. Do đó, ngưỡng cần được xác định lại mỗi khi mô hình hoặc năng lực xử lý thay đổi, và nên được biểu diễn bằng tỉ lệ phần trăm số đơn thay vì một con số xác suất cố định~\cite{gomezvargas2025}.
+        % Thảo luận (Trúc)
+
+% Chương 6 -- Kết luận và đề xuất.
+\chapter{Kết luận và đề xuất}\label{ch:conclusion}
+
+\section{Kết luận}
+
+Trên tập dữ liệu đơn giao đúng hạn của Olist, Random Forest đạt PR-AUC mức đơn 0,146502 và Recall@5\% 0,121225 qua ba fold phát triển. PR-AUC ở đây đo khả năng đưa các đơn có review 1--2 sao lên đầu hàng đợi; Recall@5\% đo tỷ lệ các đơn đó xuất hiện trong 5\% đơn có score cao nhất. Vì vậy, khi nhân viên chỉ xem 5\% đơn đầu hàng đợi, họ gặp khoảng 12,1\% trường hợp review thấp, thay vì khoảng 5\% nếu chọn ngẫu nhiên. Kết quả cho thấy score có thể hỗ trợ ưu tiên review, nhưng không cho phép tự động quyết định cách xử lý hay kết luận rằng sự hài lòng của khách hàng đã được cải thiện.
+
+Để score này đi vào vận hành mà không bị diễn giải quá mức, hệ thống lưu nó trong snapshot, tức bản ghi cố định tại thời điểm chấm điểm. Khi một case được nhận, liên lạc hay đóng, workflow chỉ cập nhật lịch sử xử lý; score ban đầu không bị sửa. Cùng với phân quyền, SLA và audit, cách tách này cho phép kiểm tra ai đã xử lý case nào, lúc nào và dựa trên thông tin nào. Do đó, mô hình chỉ tạo thứ tự cần xem xét, còn hành động với khách hàng vẫn thuộc về nhân viên.
+
+\section{Ý nghĩa của kết quả}
+
+Kết quả trên chỉ có nghĩa trong các ranh giới đã đặt ra. Thứ nhất, mô hình chỉ dùng dữ liệu biết tại thời điểm dự báo; vì vậy nó không học từ thông tin xuất hiện sau đó. Thứ hai, dữ liệu được chia theo thời gian để mô phỏng tình huống dùng quá khứ dự báo giai đoạn sau. Thứ ba, review là nhãn của đơn hàng, nên việc gán nhãn này cho từng item không cho phép kết luận item nào gây ra bất mãn. Cuối cùng, các metric dùng để chọn mô hình không thể đồng thời được xem là kết quả xác nhận. Những ranh giới này không làm mô hình mạnh hơn, nhưng ngăn việc suy rộng từ một bài toán xếp hạng sang một giải thích nhân quả hoặc một cam kết vận hành.
+
+\section{Hạn chế và hướng phát triển}\label{sec:future-work}
+
+Hạn chế quan trọng nhất nằm ở trạng thái của bằng chứng. Historical test period đã được quan sát trong khi phát triển, nên không còn là một holdout hợp lệ. Vì vậy, các metric hiện tại chỉ là kết quả thăm dò. Báo cáo cũng chưa có khoảng tin cậy bootstrap theo cụm đơn, đường PR và đường hiệu chỉnh trên holdout, dự đoán mức dòng để kiểm tra hoặc giá trị SHAP để giải thích đóng góp của đặc trưng. Bên cạnh đó, dữ liệu Olist chỉ mô tả giai đoạn 2016--2018 và không ghi nhận một can thiệp CSKH có đối chứng. Từ dữ liệu này không thể suy ra hàng đợi đã làm thay đổi hành vi hay đánh giá của khách hàng.
+
+Hướng phát triển nên theo thứ tự sau:
+\begin{enumerate}
+  \item Trước hết, khóa một replacement holdout chưa được quan sát. Model, calibration, cách tổng hợp điểm và ngưỡng phải được chốt trước khi mở tập này; sau đó mới xuất metric, khoảng tin cậy và artefact dự đoán để chuyển từ kết quả thăm dò sang kết quả xác nhận.
+  \item Khi mô hình đã qua bước xác nhận, hoàn thiện đường chấm điểm theo lô bằng model artifact thật, rồi ghi phiên bản snapshot và ngưỡng vào schema \texttt{ml}. Chỉ sau bước đó mới thay dữ liệu demo trong ứng dụng. SHAP hay một cơ chế giải thích khác chỉ nên xuất hiện trên giao diện khi có artefact tương ứng và hướng dẫn tránh diễn giải nhân quả.
+  \item Tiếp theo, thu thập dữ liệu vận hành sau dự báo, gồm lần liên lạc, kết quả, thời gian phản hồi và đánh giá sao sau đó. Nếu muốn đo hiệu quả CSKH, cần có nhóm đối chứng hoặc cách phân bổ ngẫu nhiên phù hợp; dữ liệu quan sát thuần túy không đủ để suy tác động.
+  \item Cuối cùng, chỉ mở rộng đặc trưng bằng dữ liệu thực sự biết tại thời điểm giao hàng hoặc thiết kế lại bài toán ở cấp đơn. Việc tiếp tục tinh chỉnh thuật toán trên cùng dữ liệu chỉ có ý nghĩa khi đi kèm giả thuyết và giao thức mới.
+\end{enumerate}
+ 
 \printbibliography[heading=bibintoc,title={Tài liệu tham khảo}]
 \appendix
 \clearpage\pagenumbering{alph}  % phụ lục đánh số trang a, b, c
-\input{chapters/appendix_a}
-\chapter{Tài liệu bổ trợ}
+% Phụ lục A — chi tiết kỹ thuật được tham chiếu từ Chương 3. Nguồn: SERVER_CONTEXT/chapter3_evidence.md §5–6.
+\chapter{Chi tiết kỹ thuật của phương pháp}\label{app:tech}
+
+Phụ lục này đối chiếu các khái niệm trong Chương~\ref{ch:method} với tên kỹ thuật trong hệ thống, gồm ba bảng tra cứu: từ điển khái niệm (Bảng~\ref{tab:app-dict}), danh mục đặc trưng (Bảng~\ref{tab:feature-list}) và cấu hình thực nghiệm (Bảng~\ref{tab:app-env}).
+
+\section{Từ điển khái niệm}\label{app:ids}
+\begin{table}[htbp]\centering\small
+\caption{Khái niệm trong Chương 3 và tên kỹ thuật tương ứng}\label{tab:app-dict}
+\begin{tabular}{p{4.6cm}p{9.2cm}}
+\toprule
+Khái niệm & Tên kỹ thuật \\
+\midrule
+Mã item         & \texttt{product\_item\_id} = \texttt{order\_id} + \texttt{order\_item\_id} \\
+Thời điểm dự đoán $t_o$ & \texttt{order\_delivered\_customer\_date} \\
+Ngày giao dự kiến & \texttt{order\_estimated\_delivery\_date} \\
+Đơn đã giao     & \texttt{order\_status = 'delivered'} \\
+Luật tổng hợp mức đơn & \texttt{max-v1} \\
+Bảng mô hình hóa & \texttt{gold.ml\_modelling\_items} \\
+Lược đồ đặc trưng & \texttt{p5-item-v11-interactions} \\
+\midrule
+\multicolumn{2}{l}{\emph{Bảng nguồn Olist (Bảng~\ref{tab:olist})}} \\
+Đơn hàng / Sản phẩm trong đơn & \texttt{orders} / \texttt{order\_items} \\
+Thanh toán / Đánh giá & \texttt{order\_payments} / \texttt{order\_reviews} \\
+Khách hàng / Người bán / Sản phẩm & \texttt{customers} / \texttt{sellers} / \texttt{products} \\
+Tọa độ / Dịch danh mục & \texttt{geolocation} / \texttt{product\_category\_name\_translation} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Danh mục 61 đặc trưng}\label{app:features}
+Ký hiệu kiểu: \textbf{S} số, \textbf{N} nhị phân, \textbf{P} phân loại. Số trong ngoặc là số đặc trưng của nhóm.
+
+{\footnotesize\renewcommand{\_}{\textunderscore\allowbreak}\begin{longtable}{>{\raggedright\arraybackslash}p{6.3cm}c|>{\raggedright\arraybackslash}p{6.3cm}c}
+\caption{Danh mục đặc trưng theo nhóm}\label{tab:feature-list}\\
+\toprule Đặc trưng & Kiểu & Đặc trưng & Kiểu \\ \midrule\endfirsthead
+\toprule Đặc trưng & Kiểu & Đặc trưng & Kiểu \\ \midrule\endhead
+\bottomrule\endlastfoot
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Cơ sở (24)}} \\
+\texttt{price} & S & \texttt{freight\_value} & S \\
+\texttt{payment\_count} & S & \texttt{payment\_amount} & S \\
+\texttt{max\_payment\_installments} & S & \texttt{estimated\_delivery\_buffer\_days} & S \\
+\texttt{purchase\_to\_delivery\_days} & S & \texttt{carrier\_to\_delivery\_days} & S \\
+\texttt{seller\_prior\_review\_count} & S & \texttt{seller\_prior\_review\_score\_avg} & S \\
+\texttt{category\_prior\_review\_count} & S & \texttt{category\_prior\_review\_score\_avg} & S \\
+\texttt{seller\_history\_low\_support\_flag} & N & \texttt{category\_history\_low\_support\_flag} & N \\
+\texttt{product\_photos\_qty} & S & \texttt{product\_weight\_g} & S \\
+\texttt{product\_length\_cm} & S & \texttt{product\_height\_cm} & S \\
+\texttt{product\_width\_cm} & S & \texttt{order\_item\_count} & S \\
+\texttt{order\_item\_value\_total} & S & \texttt{item\_value\_share} & S \\
+\texttt{product\_category} & P & \texttt{customer\_state} & P \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Tốc độ và độ biến động của seller (7)}} \\
+\texttt{seller\_mean\_approval\_to\_carrier\_days} & S & \texttt{seller\_mean\_carrier\_to\_delivery\_days} & S \\
+\texttt{seller\_mean\_purchase\_to\_delivery\_days} & S & \texttt{seller\_std\_purchase\_to\_delivery\_days} & S \\
+\texttt{seller\_delivery\_cv} & S & \texttt{seller\_mean\_freight\_value\_ratio} & S \\
+\texttt{seller\_std\_freight\_value\_ratio} & S & & \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Số lượng trong đơn (7)}} \\
+\texttt{order\_seller\_count} & S & \texttt{order\_category\_count} & S \\
+\texttt{order\_product\_count} & S & \texttt{order\_unique\_product\_count} & S \\
+\texttt{multi\_item\_flag} & N & \texttt{multi\_seller\_flag} & N \\
+\texttt{multi\_category\_flag} & N & & \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Tỉ lệ trong đơn (4) và mức độ tập trung (2)}} \\
+\texttt{order\_freight\_total} & S & \texttt{order\_freight\_share} & S \\
+\texttt{order\_max\_item\_value\_share} & S & \texttt{order\_min\_item\_value\_share} & S \\
+\texttt{order\_category\_hhi} & S & \texttt{order\_seller\_hhi} & S \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Hình thái sản phẩm (13)}} \\
+\texttt{product\_volume\_cm3} & S & \texttt{product\_density\_g\_cm3} & S \\
+\texttt{product\_max\_dimension\_cm} & S & \texttt{product\_min\_dimension\_cm} & S \\
+\texttt{product\_dimension\_ratio} & S & \texttt{freight\_to\_price\_ratio} & S \\
+\texttt{freight\_per\_kg} & S & \texttt{photos\_per\_100\_currency} & S \\
+\texttt{product\_dimensions\_missing\_flag} & N & \texttt{product\_weight\_missing\_flag} & N \\
+\texttt{product\_photos\_missing\_flag} & N & \texttt{product\_price\_zero\_flag} & N \\
+\texttt{product\_weight\_zero\_flag} & N & & \\
+\multicolumn{4}{l}{\cellcolor{gray!15}\textbf{Độ đầy đủ nội dung (4)}} \\
+\texttt{product\_name\_length} & S & \texttt{product\_description\_length} & S \\
+\texttt{product\_metadata\_missing\_count} & S & \texttt{product\_content\_missing\_flag} & N \\
+\end{longtable}}
+
+\section{Cấu hình thực nghiệm}\label{app:env}
+\begin{table}[htbp]\centering\small
+\caption{Môi trường và cấu hình của lần chạy được giữ lại}\label{tab:app-env}
+\begin{tabular}{p{2.6cm}p{4.2cm}p{6.6cm}}
+\toprule
+Nhóm & Thành phần & Giá trị \\
+\midrule
+Môi trường & Ngôn ngữ & Python $\geq$ 3.11 \\
+           & Xử lý dữ liệu & pandas 2.3.3, NumPy 2.4.6, PyArrow 21.0.0 \\
+           & Học máy & scikit-learn 1.9.1, CatBoost 1.2.10, joblib 1.6.0 \\
+           & Kho dữ liệu & PostgreSQL, dbt 1.8.10 \\
+           & Phần cứng & CPU; GPU chỉ cho biến thể CatBoost \\
+\midrule
+Mô hình giữ lại & Thuật toán & Rừng ngẫu nhiên, 200 cây \\
+           & Siêu tham số & độ sâu 8, tối thiểu 5 mẫu mỗi lá \\
+           & Trọng số lớp & \texttt{balanced\_subsample} \\
+\midrule
+Đặc trưng lịch sử & Làm trơn Bayes & $m = 25$ \\
+           & Ngưỡng hỗ trợ thấp & $< 5$ quan sát trước đó \\
+\midrule
+Tái lập    & Seed & 42 \\
+           & Commit & \texttt{6e8976f} \\
+\bottomrule
+\end{tabular}
+\end{table}
+ \chapter{Tài liệu bổ trợ}
 \end{document}
