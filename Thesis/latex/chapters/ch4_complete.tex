@@ -1,4 +1,5 @@
 % Chương 4 -- hệ thống và đánh giá thực nghiệm.
+<<<<<<< HEAD
 \chapter{Từ tín hiệu dự báo đến hàng đợi xử lý}\label{ch:system-experiment}
 
 \section{Luận điểm của chương}
@@ -24,6 +25,25 @@ Các endpoint dưới tiền tố \texttt{/api/v1} phản ánh các ranh giới 
 Phần thực nghiệm không hỏi mô hình có dự báo chắc chắn đánh giá thấp hay không. Câu hỏi hẹp hơn là: trong các đơn giao đúng hạn, danh sách gồm các đơn có score cao có chứa nhiều review 1--2 sao hơn một danh sách chọn ngẫu nhiên hay không? Đơn vị học là item, nhưng hàng đợi làm việc ở cấp đơn nên item scores được tổng hợp bằng \texttt{max-v1}. Chỉ số chính vì thế là PR-AUC ở cấp đơn; Recall@5\% cho biết hàng đợi nhỏ bắt được bao nhiêu trường hợp dương.
 
 Mô hình Random Forest được giữ lại theo trung bình ba fold rolling-origin. Kết quả là development-only: giai đoạn kiểm tra lịch sử đã được dùng trong quá trình phát triển, nên không thể được gọi là holdout xác nhận. Giới hạn này quyết định cách đọc toàn bộ bảng kết quả.
+=======
+\chapter{Hệ thống hỗ trợ và đánh giá thực nghiệm}\label{ch:system-experiment}
+
+Sau khi một đơn được giao, hệ thống không đưa ra kết luận về khách hàng. Thay vào đó, mô hình gán cho đơn một \textit{score}, tức một giá trị dùng để xếp thứ tự rủi ro. Giá trị này được lưu trong một \textit{snapshot}---bản ghi cố định tại thời điểm chấm điểm---cùng với phiên bản mô hình, ngưỡng phân loại và nguồn dữ liệu. Từ snapshot đó, nhân viên nhận được hàng đợi để xem xét. Các thao tác như nhận case, liên lạc hay đóng case được lưu riêng, nên không làm thay đổi score ban đầu. Cách tách này cần thiết vì nhãn của đề tài chỉ là review 1--2 sao ở cấp đơn, còn đặc trưng chỉ phản ánh thông tin có tại thời điểm giao hàng.
+
+\section{Hệ thống và API}\label{sec:system-api}
+
+Trong khi luồng ngoại tuyến nạp dữ liệu, tạo đặc trưng, huấn luyện và chấm điểm theo lô, thì luồng trực tuyến chỉ dùng các snapshot đã có để tạo hàng đợi, phân công và ghi nhận xử lý. PostgreSQL là nơi lưu cả hai phần này. Các bảng Bronze/Silver/Gold chứa dữ liệu đã đi qua các bước xử lý; schema \texttt{ml} lưu release mô hình, snapshot và ngưỡng; schema \texttt{app} lưu case cùng lịch sử xử lý. Do đó, một thao tác trên giao diện chỉ thay đổi trạng thái xử lý của case, chứ không thể thay đổi dữ liệu, ngưỡng hay phiên bản mô hình đã tạo ra hàng đợi.
+
+Để hàng đợi được xử lý nhất quán, API dùng Bearer JWT để nhận diện người dùng và kiểm tra quyền ở backend. \texttt{SPECIALIST} có thể xem hàng đợi, nhận các case thấp/trung bình hợp lệ và ghi liên lạc. \texttt{MANAGER} có thêm quyền phân công case HIGH, mở lại case, đặt quyết định, xem audit và thay đổi tham số. Từ đó, mỗi case đi qua bốn trạng thái: \texttt{PENDING} (chưa xử lý), \texttt{IN\_PROGRESS} (đang xử lý), \texttt{COMPLETED} (đã hoàn tất) hoặc \texttt{SKIPPED} (bỏ qua). Trước khi đổi trạng thái, backend kiểm tra xung đột và năng lực xử lý thay vì để giao diện tự quyết định.
+
+Các endpoint dưới \texttt{/api/v1} phản ánh đúng trình tự đó: \texttt{/auth} quản lý phiên; \texttt{/orders} lấy hàng đợi và nhận case; \texttt{/contacts}, \texttt{/comments}, \texttt{/decisions} lưu bằng chứng xử lý; \texttt{/dashboard}, \texttt{/audit-events} và \texttt{/parameters} phục vụ giám sát. Các bản ghi liên lạc, trao đổi, quyết định và phiên bản tham số đều được thêm mới thay vì ghi đè. Vì vậy, khi cần xem lại một quyết định, có thể đối chiếu nó với score và điều kiện đã có lúc case được tạo.
+
+\section{Đánh giá thực nghiệm}
+
+Vì hệ thống chỉ dùng score để sắp thứ tự, phần thực nghiệm cũng không hỏi mô hình có dự báo chắc chắn review thấp hay không. Với các đơn giao đúng hạn, câu hỏi là liệu nhóm đơn có score cao có chứa nhiều review 1--2 sao hơn một nhóm chọn ngẫu nhiên hay không. Mô hình học ở mức item, nhưng hàng đợi phục vụ nhân viên ở cấp đơn; vì thế các item scores được tổng hợp bằng \texttt{max-v1}, tức lấy score cao nhất trong đơn. PR-AUC ở cấp đơn đo khả năng xếp các đơn dương lên trước; Recall@5\% cho biết khi chỉ xem 5\% đơn đầu hàng đợi, hệ thống giữ lại được bao nhiêu trường hợp review thấp.
+
+Random Forest được giữ lại theo trung bình ba fold rolling-origin, nghĩa là các lần đánh giá lần lượt huấn luyện trên quá khứ và kiểm tra ở giai đoạn thời gian sau đó. Tuy nhiên, giai đoạn kiểm tra lịch sử này đã được dùng trong quá trình phát triển; vì vậy các số liệu sau chỉ là kết quả phát triển, không phải kết quả xác nhận trên một tập giữ lại độc lập.
+>>>>>>> 7b6c164 (update c4 & c6)
 
 \begin{table}[htbp]
 \centering\small
@@ -42,6 +62,7 @@ Trung bình & 0,176017 & 0,146502 & 0,190663 & 0,121225 \\
 \end{tabular}
 \end{table}
 
+<<<<<<< HEAD
 \section{Diễn giải kết quả}\label{sec:analysis}
 
 PR-AUC đơn trung bình 0,146502 cao hơn prevalence xấp xỉ một phần mười, nên score có tín hiệu xếp hạng. Tín hiệu đó chưa mạnh: nó thấp hơn mục tiêu phát triển 0,25 và dao động qua ba fold. Ở ngân sách 5\%, hàng đợi bắt được 12,1225\% trường hợp dương, khoảng 2,4 lần mức 5\% của một danh sách ngẫu nhiên. Đây là lý do hợp lý để dùng score như một ưu tiên review; nó không phải bằng chứng để tự động xử lý hay tuyên bố cải thiện sự hài lòng.
@@ -49,3 +70,8 @@ PR-AUC đơn trung bình 0,146502 cao hơn prevalence xấp xỉ một phần m�
 Brier score 0,190663 cũng ngăn một cách diễn giải quá mức. Score có thể hữu ích cho thứ tự nhưng chưa đủ cơ sở để trình bày như xác suất đã hiệu chỉnh. Ngoài ra, nhãn đơn được kế thừa cho item nên không thể suy item là nguyên nhân của review thấp. Bản demo hiện dùng snapshot \texttt{SYNTHETIC\_DEMO}; nó minh họa workflow, không phải suy luận production.
 
 Vì vậy, bước tiếp theo không phải tiếp tục tô đậm metric hiện có. Cần khóa một replacement holdout chưa được quan sát, chốt model, calibration, aggregation và ngưỡng trước khi đánh giá, rồi xuất metric kèm khoảng tin cậy và artefact dự đoán. Chỉ khi đó mới có thể chuyển từ bằng chứng phát triển sang một kết luận xác nhận.
+=======
+PR-AUC đơn trung bình 0,146502 cao hơn prevalence xấp xỉ một phần mười, nên score có tín hiệu xếp hạng: các đơn có review thấp xuất hiện ở đầu hàng đợi nhiều hơn so với chọn ngẫu nhiên. Tuy vậy, tín hiệu này vẫn thấp hơn mục tiêu 0,25 và dao động qua các fold. Cùng kết quả đó, Recall@5\% cho thấy khi chỉ dành nguồn lực xem 5\% đơn đầu tiên, hàng đợi bắt được 12,1225\% trường hợp dương, khoảng 2,4 lần mức ngẫu nhiên. Điều này giải thích việc dùng score để ưu tiên review, nhưng không cho phép tự động xử lý hay tuyên bố cải thiện sự hài lòng.
+
+Brier score 0,190663 cho thấy score chưa đủ đáng tin để được trình bày như một xác suất đã hiệu chỉnh. Hơn nữa, nhãn ở cấp đơn được gán cho các item trong đơn, nên không thể từ score item suy ra item nào là nguyên nhân của review thấp. Bản demo dùng snapshot \texttt{SYNTHETIC\_DEMO}; vì thế nó chỉ minh họa workflow, không phải suy luận production. Muốn đi xa hơn, cần khóa một replacement holdout chưa quan sát, chốt model, calibration, aggregation và ngưỡng trước khi đánh giá, rồi xuất metric kèm khoảng tin cậy và artefact dự đoán.
+>>>>>>> 7b6c164 (update c4 & c6)
