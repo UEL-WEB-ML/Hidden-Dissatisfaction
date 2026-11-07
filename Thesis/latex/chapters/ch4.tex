@@ -54,7 +54,7 @@ Các mốc thời gian cũng có điểm bất thường. Có 1\,359 đơn có m
 
 Trong quần thể nghiên cứu, phân bố dịch về phía hài lòng, với 62,45\% đơn nhận 5 sao, 20,35\% nhận 4 sao, 8,00\% nhận 3 sao, 2,63\% nhận 2 sao và 6,58\% nhận 1 sao. Tỉ lệ dương ở mức đơn vì vậy là 9,21\% (7\,865/85\,420), thấp hơn đáng kể so với 14,69\% khi tính trên mọi đơn có đánh giá. Ở mức item, tỉ lệ dương lên tới 11,41\% vì đơn nhiều sản phẩm có tỉ lệ bị đánh giá thấp cao hơn (mục~\ref{subsec:eda-ontime}) và đóng góp nhiều dòng hơn.
 
-Khác biệt giữa hai mức này cần được ghi nhớ khi đọc Bảng~\ref{tab:split}. Tỉ lệ dương 10,13--13,80\% trong bảng đó được tính ở mức item, còn nếu dựng lại theo cùng mốc thời gian ở mức đơn thì tỉ lệ dương của năm phân vùng phát triển là 8,86--10,53\%. Theo tháng giao, tỉ lệ dương mức đơn của quần thể nghiên cứu dao động trong khoảng 7,8--10,9\%. Với khoảng một đơn dương trên mười một đơn, accuracy không phải thước đo phù hợp, như đã lập luận ở mục~\ref{sec:th-metrics}; tỉ lệ dương mức đơn này cũng là mốc ngẫu nhiên khi đọc PR-AUC ở mục~\ref{sec:analysis}.
+Khác biệt giữa hai mức này cần được ghi nhớ khi đọc Bảng~\ref{tab:split}. Tỉ lệ dương 10,13--13,80\% trong bảng đó được tính ở mức item, còn nếu dựng lại theo cùng mốc thời gian ở mức đơn thì tỉ lệ dương của năm phân vùng phát triển là 8,86--10,53\%. Theo tháng giao, tỉ lệ dương mức đơn của quần thể nghiên cứu dao động trong khoảng 7,8--10,9\%. Với khoảng một đơn dương trên mười một đơn, accuracy không phải thước đo phù hợp, như đã lập luận ở mục~\ref{sec:th-metrics}; tỉ lệ dương mức đơn này cũng là mốc ngẫu nhiên khi đọc PR-AUC ở mục~\ref{sec:results-analysis}.
 
 \subsection{Vì sao giao trễ chi phối các mô hình dự báo hiện có}\label{subsec:eda-lateness}
 
@@ -340,7 +340,7 @@ Sigmoid (được chọn) & \textbf{0,1049} \\
 Với ứng viên CatBoost độ sâu 6, bước hiệu chỉnh cũng chọn sigmoid, với Brier 0,1071 trên cùng phân vùng. Ngưỡng ưu tiên theo chính sách phát triển là 5\% đơn có điểm cao nhất cho mức \textsc{Cao} và 20\% cho mức \textsc{Trung bình} trở lên. Trong một lần chạy rừng ngẫu nhiên trước đó, hai ngưỡng này tương ứng với điểm 0,2858 và 0,1119; đây là ngưỡng chọn trên phân vùng chọn ngưỡng, chưa phải kết quả vận hành trên tập test.
 
 % =====================================================================
-\section{Phân tích và đánh giá}\label{sec:analysis}
+\section{Phân tích và đánh giá}\label{sec:results-analysis}
 
 Mục này đánh giá các kết quả ở mục~\ref{sec:tables} theo bốn câu hỏi, gồm mô hình xếp hạng tốt hơn ngẫu nhiên đến mức nào, mức đó có ổn định qua thời gian không, xác suất có đáng tin không, và kết quả có nhất quán với những gì dữ liệu cho thấy ở bước khám phá không.
 
