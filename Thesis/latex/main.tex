@@ -5,6 +5,7 @@
 \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}\onehalfspacing
 \usepackage{graphicx,booktabs,amsmath,longtable,hyperref,caption,array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}} % cột văn bản hẹp: căn trái, tránh giãn chữ
 \usepackage{placeins} % \FloatBarrier: giữ ảnh trong đúng mục (ch4_demo)
 \usepackage{csquotes}
 \usepackage[table]{xcolor}
@@ -284,7 +285,7 @@ Rò rỉ dữ liệu là mối đe dọa thứ hai đối với độ tin cậy 
 
 \begin{table}[htbp]\centering\footnotesize
 \caption{Tóm tắt các nghiên cứu liên quan}\label{tab:related}
-\begin{tabular}{p{2.5cm}p{3.0cm}p{3.4cm}p{5.3cm}}
+\begin{tabular}{L{2.5cm}L{3.0cm}L{3.4cm}L{5.3cm}}
 \toprule
 Nghiên cứu & Dữ liệu & Phương pháp & Kết quả chính và hạn chế đối với đề tài \\
 \midrule
@@ -858,7 +859,7 @@ Quá trình thực nghiệm tạo ra một pipeline đầy đủ từ dữ liệ
 
 \begin{table}[htbp]\centering\small
 \caption{Tóm tắt kết quả thực nghiệm (kết quả phát triển, mang tính thăm dò)}\label{tab:res-summary}
-\begin{tabular}{p{3.6cm}p{9.9cm}}
+\begin{tabular}{L{3.6cm}L{9.9cm}}
 \toprule
 Thành phần & Kết quả \\
 \midrule
@@ -1274,7 +1275,7 @@ Bản demo cho thấy luồng xử lý từ điểm số đến hành động v�
 Do ứng dụng chỉ đọc dữ liệu từ bảng dự đoán, cả ba khoảng cách này đều có thể được khắc phục ở phía luồng học máy: chấm điểm bằng mô hình thật, ghi ngưỡng tương ứng vào bảng ngưỡng và bổ sung yếu tố rủi ro vào snapshot mới; giao diện và quy trình xử lý không cần thay đổi.
  
 % Chương 5 — Thảo luận (Trúc). Nguồn số liệu: SERVER_CONTEXT/chapter4_evidence.md, model_variant_fold_metrics.md,
-% TODO: đối chiếu mọi số metric với bảng Huy gửi cho Ch.4 trước khi nộp.
+% Đã đối chiếu (07/11/2026): số metric Ch.4/Ch.5 khớp SERVER_CONTEXT/model_variant_fold_metrics.md và reports/P5-S10-feature-selection.md.
 % reports/P5-accuracy-coursework-summary.md, P5-accuracy-failure-analysis.md (nhánh dev); mục "Giới hạn diễn giải"
 % chuyển từ _moved_from_ch3.tex. Chỉ dùng số đã có trong evidence; không suy thêm chỉ số chưa được tính.
 \chapter{Thảo luận}\label{ch:discussion}
@@ -1470,7 +1471,7 @@ Ký hiệu kiểu: \textbf{S} số, \textbf{N} nhị phân, \textbf{P} phân lo�
 \section{Cấu hình thực nghiệm}\label{app:env}
 \begin{table}[htbp]\centering\small
 \caption{Môi trường và cấu hình của lần chạy được giữ lại}\label{tab:app-env}
-\begin{tabular}{p{2.6cm}p{4.2cm}p{6.6cm}}
+\begin{tabular}{L{2.6cm}L{4.2cm}L{6.6cm}}
 \toprule
 Nhóm & Thành phần & Giá trị \\
 \midrule
