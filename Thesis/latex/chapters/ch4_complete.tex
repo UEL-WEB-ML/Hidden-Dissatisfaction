@@ -1,66 +1,37 @@
-% Chương 4 -- Hệ thống, API và đánh giá thực nghiệm.
-\chapter{Hệ thống hỗ trợ và đánh giá thực nghiệm}\label{ch:system-experiment}
+% Chương 4 -- hệ thống và đánh giá thực nghiệm.
+\chapter{Từ tín hiệu dự báo đến hàng đợi xử lý}\label{ch:system-experiment}
 
-\section{Mục tiêu triển khai}
+\section{Luận điểm của chương}
 
-Chương này trình bày phần hiện thực hóa kết quả của đề tài theo hai phương diện gắn kết: hệ thống hỗ trợ vận hành danh sách ưu tiên và đánh giá thực nghiệm chất lượng xếp hạng. Mục tiêu không phải tự động kết luận nguyên nhân khách hàng bất mãn hay tự động tác động đến khách hàng. Score chỉ là đầu vào để nhân viên chăm sóc khách hàng (CSKH) xác định các đơn cần kiểm tra trước; quyết định, liên lạc và xử lý vẫn do con người thực hiện.
+Một score dự báo chỉ có ý nghĩa vận hành khi nó được đặt trong một quy trình giới hạn rõ quyền quyết định của mô hình. Vì nhãn của đề tài là review 1--2 sao ở cấp đơn và mô hình chỉ dùng thông tin biết được tại thời điểm giao hàng, score không thể trả lời vì sao khách hàng không hài lòng, cũng không thể tự động quyết định cách can thiệp. Chương này lập luận rằng giá trị hiện có của hệ thống nằm ở chỗ khác: biến score thành một hàng đợi để con người xem xét, đồng thời giữ được dấu vết để kiểm tra sau này.
 
-Hệ thống tách luồng ngoại tuyến và trực tuyến. Luồng ngoại tuyến nạp dữ liệu Olist, biến đổi kho dữ liệu, huấn luyện và chấm điểm theo lô. Luồng trực tuyến nhận snapshot điểm đã ghi, tạo hàng đợi và lưu lịch sử thao tác. API không tự nạp dữ liệu, huấn luyện hoặc chấm điểm khi khởi động; các công việc này phải được gọi tường minh để một request web không làm thay đổi ngầm dữ liệu hoặc phiên bản mô hình.
+\section{Ranh giới giữa chấm điểm và xử lý}
 
-\section{Kiến trúc hệ thống và ranh giới dữ liệu}\label{sec:architecture}
+Luồng ngoại tuyến nạp dữ liệu, tạo đặc trưng, huấn luyện và chấm điểm theo lô. Luồng trực tuyến chỉ đọc snapshot điểm đã được ghi để tạo hàng đợi, phân công và ghi nhận xử lý. Việc tách hai luồng loại trừ một rủi ro cơ bản: một thao tác trên giao diện không được làm thay đổi dữ liệu, ngưỡng hay phiên bản mô hình.
 
-Hệ thống gồm PostgreSQL, dịch vụ FastAPI, ứng dụng Angular và các job Python, được đóng gói bằng Docker Compose. PostgreSQL giữ ba vùng dữ liệu có vai trò khác nhau: Bronze/Silver/Gold phục vụ kho dữ liệu; schema \texttt{ml} giữ release, snapshot dự đoán và ngưỡng; schema \texttt{app} giữ người dùng, case, chu kỳ xử lý, liên lạc, quyết định, tham số và audit. Angular gọi REST/JSON đến FastAPI; FastAPI điều phối request, xác thực, phân quyền và ánh xạ lỗi, còn luật nghiệp vụ nằm ở domain/use case và adapter PostgreSQL thực hiện giao dịch.
+PostgreSQL lưu kho dữ liệu Bronze/Silver/Gold, schema \texttt{ml} lưu release, snapshot và ngưỡng, còn schema \texttt{app} lưu case và lịch sử xử lý. Snapshot là điểm nối giữa hai phần. Nó ghi score, phiên bản model, phiên bản ngưỡng, thời điểm chấm điểm và nguồn dữ liệu. Case có thể thay đổi người phụ trách hoặc trạng thái; score và mức rủi ro của snapshot không được sửa qua API. Vì vậy, một quyết định sau này luôn có thể được đối chiếu với thông tin đã có khi hàng đợi được tạo.
 
-Điểm nối giữa hai luồng là snapshot dự đoán bất biến. Job chấm điểm tạo điểm ở mức item, sau đó tổng hợp điểm đơn bằng luật \texttt{max-v1}. Snapshot mang phiên bản model, phiên bản ngưỡng, thời điểm chấm điểm và nguồn dữ liệu. Workflow có thể thay đổi người được giao, trạng thái, liên lạc hoặc quyết định; không có API sửa trực tiếp score hay risk level. Nhờ đó có thể đối chiếu kết quả xử lý với đúng điểm đã tạo hàng đợi, thay vì một điểm bị thay đổi bởi thao tác vận hành.
+\section{Quy tắc workflow và API}\label{sec:system-api}
 
-\section{Xác thực, vai trò và vòng đời case}\label{sec:workflow}
+API dùng Bearer JWT, còn kiểm soát quyền được thực hiện ở backend. \texttt{SPECIALIST} xem hàng đợi, nhận các case thấp/trung bình hợp lệ và ghi liên lạc. \texttt{MANAGER} phân công case HIGH, mở lại case, đặt quyết định, xem audit và thay đổi tham số. Sự phân vai này không chứng minh hiệu quả CSKH; nó chỉ xác định ai được phép thực hiện bước nào trong quy trình.
 
-API sử dụng Bearer JWT; mật khẩu được băm và token có thời hạn. Hai vai trò là \texttt{SPECIALIST} và \texttt{MANAGER}. Specialist xem hàng đợi, tự nhận đơn mức thấp/trung bình, ghi lần liên lạc và tải minh chứng. Manager phân công, mở lại case, đặt quyết định, xem dashboard/audit và thay đổi tham số vận hành. Kiểm tra quyền được thực hiện ở backend, không chỉ dựa vào việc ẩn nút trên giao diện.
+Case đi qua \texttt{PENDING}, \texttt{IN\_PROGRESS}, \texttt{COMPLETED} hoặc \texttt{SKIPPED}. Specialist không thể nhận case đã có người xử lý, case HIGH hoặc case vượt năng lực. Khi case được đóng hoặc mở lại, backend tạo và kiểm tra giao dịch thay vì để giao diện tự suy diễn trạng thái. Contact, comment, decision và parameter version được ghi thêm thay vì ghi đè; audit event ghi lại thay đổi workflow. Các quy tắc này phục vụ khả năng kiểm tra, không phải là một lớp trang trí cho giao diện.
 
-Case có bốn trạng thái: \texttt{PENDING}, \texttt{IN\_PROGRESS}, \texttt{COMPLETED} và \texttt{SKIPPED}. Specialist chỉ nhận case đang chờ, chưa có người nhận, không phải mức HIGH và còn năng lực xử lý. Case HIGH phải được Manager phân công. Khi hoàn tất hoặc bỏ qua, case đóng; Manager có thể mở lại với lý do. Khi đó một chu kỳ mới với SLA mới được tạo nhưng lịch sử cũ vẫn được giữ. Giao dịch nhận đơn kiểm tra xung đột và năng lực trong backend để hai người cùng thao tác không thể cùng sở hữu một case.
+Các endpoint dưới tiền tố \texttt{/api/v1} phản ánh các ranh giới trên: \texttt{/auth} cho phiên làm việc; \texttt{/orders} cho hàng đợi và nhận case; \texttt{/contacts}, \texttt{/comments}, \texttt{/decisions} cho bằng chứng xử lý; \texttt{/dashboard}, \texttt{/audit-events} và \texttt{/parameters} cho giám sát. Hàng đợi mặc định sắp theo score giảm dần, tiếp đến SLA và thời gian chờ. Do đó score chỉ quyết định thứ tự cần xem xét, không tự gắn nhãn khách hàng hoặc tự gửi liên hệ.
 
-\section{Thiết kế API}\label{sec:system-api}
+\section{Câu hỏi thực nghiệm}
 
-Mọi endpoint nghiệp vụ dùng tiền tố \texttt{/api/v1}; dữ liệu JSON dùng \texttt{snake\_case}, thời điểm dùng ISO~8601 có timezone. Lỗi nghiệp vụ được ánh xạ thành HTTP 403/404/409/422 với mã lỗi để giao diện phân biệt lỗi quyền, trạng thái, dữ liệu đầu vào và xung đột. Bảng~\ref{tab:api-groups} tóm tắt các nhóm API chính.
+Phần thực nghiệm không hỏi mô hình có dự báo chắc chắn đánh giá thấp hay không. Câu hỏi hẹp hơn là: trong các đơn giao đúng hạn, danh sách gồm các đơn có score cao có chứa nhiều review 1--2 sao hơn một danh sách chọn ngẫu nhiên hay không? Đơn vị học là item, nhưng hàng đợi làm việc ở cấp đơn nên item scores được tổng hợp bằng \texttt{max-v1}. Chỉ số chính vì thế là PR-AUC ở cấp đơn; Recall@5\% cho biết hàng đợi nhỏ bắt được bao nhiêu trường hợp dương.
 
-\begin{table}[htbp]
-\centering\small
-\caption{Các nhóm endpoint chính của hệ thống}
-\label{tab:api-groups}
-\begin{tabular}{@{}p{3.0cm}p{5.1cm}p{5.0cm}@{}}
-\toprule
-Nhóm & Endpoint tiêu biểu & Chức năng và quyền \\
-\midrule
-Xác thực và hồ sơ & \texttt{POST /auth/login}, \texttt{GET/PATCH /auth/me}, \texttt{POST /auth/logout} & Phát hành JWT, lấy/cập nhật hồ sơ và kết thúc phiên ở client. \\
-Hàng đợi & \texttt{GET /orders}, \texttt{/orders/summary}, \texttt{/orders/filter-options}, \texttt{POST /orders/\{id\}/claim} & Lọc, phân trang, xếp ưu tiên; Specialist tự nhận case hợp lệ. \\
-Workflow case & \texttt{GET /orders/\{id\}}, \texttt{POST /orders/\{id\}/assign}, \texttt{/complete}, \texttt{/skip}, \texttt{/reopen} & Đọc chi tiết, phân công, đóng hoặc mở lại; Manager có quyền rộng hơn. \\
-Liên lạc và quyết định & \texttt{POST /files}, \texttt{/contacts}, \texttt{/comments}, \texttt{/decisions} & Ghi liên lạc, minh chứng, trao đổi và quyết định; các bản ghi là append-only. \\
-Giám sát và cấu hình & \texttt{GET /dashboard}, \texttt{/audit-events}, \texttt{GET/POST /parameters}, \texttt{GET /config} & Dashboard, audit và phiên bản tham số; các thao tác quản trị yêu cầu Manager. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Với hàng đợi, thứ tự mặc định là điểm giảm dần, sau đó hạn SLA gần nhất và thời gian chờ. API hỗ trợ lọc theo mức rủi ro, trạng thái, người xử lý, người bán, danh mục, khoảng score, SLA và nhu cầu quyết định. Điều này biến score thành một đầu vào cho quyết định phân bổ công việc, thay vì tự động gắn nhãn hay tự động liên hệ khách hàng.
-
-Mỗi thao tác thay đổi workflow sinh audit event; contact, comment, decision và parameter version không bị ghi đè. Upload minh chứng được kiểm tra kiểu/kích thước và gắn với lần liên lạc, thay vì chấp nhận URL tùy ý. Phạm vi hiện tại là hệ thống hỗ trợ quyết định cục bộ/demo. Snapshot demo mang trạng thái \texttt{SYNTHETIC\_DEMO}; điểm hiển thị không được trình bày là suy luận xác nhận từ mô hình đã chọn.
-
-\section{Thiết kế đánh giá thực nghiệm}\label{sec:experiment-design}
-
-Bài toán đánh giá khả năng xếp hạng các đơn giao đúng hạn theo nguy cơ nhận review 1--2 sao. Đơn vị học là item, nhưng điểm phục vụ vận hành được tổng hợp lên đơn theo luật \texttt{max-v1}; vì vậy chỉ số chính là PR-AUC ở mức đơn. Dữ liệu được chia theo thời gian với ba fold rolling-origin để giảm nguy cơ rò rỉ thông tin thời gian. Đặc trưng chỉ dùng thông tin biết được tại thời điểm giao hàng. Do nhãn cấp đơn được kế thừa cho các item, score item chỉ là rủi ro của đơn trong ngữ cảnh item, không phải bằng chứng item gây ra bất mãn.
-
-Mô hình giữ lại là \texttt{order\_weight:random\_forest-depth8-leaf5-v1}. Nó được chọn theo trung bình ba fold phát triển, không phải theo một lần chia ngẫu nhiên hay theo một holdout đơn lẻ. Các kết quả dưới đây là kết quả phát triển (development/exploratory). Giai đoạn kiểm tra lịch sử đã được biết trong quá trình phát triển nên không còn là holdout xác nhận hợp lệ.
-
-\section{Kết quả thực nghiệm}\label{sec:results}
-
-Với danh sách ưu tiên gồm 5\% đơn có điểm cao nhất, Recall@5\% trung bình đạt 0,121225. Điều này có nghĩa là trong ba fold phát triển, hàng đợi 5\% bắt được khoảng 12,1\% số đơn có review thấp. Con số này không phải xác suất một khách hàng chắc chắn không hài lòng và cũng không chứng minh một hành động CSKH sẽ thay đổi review.
+Mô hình Random Forest được giữ lại theo trung bình ba fold rolling-origin. Kết quả là development-only: giai đoạn kiểm tra lịch sử đã được dùng trong quá trình phát triển, nên không thể được gọi là holdout xác nhận. Giới hạn này quyết định cách đọc toàn bộ bảng kết quả.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Kết quả theo fold của mô hình Random Forest được giữ lại (development-only)}
+\caption{Kết quả development của Random Forest theo rolling folds}
 \label{tab:rolling-results}
 \begin{tabular}{lrrrr}
 \toprule
-Fold & PR-AUC item & PR-AUC đơn (max-v1) & Brier đơn & Recall@5\% đơn \\
+Fold & PR-AUC item & PR-AUC đơn & Brier đơn & Recall@5\% \\
 \midrule
 1 & 0,153753 & 0,142527 & 0,188331 & 0,114078 \\
 2 & 0,188261 & 0,150665 & 0,189891 & 0,130864 \\
@@ -71,14 +42,10 @@ Trung bình & 0,176017 & 0,146502 & 0,190663 & 0,121225 \\
 \end{tabular}
 \end{table}
 
-Bảng~\ref{tab:rolling-results} cho thấy PR-AUC ở mức đơn dao động từ 0,142527 đến 0,150665. Đây là dấu hiệu ổn định tương đối theo ba thời điểm kiểm định, song mức độ phân biệt vẫn khiêm tốn. Vì lớp dương có tỷ lệ khoảng một phần mười, PR-AUC 0,146502 cao hơn mốc ngẫu nhiên nhưng chưa đạt mục tiêu phát triển 0,25 của kế hoạch thực nghiệm.
+\section{Diễn giải kết quả}\label{sec:analysis}
 
-Kho bằng chứng chỉ giữ đủ số liệu theo fold cho một cấu hình Random Forest và ba cấu hình CatBoost GPU giới hạn. Không có bảng metric đồng nhất cho prevalence, hồi quy logistic và HistGradientBoosting trên cùng tập đặc trưng và các fold; do đó không lập bảng xếp hạng năm họ mô hình. Trong phần đối chứng còn lưu, CatBoost tốt nhất theo rolling PR-AUC đạt 0,145813, thấp hơn rất nhỏ so với 0,146502 của Random Forest. Đây là cơ sở để giữ Random Forest theo quy tắc lựa chọn đã đặt trước, không phải bằng chứng rằng Random Forest luôn tốt hơn mọi phương án khác.
+PR-AUC đơn trung bình 0,146502 cao hơn prevalence xấp xỉ một phần mười, nên score có tín hiệu xếp hạng. Tín hiệu đó chưa mạnh: nó thấp hơn mục tiêu phát triển 0,25 và dao động qua ba fold. Ở ngân sách 5\%, hàng đợi bắt được 12,1225\% trường hợp dương, khoảng 2,4 lần mức 5\% của một danh sách ngẫu nhiên. Đây là lý do hợp lý để dùng score như một ưu tiên review; nó không phải bằng chứng để tự động xử lý hay tuyên bố cải thiện sự hài lòng.
 
-\section{Phân tích và giới hạn}\label{sec:analysis}
+Brier score 0,190663 cũng ngăn một cách diễn giải quá mức. Score có thể hữu ích cho thứ tự nhưng chưa đủ cơ sở để trình bày như xác suất đã hiệu chỉnh. Ngoài ra, nhãn đơn được kế thừa cho item nên không thể suy item là nguyên nhân của review thấp. Bản demo hiện dùng snapshot \texttt{SYNTHETIC\_DEMO}; nó minh họa workflow, không phải suy luận production.
 
-Kết quả trả lời câu hỏi nghiên cứu ở mức hẹp: từ thông tin biết được ngay sau khi giao hàng, mô hình có thể ưu tiên một nhóm đơn giàu rủi ro hơn chọn ngẫu nhiên. So với một hàng đợi chọn ngẫu nhiên 5\% đơn, có kỳ vọng bắt được khoảng 5\% các trường hợp dương, Recall@5\% 0,121225 tương đương khoảng 2,4 lần mốc này. Tuy nhiên, phần lớn trường hợp review thấp vẫn nằm ngoài hàng đợi; hệ thống phù hợp với vai trò công cụ hỗ trợ ưu tiên kiểm tra, không phải bộ lọc tự động hay công cụ kết luận nguyên nhân.
-
-Chỉ số Brier trung bình 0,190663 cho thấy cần thận trọng khi diễn giải score như xác suất. Giao diện nên dùng score để sắp thứ tự và gắn mức ưu tiên theo chính sách năng lực. Nếu hiển thị score dưới dạng xác suất, cần có bước hiệu chỉnh và kiểm tra riêng trên một tập đánh giá chưa bị dùng để chọn mô hình.
-
-Các giới hạn hiện tại gồm: chưa có replacement holdout niêm phong; chưa có khoảng tin cậy bootstrap theo cụm đơn, PR/calibration curve, dự đoán mức dòng hoặc SHAP; chế độ \texttt{BUSINESS\_HOURS} mới được lưu cấu hình nhưng SLA backend vẫn tính theo giờ liên tục; và hợp đồng giữa một số màn hình/frontend với endpoint cần tiếp tục kiểm thử tích hợp. Những giới hạn này tách rõ đánh giá luồng nghiệp vụ/API với đánh giá chất lượng mô hình và là cơ sở cho các bước phát triển tiếp theo.
+Vì vậy, bước tiếp theo không phải tiếp tục tô đậm metric hiện có. Cần khóa một replacement holdout chưa được quan sát, chốt model, calibration, aggregation và ngưỡng trước khi đánh giá, rồi xuất metric kèm khoảng tin cậy và artefact dự đoán. Chỉ khi đó mới có thể chuyển từ bằng chứng phát triển sang một kết luận xác nhận.
