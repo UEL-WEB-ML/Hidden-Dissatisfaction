@@ -1369,26 +1369,38 @@ Khi đối chiếu bản demo với kết quả nghiên cứu (Bảng~\ref{tab:d
 
 \section{Kết luận}
 
-Trên tập dữ liệu đơn giao đúng hạn của Olist, Random Forest đạt PR-AUC mức đơn 0,146502 và Recall@5\% 0,121225 qua ba fold phát triển. PR-AUC ở đây đo khả năng đưa các đơn có review 1--2 sao lên đầu hàng đợi; Recall@5\% đo tỷ lệ các đơn đó xuất hiện trong 5\% đơn có score cao nhất. Vì vậy, khi nhân viên chỉ xem 5\% đơn đầu hàng đợi, họ gặp khoảng 12,1\% trường hợp review thấp, thay vì khoảng 5\% nếu chọn ngẫu nhiên. Kết quả cho thấy score có thể hỗ trợ ưu tiên review, nhưng không cho phép tự động quyết định cách xử lý hay kết luận rằng sự hài lòng của khách hàng đã được cải thiện.
+Đồ án đặt ra câu hỏi: chỉ với thông tin có tại thời điểm giao hàng, có thể xếp hạng các đơn giao đúng hạn theo nguy cơ nhận đánh giá 1--2 sao tốt hơn chọn ngẫu nhiên hay không. Câu trả lời là có, nhưng ở mức khiêm tốn. Trên ba fold phát triển theo thời gian, mô hình rừng ngẫu nhiên được giữ lại đạt PR-AUC mức đơn 0,1465 và Recall@5\% 0,1212. Nói theo ngôn ngữ vận hành, nếu bộ phận chăm sóc khách hàng chỉ đủ nguồn lực liên hệ 5\% số đơn giao đúng hạn, danh sách do mô hình đề xuất chứa khoảng 12\% số đơn sẽ bị đánh giá thấp, gấp khoảng 2,4 lần so với chọn ngẫu nhiên; trong nhóm này, ước tính cứ bốn đến năm đơn thì có một đơn thực sự bị đánh giá thấp, thay vì một trên mười.
 
-Để score này đi vào vận hành mà không bị diễn giải quá mức, hệ thống lưu nó trong snapshot, tức bản ghi cố định tại thời điểm chấm điểm. Khi một case được nhận, liên lạc hay đóng, workflow chỉ cập nhật lịch sử xử lý; score ban đầu không bị sửa. Cùng với phân quyền, SLA và audit, cách tách này cho phép kiểm tra ai đã xử lý case nào, lúc nào và dựa trên thông tin nào. Do đó, mô hình chỉ tạo thứ tự cần xem xét, còn hành động với khách hàng vẫn thuộc về nhân viên.
+Mặt còn lại của con số cũng cần được nói rõ: khoảng 88\% số đơn bị đánh giá thấp vẫn nằm ngoài danh sách 5\% đó. Mô hình vì vậy phù hợp với vai trò \emph{công cụ ưu tiên kiểm tra} khi nguồn lực có hạn, không phải bộ lọc phát hiện toàn bộ khách không hài lòng, và càng không phải căn cứ để tự động xử lý khách hàng.
+
+Bên cạnh mô hình, đồ án xây dựng được một hệ thống đưa điểm rủi ro vào quy trình làm việc thực tế. Điểm được chấm theo lô và lưu trong snapshot cố định; nhân viên nhận, liên hệ và đóng case trên hàng đợi sắp theo điểm, còn mọi thao tác được ghi lại mà không sửa điểm gốc. Nhờ đó, mô hình chỉ quyết định \emph{thứ tự cần xem}, còn quyết định \emph{làm gì với khách} vẫn thuộc về con người, và dữ liệu xử lý tích lũy được có thể dùng để đánh giá lại mô hình về sau.
 
 \section{Ý nghĩa của kết quả}
 
-Kết quả trên chỉ có nghĩa trong các ranh giới đã đặt ra. Thứ nhất, mô hình chỉ dùng dữ liệu biết tại thời điểm dự báo; vì vậy nó không học từ thông tin xuất hiện sau đó. Thứ hai, dữ liệu được chia theo thời gian để mô phỏng tình huống dùng quá khứ dự báo giai đoạn sau. Thứ ba, review là nhãn của đơn hàng, nên việc gán nhãn này cho từng item không cho phép kết luận item nào gây ra bất mãn. Cuối cùng, các metric dùng để chọn mô hình không thể đồng thời được xem là kết quả xác nhận. Những ranh giới này không làm mô hình mạnh hơn, nhưng ngăn việc suy rộng từ một bài toán xếp hạng sang một giải thích nhân quả hoặc một cam kết vận hành.
+\textbf{Về mặt phương pháp}, đồ án cho thấy với bài toán dạng này, cách đánh giá quan trọng không kém việc chọn thuật toán. Ba quyết định giữ cho kết quả gần với điều kiện triển khai: chỉ dùng thông tin biết tại thời điểm giao hàng, chia dữ liệu theo thời gian thay vì ngẫu nhiên, và đo hiệu quả ở mức đơn hàng, đúng đơn vị mà nhân viên xử lý. Các nghiên cứu trước trên Olist thường báo cáo accuracy trên 85\% với cách chia ngẫu nhiên; khi áp dụng các ràng buộc trên, con số thực tế thấp hơn nhiều nhưng phản ánh đúng hơn giá trị mà doanh nghiệp có thể nhận được.
 
-\section{Hạn chế và hướng phát triển}\label{sec:future-work}
+\textbf{Về mặt thực tiễn}, kết quả gợi ý rằng doanh nghiệp không nên chỉ theo dõi giao trễ. Trong nhóm đơn giao đúng hạn, các yếu tố như đơn nhiều người bán, đơn nhiều sản phẩm và người bán có thời gian bàn giao thất thường gắn với tỉ lệ đánh giá thấp cao hơn rõ rệt. Ngay cả khi chưa triển khai mô hình, đây đã là những quy tắc theo dõi đơn giản mà bộ phận vận hành có thể áp dụng. Tuy vậy, đây là quan hệ dự báo, không phải quan hệ nhân quả: chưa thể khẳng định rằng xử lý các yếu tố này sẽ làm giảm đánh giá thấp.
 
-Hạn chế quan trọng nhất nằm ở trạng thái của bằng chứng. Historical test period đã được quan sát trong khi phát triển, nên không còn là một holdout hợp lệ. Vì vậy, các metric hiện tại chỉ là kết quả thăm dò. Báo cáo cũng chưa có khoảng tin cậy bootstrap theo cụm đơn, đường PR và đường hiệu chỉnh trên holdout, dự đoán mức dòng để kiểm tra hoặc giá trị SHAP để giải thích đóng góp của đặc trưng. Bên cạnh đó, dữ liệu Olist chỉ mô tả giai đoạn 2016--2018 và không ghi nhận một can thiệp CSKH có đối chứng. Từ dữ liệu này không thể suy ra hàng đợi đã làm thay đổi hành vi hay đánh giá của khách hàng.
+\section{Hạn chế}\label{sec:limitations}
 
-Hướng phát triển nên theo thứ tự sau:
+\begin{itemize}
+  \item \textbf{Kết quả mới ở mức thăm dò.} Giai đoạn kiểm tra lịch sử đã được biết trong quá trình phát triển nên không còn là tập kiểm tra độc lập. Báo cáo chưa có khoảng tin cậy, đường cong precision--recall và hiệu chỉnh trên tập kiểm tra, cũng như giải thích mô hình bằng SHAP.
+  \item \textbf{Tín hiệu dự báo còn yếu.} PR-AUC chỉ khoảng 1,4--1,65 lần mốc ngẫu nhiên và chưa đạt mục tiêu 0,25 đặt ra ban đầu; phần lớn chênh lệch giữa các phương án mô hình nhỏ hơn mức dao động giữa các fold.
+  \item \textbf{Bản demo chưa dùng điểm của mô hình thật.} Ứng dụng đang chạy với điểm minh họa và ngưỡng cố định 0,7/0,4, khác với chính sách ngưỡng theo phần trăm của nghiên cứu.
+  \item \textbf{Giới hạn của dữ liệu.} Dữ liệu Olist thuộc giai đoạn 2016--2018, chỉ có đánh giá của những khách chọn lên tiếng, và không có thông tin về các lần chăm sóc khách hàng. Vì vậy chưa thể đo việc liên hệ khách có thật sự cải thiện đánh giá hay không.
+\end{itemize}
+
+\section{Đề xuất và hướng phát triển}\label{sec:future-work}
+
+Các đề xuất dưới đây được sắp theo thứ tự nên thực hiện, mỗi bước là điều kiện cho bước sau.
+
 \begin{enumerate}
-  \item Trước hết, khóa một replacement holdout chưa được quan sát. Model, calibration, cách tổng hợp điểm và ngưỡng phải được chốt trước khi mở tập này; sau đó mới xuất metric, khoảng tin cậy và artefact dự đoán để chuyển từ kết quả thăm dò sang kết quả xác nhận.
-  \item Khi mô hình đã qua bước xác nhận, hoàn thiện đường chấm điểm theo lô bằng model artifact thật, rồi ghi phiên bản snapshot và ngưỡng vào schema \texttt{ml}. Chỉ sau bước đó mới thay dữ liệu demo trong ứng dụng. SHAP hay một cơ chế giải thích khác chỉ nên xuất hiện trên giao diện khi có artefact tương ứng và hướng dẫn tránh diễn giải nhân quả.
-  \item Tiếp theo, thu thập dữ liệu vận hành sau dự báo, gồm lần liên lạc, kết quả, thời gian phản hồi và đánh giá sao sau đó. Nếu muốn đo hiệu quả CSKH, cần có nhóm đối chứng hoặc cách phân bổ ngẫu nhiên phù hợp; dữ liệu quan sát thuần túy không đủ để suy tác động.
-  \item Cuối cùng, chỉ mở rộng đặc trưng bằng dữ liệu thực sự biết tại thời điểm giao hàng hoặc thiết kế lại bài toán ở cấp đơn. Việc tiếp tục tinh chỉnh thuật toán trên cùng dữ liệu chỉ có ý nghĩa khi đi kèm giả thuyết và giao thức mới.
+  \item \textbf{Xác nhận mô hình trên dữ liệu mới.} Chốt trước mô hình, cách hiệu chỉnh, luật tổng hợp max-v1 và ngưỡng, rồi mới đánh giá trên một giai đoạn dữ liệu chưa từng được xem, kèm khoảng tin cậy. Chỉ khi bước này đạt yêu cầu mới nên đưa mô hình vào sử dụng.
+  \item \textbf{Đưa mô hình thật vào ứng dụng.} Thay điểm minh họa bằng điểm từ mô hình đã xác nhận và chuyển sang ngưỡng theo phần trăm gắn với năng lực xử lý thực tế, ví dụ số đơn mỗi nhân viên có thể liên hệ trong ngày. Vì ứng dụng chỉ đọc dữ liệu từ bảng dự đoán, bước này không cần thay đổi giao diện hay quy trình.
+  \item \textbf{Thí điểm có đối chứng.} Triển khai thử trong một khoảng thời gian ngắn, trong đó một phần đơn rủi ro cao được chọn ngẫu nhiên để \emph{không} liên hệ. So sánh tỉ lệ đánh giá thấp giữa hai nhóm là cách duy nhất để biết việc chăm sóc chủ động có thực sự hiệu quả và có đáng chi phí hay không.
+  \item \textbf{Cải thiện mô hình bằng dữ liệu mới thay vì tinh chỉnh thuật toán.} Các thử nghiệm cho thấy đổi thuật toán trên cùng tập đặc trưng chỉ mang lại khác biệt rất nhỏ. Hướng có triển vọng hơn là bổ sung dữ liệu mà doanh nghiệp thực sự có tại thời điểm giao hàng, như lịch sử khiếu nại, tình trạng đổi trả hoặc thông tin giao tách kiện, cùng kết quả xử lý tích lũy từ chính ứng dụng.
 \end{enumerate}
- 
+
 \printbibliography[heading=bibintoc,title={Tài liệu tham khảo}]
 \appendix
 \clearpage\pagenumbering{alph}  % phụ lục đánh số trang a, b, c
