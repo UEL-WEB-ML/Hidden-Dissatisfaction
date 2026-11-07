@@ -19,7 +19,7 @@
 \usepackage{tikz}\usetikzlibrary{arrows.meta,positioning,fit}
 
 \begin{document}
-% ---------- Bìa + phụ bìa theo mẫu KL01 (Khoa HTTT, UEL) ----------
+% ---------- Bìa đồ án môn học (nền theo mẫu KL01, Khoa HTTT, UEL) ----------
 % Ảnh nền (khung, logo, dải xanh) trích từ file hướng dẫn .doc của khoa.
 \newcommand{\coverpage}{%
 \begin{titlepage}
@@ -27,14 +27,15 @@
   \node[inner sep=0] at (current page.center)
     {\includegraphics[width=\paperwidth,height=\paperheight]{cover-kl01-vi}};
   \node[font=\bfseries\fontsize{16}{20}\selectfont] at ([yshift=-4.6cm]current page.north) {KHOA HỆ THỐNG THÔNG TIN};
-  \node[font=\bfseries\fontsize{14}{18}\selectfont] at ([yshift=-11.3cm]current page.north) {KHÓA LUẬN TỐT NGHIỆP};
+  \node[font=\bfseries\fontsize{12}{15}\selectfont,align=center] at ([yshift=-11.4cm]current page.north)
+    {Học kỳ I/2026 -- 2027\\[0.3cm]ĐỒ ÁN MÔN HỌC: HỌC MÁY TRONG PHÂN TÍCH KINH DOANH};
   \node[font=\bfseries\fontsize{18}{24}\selectfont,text width=16cm,align=center]
-    at ([yshift=-13.3cm]current page.north)
+    at ([yshift=-14.0cm]current page.north)
     {GIAO ĐÚNG HẠN, VẪN CHƯA HÀI LÒNG\\[4pt]
      {\fontsize{14}{19}\selectfont HỆ THỐNG HỌC MÁY PHÁT HIỆN SỚM VÀ ƯU TIÊN CHĂM SÓC\\
       ĐƠN HÀNG CÓ NGUY CƠ BẤT MÃN ẨN TRÊN DỮ LIỆU OLIST}};
   \node[font=\bfseries\fontsize{13}{18}\selectfont,anchor=north west,align=left]
-    at ([xshift=-3.2cm,yshift=-16.6cm]current page.north)
+    at ([xshift=-3.2cm,yshift=-16.9cm]current page.north)
     {GVHD: TS. Trần Duy Thanh\\[6pt]
      Nhóm sinh viên thực hiện:\\[2pt]
      {\fontsize{12}{16}\selectfont\begin{tabular}{@{}ll@{}}
@@ -56,13 +57,13 @@
 \chapter*{Lời cảm ơn}
 \addcontentsline{toc}{chapter}{Lời cảm ơn}
 
-Trước hết, nhóm xin gửi lời cảm ơn chân thành đến TS.~Trần Duy Thanh, giảng viên hướng dẫn, đã tận tình định hướng đồ án, góp ý về phương pháp và dành thời gian theo sát nhóm trong suốt quá trình thực hiện khóa luận. Những nhận xét của Thầy giúp nhóm xác định rõ phạm vi bài toán, chú trọng tính chặt chẽ của thiết kế thực nghiệm và trình bày kết quả một cách trung thực.
+Trước hết, nhóm xin gửi lời cảm ơn chân thành đến TS.~Trần Duy Thanh, giảng viên hướng dẫn, đã tận tình định hướng đồ án, góp ý về phương pháp và dành thời gian theo sát nhóm trong suốt quá trình thực hiện đồ án. Những nhận xét của Thầy giúp nhóm xác định rõ phạm vi bài toán, chú trọng tính chặt chẽ của thiết kế thực nghiệm và trình bày kết quả một cách trung thực.
 
 Nhóm cũng xin cảm ơn quý Thầy Cô Khoa Hệ thống Thông tin, Trường Đại học Kinh tế -- Luật, Đại học Quốc gia Thành phố Hồ Chí Minh, đã truyền đạt nền tảng kiến thức về phân tích dữ liệu, học máy và phát triển hệ thống thông tin, là cơ sở để nhóm hoàn thành đồ án này.
 
 Nhóm trân trọng cảm ơn Olist đã công bố bộ dữ liệu \emph{Brazilian E-Commerce Public Dataset}, cùng cộng đồng phát triển các công cụ mã nguồn mở mà nhóm sử dụng trong quá trình xây dựng kho dữ liệu, huấn luyện mô hình và phát triển ứng dụng.
 
-Cuối cùng, nhóm xin cảm ơn gia đình và bạn bè đã luôn động viên, hỗ trợ trong thời gian thực hiện khóa luận. Dù đã nỗ lực hoàn thiện, khóa luận khó tránh khỏi thiếu sót; nhóm rất mong nhận được ý kiến đóng góp của quý Thầy Cô để đồ án được hoàn thiện hơn.
+Cuối cùng, nhóm xin cảm ơn gia đình và bạn bè đã luôn động viên, hỗ trợ trong thời gian thực hiện đồ án. Dù đã nỗ lực hoàn thiện, đồ án khó tránh khỏi thiếu sót; nhóm rất mong nhận được ý kiến đóng góp của quý Thầy Cô để đồ án được hoàn thiện hơn.
 
 \vspace{1cm}
 \begin{flushright}
@@ -75,13 +76,13 @@ TP.HCM, ngày \ldots\ tháng \ldots\ năm 2026\\
 \chapter*{Lời cam kết}
 \addcontentsline{toc}{chapter}{Lời cam kết}
 
-Nhóm sinh viên thực hiện xin cam kết khóa luận tốt nghiệp ``Giao đúng hạn, vẫn chưa hài lòng: Hệ thống học máy phát hiện sớm và ưu tiên chăm sóc đơn hàng có nguy cơ bất mãn ẩn trên dữ liệu Olist'' là công trình nghiên cứu của nhóm, được thực hiện dưới sự hướng dẫn của TS.~Trần Duy Thanh.
+Nhóm sinh viên thực hiện xin cam kết đồ án môn học Học máy trong phân tích kinh doanh ``Giao đúng hạn, vẫn chưa hài lòng: Hệ thống học máy phát hiện sớm và ưu tiên chăm sóc đơn hàng có nguy cơ bất mãn ẩn trên dữ liệu Olist'' là công trình nghiên cứu của nhóm, được thực hiện dưới sự hướng dẫn của TS.~Trần Duy Thanh.
 
-Các số liệu và kết quả trình bày trong khóa luận được tạo ra từ quá trình xử lý dữ liệu và thực nghiệm của nhóm trên bộ dữ liệu công khai của Olist, có thể truy vết về cấu hình thí nghiệm và mã nguồn tương ứng. Nhóm không sao chép kết quả của công trình khác. Các tài liệu, số liệu và ý tưởng tham khảo từ nghiên cứu trước đều được trích dẫn đầy đủ và ghi rõ nguồn trong danh mục tài liệu tham khảo.
+Các số liệu và kết quả trình bày trong đồ án được tạo ra từ quá trình xử lý dữ liệu và thực nghiệm của nhóm trên bộ dữ liệu công khai của Olist, có thể truy vết về cấu hình thí nghiệm và mã nguồn tương ứng. Nhóm không sao chép kết quả của công trình khác. Các tài liệu, số liệu và ý tưởng tham khảo từ nghiên cứu trước đều được trích dẫn đầy đủ và ghi rõ nguồn trong danh mục tài liệu tham khảo.
 
 Nhóm cũng cam kết trình bày trung thực phạm vi và giới hạn của kết quả: các chỉ số được báo cáo là kết quả phát triển trên các fold kiểm định theo thời gian, dữ liệu minh họa trong bản demo được ghi rõ là dữ liệu minh họa, và các kết luận mang tính dự báo, không phải kết luận nhân quả.
 
-Nhóm xin hoàn toàn chịu trách nhiệm về nội dung của khóa luận này.
+Nhóm xin hoàn toàn chịu trách nhiệm về nội dung của đồ án này.
 
 \vspace{1cm}
 \begin{center}
@@ -207,7 +208,7 @@ Sau đó, nhóm xây dựng và so sánh các mô hình dự báo nhằm ước 
 % Chương 2 — Cơ sở lý thuyết. Ưu tiên tài liệu trong 5 năm gần đây; không dùng MDPI, Frontiers, Hindawi.
 \chapter{Cơ sở lý thuyết}\label{ch:theory}
 
-Chương này đặt nền cho các lựa chọn phương pháp ở Chương~\ref{ch:method}. Mục~\ref{sec:concepts} định nghĩa các khái niệm dùng xuyên suốt khóa luận, gồm sự hài lòng và ``bất mãn ẩn'', thời điểm dự đoán và nhãn yếu, hai tính chất cần có của một mô hình trên dữ liệu mất cân bằng, và ngân sách can thiệp. Mục~\ref{sec:related} điểm lại năm nhóm nghiên cứu liên quan và rút ra khoảng trống mà đề tài nhắm tới. Mục~\ref{sec:theory-models} trình bày cơ sở lý thuyết của từng bước trong pipeline; mỗi phần gắn với một quyết định cụ thể ở Chương~\ref{ch:method}.
+Chương này đặt nền cho các lựa chọn phương pháp ở Chương~\ref{ch:method}. Mục~\ref{sec:concepts} định nghĩa các khái niệm dùng xuyên suốt đồ án, gồm sự hài lòng và ``bất mãn ẩn'', thời điểm dự đoán và nhãn yếu, hai tính chất cần có của một mô hình trên dữ liệu mất cân bằng, và ngân sách can thiệp. Mục~\ref{sec:related} điểm lại năm nhóm nghiên cứu liên quan và rút ra khoảng trống mà đề tài nhắm tới. Mục~\ref{sec:theory-models} trình bày cơ sở lý thuyết của từng bước trong pipeline; mỗi phần gắn với một quyết định cụ thể ở Chương~\ref{ch:method}.
 
 % =====================================================================
 \section{Tổng quan các khái niệm liên quan}\label{sec:concepts}
@@ -317,7 +318,7 @@ Tổng hợp lại, các nghiên cứu trên để lại sáu khoảng trống s
   \item \textbf{Can thiệp.} Dữ liệu quan sát không có can thiệp nên không thể biết đơn nào ``cứu'' được.
 \end{enumerate}
 
-Đề tài lấp trực tiếp ba khoảng trống đầu. Quần thể được giới hạn ở đơn giao đúng hoặc sớm hạn, mọi đặc trưng được dựng tại thời điểm giao và kiểm định bằng rolling-origin theo thời gian, còn việc đánh giá dựa trên PR-AUC, Brier score và Recall@5\%, với trọng số lớp thay cho lấy mẫu lại. Khoảng trống thứ năm được xử lý một phần, vì Recall@5\% mới chỉ được so với mốc chọn ngẫu nhiên, còn phép so sánh với luật sắp theo giá trị là hướng cần bổ sung (mục~\ref{sec:eval}). Hai khoảng trống còn lại, thiên lệch tự chọn và hiệu quả nhân quả của can thiệp, nằm ngoài phạm vi khóa luận. Chúng đóng vai trò ranh giới diễn giải, nghĩa là mọi kết luận chỉ dừng ở mức dự báo và ưu tiên, không suy ra tác động của việc liên hệ khách hàng.
+Đề tài lấp trực tiếp ba khoảng trống đầu. Quần thể được giới hạn ở đơn giao đúng hoặc sớm hạn, mọi đặc trưng được dựng tại thời điểm giao và kiểm định bằng rolling-origin theo thời gian, còn việc đánh giá dựa trên PR-AUC, Brier score và Recall@5\%, với trọng số lớp thay cho lấy mẫu lại. Khoảng trống thứ năm được xử lý một phần, vì Recall@5\% mới chỉ được so với mốc chọn ngẫu nhiên, còn phép so sánh với luật sắp theo giá trị là hướng cần bổ sung (mục~\ref{sec:eval}). Hai khoảng trống còn lại, thiên lệch tự chọn và hiệu quả nhân quả của can thiệp, nằm ngoài phạm vi đồ án. Chúng đóng vai trò ranh giới diễn giải, nghĩa là mọi kết luận chỉ dừng ở mức dự báo và ưu tiên, không suy ra tác động của việc liên hệ khách hàng.
 
 % =====================================================================
 \section{Lý thuyết và mô hình áp dụng}\label{sec:theory-models}
@@ -1092,7 +1093,7 @@ Vì vậy, bước tiếp theo không phải tiếp tục tô đậm metric hi�
 % ảnh chụp 05/11/2026 từ stack Docker nhánh dev (commit 1a8a767).
 % Phần này trả lời câu hỏi: điểm số của mô hình được đưa vào quy trình chăm sóc khách hàng như thế nào.
 % Chia việc Ch.4: Quân (EDA, dữ liệu) · Trung (hệ thống/API) · Huy (bảng metric) · Trúc (giao diện/demo).
-% Không lặp kiến trúc/API (phần Trung) và kết quả kiểm thử web (để ở báo cáo kiểm thử, không đưa vào khóa luận ML).
+% Không lặp kiến trúc/API (phần Trung) và kết quả kiểm thử web (để ở báo cáo kiểm thử, không đưa vào đồ án ML).
 
 \section{Ứng dụng điểm rủi ro vào quy trình chăm sóc khách hàng}\label{sec:demo}
 
