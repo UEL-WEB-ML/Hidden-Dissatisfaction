@@ -44,7 +44,7 @@
        K244161779 & Vũ Anh Đào
      \end{tabular}}};
   \node[font=\bfseries\fontsize{13}{16}\selectfont,text=white]
-    at ([yshift=2.25cm]current page.south) {TP.HCM, THÁNG \,TODO/2026};
+    at ([yshift=2.25cm]current page.south) {TP.HCM, THÁNG \,11/2026};
 \end{tikzpicture}
 \end{titlepage}}
 \coverpage   % trang bìa
@@ -55,13 +55,13 @@
 \chapter*{Lời cảm ơn}
 \addcontentsline{toc}{chapter}{Lời cảm ơn}
 
-Trước hết, nhóm xin gửi lời cảm ơn chân thành đến TS.~Trần Duy Thanh, giảng viên hướng dẫn, đã tận tình định hướng đề tài, góp ý về phương pháp và dành thời gian theo sát nhóm trong suốt quá trình thực hiện khóa luận. Những nhận xét của Thầy giúp nhóm xác định rõ phạm vi bài toán, chú trọng tính chặt chẽ của thiết kế thực nghiệm và trình bày kết quả một cách trung thực.
+Trước hết, nhóm xin gửi lời cảm ơn chân thành đến TS.~Trần Duy Thanh, giảng viên hướng dẫn, đã tận tình định hướng đồ án, góp ý về phương pháp và dành thời gian theo sát nhóm trong suốt quá trình thực hiện khóa luận. Những nhận xét của Thầy giúp nhóm xác định rõ phạm vi bài toán, chú trọng tính chặt chẽ của thiết kế thực nghiệm và trình bày kết quả một cách trung thực.
 
-Nhóm cũng xin cảm ơn quý Thầy Cô Khoa Hệ thống Thông tin, Trường Đại học Kinh tế -- Luật, Đại học Quốc gia Thành phố Hồ Chí Minh, đã truyền đạt nền tảng kiến thức về phân tích dữ liệu, học máy và phát triển hệ thống thông tin, là cơ sở để nhóm hoàn thành đề tài này.
+Nhóm cũng xin cảm ơn quý Thầy Cô Khoa Hệ thống Thông tin, Trường Đại học Kinh tế -- Luật, Đại học Quốc gia Thành phố Hồ Chí Minh, đã truyền đạt nền tảng kiến thức về phân tích dữ liệu, học máy và phát triển hệ thống thông tin, là cơ sở để nhóm hoàn thành đồ án này.
 
 Nhóm trân trọng cảm ơn Olist đã công bố bộ dữ liệu \emph{Brazilian E-Commerce Public Dataset}, cùng cộng đồng phát triển các công cụ mã nguồn mở mà nhóm sử dụng trong quá trình xây dựng kho dữ liệu, huấn luyện mô hình và phát triển ứng dụng.
 
-Cuối cùng, nhóm xin cảm ơn gia đình và bạn bè đã luôn động viên, hỗ trợ trong thời gian thực hiện khóa luận. Dù đã nỗ lực hoàn thiện, khóa luận khó tránh khỏi thiếu sót; nhóm rất mong nhận được ý kiến đóng góp của quý Thầy Cô để đề tài được hoàn thiện hơn.
+Cuối cùng, nhóm xin cảm ơn gia đình và bạn bè đã luôn động viên, hỗ trợ trong thời gian thực hiện khóa luận. Dù đã nỗ lực hoàn thiện, khóa luận khó tránh khỏi thiếu sót; nhóm rất mong nhận được ý kiến đóng góp của quý Thầy Cô để đồ án được hoàn thiện hơn.
 
 \vspace{1cm}
 \begin{flushright}
@@ -620,7 +620,7 @@ Cách chia dữ liệu quyết định con số đánh giá có phản ánh hi�
 \caption{Phân vùng dữ liệu theo thời gian dự đoán}\label{tab:split}
 \begin{tabular}{lllrrr}
 \toprule
-Phân vùng & Từ & Đến (không gồm) & Đơn & Item & Tỉ lệ dương \\
+Phân vùng & Từ & Đến (không gồm) & Đơn & Item & Tỉ lệ dương (item) \\
 \midrule
 Huấn luyện            & 2016-10-11 & 2017-10-01 & 23\,545 & 26\,708 & 10,13\% \\
 Lựa chọn mô hình      & 2017-10-01 & 2017-12-01 &  8\,586 &  9\,957 & 11,92\% \\
@@ -632,7 +632,7 @@ Test niêm phong       & 2018-06-01 & 2018-09-01 & 18\,561 & 21\,191 & ẩn \\
 \end{tabular}
 \end{table}
 
-Bảng~\ref{tab:split} cũng cho thấy tỉ lệ dương không đứng yên mà dao động từ 10,13\% đến 13,80\% giữa các phân vùng. Các tỉ lệ này lấy từ báo cáo của lần chạy thí nghiệm và cao hơn tỉ lệ 9,21\% ở mức đơn của Bảng~\ref{tab:funnel}; chênh lệch nhiều khả năng do khác độ chi tiết tính toán (item so với đơn), vì đơn nhiều sản phẩm có tỉ lệ đánh giá thấp cao hơn và đóng góp nhiều dòng hơn. Sự dịch chuyển này là lý do trực tiếp khiến hiệu chỉnh xác suất và chọn ngưỡng phải được thực hiện trên dữ liệu gần thời điểm triển khai hơn dữ liệu huấn luyện: một mô hình được hiệu chỉnh theo tỉ lệ 10\% của năm 2017 sẽ đánh giá thấp rủi ro khi tỉ lệ thực tế đã tăng lên. Phân vùng test cuối cùng được thiết kế để niêm phong: tỉ lệ dương của nó không được báo cáo và không được dùng cho bất kỳ bước hiệu chỉnh hay chọn ngưỡng nào. Tuy nhiên, giai đoạn thời gian này đã được biết đến trong quá trình phát triển, nên nó không còn là holdout xác nhận hoàn toàn độc lập (xem mục~\ref{subsec:res-scope}).
+Bảng~\ref{tab:split} cũng cho thấy tỉ lệ dương không đứng yên mà dao động từ 10,13\% đến 13,80\% giữa các phân vùng. Các tỉ lệ này tính ở mức item nên cao hơn tỉ lệ 9,21\% ở mức đơn của Bảng~\ref{tab:funnel}, vì đơn nhiều sản phẩm có tỉ lệ đánh giá thấp cao hơn và đóng góp nhiều dòng hơn; ở mức đơn, năm phân vùng phát triển có tỉ lệ dương 8,86--10,53\% (mục~\ref{subsec:eda-labels}). Sự dịch chuyển này là lý do trực tiếp khiến hiệu chỉnh xác suất và chọn ngưỡng phải được thực hiện trên dữ liệu gần thời điểm triển khai hơn dữ liệu huấn luyện: một mô hình được hiệu chỉnh theo tỉ lệ 10\% của năm 2017 sẽ đánh giá thấp rủi ro khi tỉ lệ thực tế đã tăng lên. Phân vùng test cuối cùng được thiết kế để niêm phong: tỉ lệ dương của nó không được báo cáo và không được dùng cho bất kỳ bước hiệu chỉnh hay chọn ngưỡng nào. Tuy nhiên, giai đoạn thời gian này đã được biết đến trong quá trình phát triển, nên nó không còn là holdout xác nhận hoàn toàn độc lập (xem mục~\ref{subsec:res-scope}).
 
 Bên trong giai đoạn huấn luyện, các biến thể được so sánh bằng kiểm định rolling-origin với cửa sổ mở rộng gồm ba fold (Hình~\ref{fig:temporal-folds}). Ở mỗi fold, mô hình học trên toàn bộ dữ liệu trước mốc cắt và được đánh giá trên đoạn ngay sau đó, mô phỏng đúng cách mô hình được huấn luyện lại định kỳ trong thực tế. Ba fold thay vì một cho phép quan sát độ ổn định của từng biến thể qua thời gian, tránh chọn nhầm một biến thể chỉ tốt nhờ may mắn ở một giai đoạn. Biến thể được chọn theo thứ tự ưu tiên: PR-AUC mức đơn (theo max-v1) trung bình qua các fold cao nhất; nếu ngang nhau thì chọn biến thể có Brier score thấp hơn; nếu vẫn ngang nhau thì chọn mô hình đơn giản hơn. Hiệu chỉnh xác suất và chọn ngưỡng không tham gia vào bước này để tách biệt câu hỏi ``mô hình nào xếp hạng tốt nhất'' khỏi câu hỏi ``xác suất có đáng tin không''.
 
@@ -878,7 +878,8 @@ So với mô hình ban đầu cùng họ và cùng chế độ huấn luyện nh
 
 \subsection{Hệ thống hỗ trợ vận hành}\label{sec:system-api}
 
-Bên cạnh mô hình, đề tài hoàn thành một ứng dụng đưa điểm rủi ro vào quy trình chăm sóc khách hàng (kiến trúc ở Hình~ef{fig:arch}).
+Bên cạnh mô hình, đề tài hoàn thành một ứng dụng đưa điểm rủi ro vào quy trình chăm sóc khách hàng (kiến trúc ở Hình~
+ef{fig:arch}).
 
 Luồng ngoại tuyến nạp dữ liệu, tạo đặc trưng, huấn luyện và chấm điểm theo lô. Luồng trực tuyến chỉ đọc snapshot điểm đã được ghi để tạo hàng đợi, phân công và ghi nhận xử lý. Việc tách hai luồng loại trừ một rủi ro cơ bản: một thao tác trên giao diện không được làm thay đổi dữ liệu, ngưỡng hay phiên bản mô hình.
 
