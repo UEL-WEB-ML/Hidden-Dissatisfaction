@@ -1,30 +1,24 @@
 % Chương 6 -- Kết luận và đề xuất.
 \chapter{Kết luận và đề xuất}\label{ch:conclusion}
 
-\section{Tổng kết đóng góp}
+\section{Kết luận}
 
-Đề tài đặt lại bài toán dự báo đánh giá thấp trên Olist vào nhóm đơn đã giao đúng hạn hoặc sớm hạn. Cách đặt vấn đề này loại bớt tình huống mô hình chỉ học dấu hiệu giao trễ và tập trung vào các trường hợp khách vẫn không hài lòng dù cam kết giao hàng được giữ. Trên nền đó, đề tài đã xây dựng một chuỗi từ dữ liệu đến vận hành gồm: hợp đồng thời điểm dự báo; quần thể và nhãn review 1--2 sao; đặc trưng chỉ dùng thông tin có tại thời điểm giao; chia theo thời gian và đánh giá rolling-origin; điểm item tổng hợp thành điểm đơn theo \texttt{max-v1}; và hàng đợi ưu tiên cho nhân viên CSKH.
+Trên tập dữ liệu đơn giao đúng hạn của Olist, Random Forest đạt PR-AUC mức đơn 0,146502 và Recall@5\% 0,121225 qua ba fold phát triển. PR-AUC ở đây đo khả năng đưa các đơn có review 1--2 sao lên đầu hàng đợi; Recall@5\% đo tỷ lệ các đơn đó xuất hiện trong 5\% đơn có score cao nhất. Vì vậy, khi nhân viên chỉ xem 5\% đơn đầu hàng đợi, họ gặp khoảng 12,1\% trường hợp review thấp, thay vì khoảng 5\% nếu chọn ngẫu nhiên. Kết quả cho thấy score có thể hỗ trợ ưu tiên review, nhưng không cho phép tự động quyết định cách xử lý hay kết luận rằng sự hài lòng của khách hàng đã được cải thiện.
 
-Về thực nghiệm, cấu hình Random Forest được giữ lại đạt PR-AUC mức đơn trung bình 0,146502 và Recall@5\% là 0,121225 trên ba fold phát triển. Kết quả cho thấy danh sách ưu tiên có tín hiệu tốt hơn chọn ngẫu nhiên, nhưng chưa đạt mục tiêu PR-AUC 0,25. Về hệ thống, đề tài đã hiện thực hóa API, phân quyền Specialist/Manager, vòng đời case, audit trail và dashboard để đưa score vào một quy trình review của con người. Những thành phần này được thiết kế để score không bị sửa bởi thao tác vận hành và để kết quả xử lý có thể được đối chiếu với snapshot dự đoán gốc.
+Để score này đi vào vận hành mà không bị diễn giải quá mức, hệ thống lưu nó trong snapshot, tức bản ghi cố định tại thời điểm chấm điểm. Khi một case được nhận, liên lạc hay đóng, workflow chỉ cập nhật lịch sử xử lý; score ban đầu không bị sửa. Cùng với phân quyền, SLA và audit, cách tách này cho phép kiểm tra ai đã xử lý case nào, lúc nào và dựa trên thông tin nào. Do đó, mô hình chỉ tạo thứ tự cần xem xét, còn hành động với khách hàng vẫn thuộc về nhân viên.
 
-\section{Ý nghĩa khoa học và thực tiễn}
+\section{Ý nghĩa của kết quả}
 
-Về mặt phương pháp, đóng góp quan trọng nhất không phải là một con số metric đơn lẻ mà là ranh giới đánh giá: không dùng dữ liệu sau thời điểm giao hàng, không chia ngẫu nhiên qua thời gian, không suy item là nguyên nhân của đánh giá đơn hàng, và không coi một metric phát triển là kết quả cuối cùng. Các ràng buộc này làm kết quả khó đạt cao hơn, nhưng giúp nó gần điều kiện sử dụng hơn.
-
-Về mặt thực tiễn, hệ thống biến đầu ra mô hình thành một danh sách công việc có trạng thái, SLA, năng lực xử lý, minh chứng và lịch sử quyết định. Nhân viên vẫn là người quyết định cách liên hệ và xử lý; score chỉ giúp ưu tiên nơi nên kiểm tra trước. Thiết kế này phù hợp với giới hạn của nhãn yếu và giảm nguy cơ dùng mô hình như một cơ chế tự động kết luận hay tác động tới khách hàng.
+Kết quả trên chỉ có nghĩa trong các ranh giới đã đặt ra. Thứ nhất, mô hình chỉ dùng dữ liệu biết tại thời điểm dự báo; vì vậy nó không học từ thông tin xuất hiện sau đó. Thứ hai, dữ liệu được chia theo thời gian để mô phỏng tình huống dùng quá khứ dự báo giai đoạn sau. Thứ ba, review là nhãn của đơn hàng, nên việc gán nhãn này cho từng item không cho phép kết luận item nào gây ra bất mãn. Cuối cùng, các metric dùng để chọn mô hình không thể đồng thời được xem là kết quả xác nhận. Những ranh giới này không làm mô hình mạnh hơn, nhưng ngăn việc suy rộng từ một bài toán xếp hạng sang một giải thích nhân quả hoặc một cam kết vận hành.
 
 \section{Hạn chế và hướng phát triển}\label{sec:future-work}
 
-Hạn chế lớn nhất là toàn bộ metric hiện có là development/exploratory. Historical test period đã được biết trong quá trình phát triển, nên không còn là holdout hợp lệ. Đồng thời, chưa có khoảng tin cậy bootstrap theo cụm đơn, PR/calibration curve trên holdout, dự đoán mức dòng để kiểm tra, hay giá trị SHAP. Nhãn ở cấp đơn lại được kế thừa cho mọi item, nên score item chỉ biểu diễn rủi ro của đơn trong ngữ cảnh item; nó không chứng minh item gây ra bất mãn. Cuối cùng, dữ liệu Olist mô tả giai đoạn 2016--2018 và chưa có kết quả can thiệp thực tế.
+Hạn chế quan trọng nhất nằm ở trạng thái của bằng chứng. Historical test period đã được quan sát trong khi phát triển, nên không còn là một holdout hợp lệ. Vì vậy, các metric hiện tại chỉ là kết quả thăm dò. Báo cáo cũng chưa có khoảng tin cậy bootstrap theo cụm đơn, đường PR và đường hiệu chỉnh trên holdout, dự đoán mức dòng để kiểm tra hoặc giá trị SHAP để giải thích đóng góp của đặc trưng. Bên cạnh đó, dữ liệu Olist chỉ mô tả giai đoạn 2016--2018 và không ghi nhận một can thiệp CSKH có đối chứng. Từ dữ liệu này không thể suy ra hàng đợi đã làm thay đổi hành vi hay đánh giá của khách hàng.
 
 Hướng phát triển nên theo thứ tự sau:
 \begin{enumerate}
-  \item Khóa một replacement holdout thực sự chưa được quan sát; chốt model, calibration, aggregation, wording và ngưỡng trước khi đánh giá; xuất đầy đủ metric, khoảng tin cậy và artefact để chuyển từ kết quả thăm dò sang kết quả xác nhận.
-  \item Hoàn thiện đường chấm điểm theo lô bằng model artifact thật, ghi snapshot/threshold version vào schema \texttt{ml} và chỉ sau đó thay dữ liệu demo trong ứng dụng. SHAP hoặc cơ chế giải thích khác chỉ nên được đưa vào UI khi có artefact tương ứng và hướng dẫn tránh diễn giải nhân quả.
-  \item Thu thập dữ liệu vận hành sau dự báo: lần liên lạc, kết quả, thời gian phản hồi và đánh giá sao sau đó. Nếu muốn đo hiệu quả CSKH, cần một thiết kế can thiệp có nhóm đối chứng hoặc cách phân bổ ngẫu nhiên phù hợp, không suy tác động từ dữ liệu quan sát thuần túy.
-  \item Mở rộng đặc trưng bằng dữ liệu thật sự biết tại thời điểm giao hàng hoặc thiết kế lại estimand ở mức đơn. Việc tiếp tục tinh chỉnh thuật toán trên cùng dữ liệu chỉ nên thực hiện khi có giả thuyết và giao thức mới, tránh chọn nhiễu phát triển.
+  \item Trước hết, khóa một replacement holdout chưa được quan sát. Model, calibration, cách tổng hợp điểm và ngưỡng phải được chốt trước khi mở tập này; sau đó mới xuất metric, khoảng tin cậy và artefact dự đoán để chuyển từ kết quả thăm dò sang kết quả xác nhận.
+  \item Khi mô hình đã qua bước xác nhận, hoàn thiện đường chấm điểm theo lô bằng model artifact thật, rồi ghi phiên bản snapshot và ngưỡng vào schema \texttt{ml}. Chỉ sau bước đó mới thay dữ liệu demo trong ứng dụng. SHAP hay một cơ chế giải thích khác chỉ nên xuất hiện trên giao diện khi có artefact tương ứng và hướng dẫn tránh diễn giải nhân quả.
+  \item Tiếp theo, thu thập dữ liệu vận hành sau dự báo, gồm lần liên lạc, kết quả, thời gian phản hồi và đánh giá sao sau đó. Nếu muốn đo hiệu quả CSKH, cần có nhóm đối chứng hoặc cách phân bổ ngẫu nhiên phù hợp; dữ liệu quan sát thuần túy không đủ để suy tác động.
+  \item Cuối cùng, chỉ mở rộng đặc trưng bằng dữ liệu thực sự biết tại thời điểm giao hàng hoặc thiết kế lại bài toán ở cấp đơn. Việc tiếp tục tinh chỉnh thuật toán trên cùng dữ liệu chỉ có ý nghĩa khi đi kèm giả thuyết và giao thức mới.
 \end{enumerate}
-
-\section{Kiến nghị}
-
-Nếu triển khai tiếp, tổ chức sử dụng hệ thống nên duy trì nguyên tắc human-in-the-loop: score chỉ phục vụ ưu tiên review; mọi action với khách hàng phải do nhân viên quyết định và được ghi audit. Cần phân quyền tối thiểu, quản lý thời hạn lưu minh chứng, kiểm thử API--frontend trên dữ liệu không nhạy cảm và theo dõi chênh lệch phân bố score sau mỗi lần chấm điểm. Trước bất kỳ tuyên bố nào về hiệu quả với khách hàng, nhóm cần hoàn thành replacement-holdout gate và đánh giá vận hành nêu trên.
