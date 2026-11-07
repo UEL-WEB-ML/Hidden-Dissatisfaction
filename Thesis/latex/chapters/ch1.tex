@@ -1,0 +1,51 @@
+\chapter{GIỚI THIỆU}
+\label{chap:gioi-thieu}
+
+\section{Bối cảnh và lý do thực hiện đề tài}
+\label{sec:boi-canh}
+
+Trong thương mại điện tử, đánh giá của khách hàng là một nguồn phản hồi quan trọng về chất lượng dịch vụ. Một đánh giá thấp có thể phản ánh nhiều vấn đề khác nhau trong hành trình mua hàng, từ chất lượng sản phẩm, thông tin mô tả, cách xử lý đơn, phí vận chuyển cho đến trải nghiệm giao nhận. Nghiên cứu về các nền tảng thương mại điện tử cũng cho thấy hiệu quả về mặt logistics có liên hệ với điểm đánh giá của khách hàng, hành vi mua lại và doanh số của người bán (Deshpande \& Pendem, 2023).
+
+Giao hàng trễ thường là dấu hiệu rõ nhất của trải nghiệm không tốt. Khi đơn hàng đến muộn hơn thời gian đã cam kết, doanh nghiệp có thể dễ dàng đưa đơn đó vào nhóm cần kiểm tra. Tuy nhiên, giao đúng hẹn chưa đồng nghĩa với việc khách hàng hài lòng. Một đơn hàng vẫn có thể nhận đánh giá thấp nếu sản phẩm không đúng kỳ vọng, bị lỗi hoặc thiếu, nếu khách phải nhận nhiều kiện hàng vào những thời điểm khác nhau, hoặc nếu quá trình xử lý đơn tạo ra những bất tiện khác. Nghiên cứu của Ravula (2023) cho thấy khách hàng phản ứng tiêu cực rõ rệt với giao trễ; trong khi đó, Brylla và Walsh (2022) chỉ ra rằng việc giao nhanh nhưng tách đơn thành nhiều đợt vẫn có thể làm giảm sự hài lòng vì gây phiền toái cho người nhận.
+
+Từ góc nhìn này, những đơn hàng giao đúng hạn nhưng vẫn nhận đánh giá 1--2 sao là một nhóm đáng quan tâm. Đề tài gọi hiện tượng này là ``bất mãn ẩn'' (\emph{hidden dissatisfaction}). Sự bất mãn được gọi là ``ẩn'' vì nó không thể được phát hiện bằng cách chỉ theo dõi các đơn giao trễ. Nếu doanh nghiệp chỉ ưu tiên xử lý những đơn bị trễ, các trường hợp có nguy cơ đánh giá thấp do sản phẩm, người bán, cấu trúc đơn hàng hoặc các vấn đề khác sẽ dễ bị bỏ sót.
+
+Đề tài sử dụng bộ dữ liệu công khai \emph{Brazilian E-Commerce Public Dataset by Olist}. Bộ dữ liệu gồm thông tin về đơn hàng, sản phẩm, người bán, khách hàng, thanh toán, vận chuyển và đánh giá trong thị trường thương mại điện tử Brazil giai đoạn 2016--2018 (Olist, 2018). Đây là nền tảng phù hợp để nghiên cứu mối liên hệ giữa các thông tin đã có khi giao hàng và nguy cơ khách hàng để lại đánh giá thấp.
+
+\section{Vấn đề cần giải quyết}
+\label{sec:van-de}
+
+Đề tài tập trung vào các đơn hàng đã giao thành công và không muộn hơn ngày giao dự kiến. Trong nhóm này, đơn có đánh giá 1--2 sao được xem là trường hợp có rủi ro cần quan tâm. Mục tiêu không phải là kết luận nguyên nhân khiến khách hàng không hài lòng, mà là nhận diện sớm những đơn có tín hiệu rủi ro để nhân viên có thể ưu tiên kiểm tra.
+
+Mô hình được xây dựng ở cấp sản phẩm trong đơn hàng. Một đơn có thể chứa nhiều sản phẩm và do nhiều người bán cùng xử lý; vì vậy, việc xem xét từng sản phẩm giúp giữ lại các thông tin chi tiết về sản phẩm, người bán và cấu trúc đơn. Tuy nhiên, dữ liệu Olist chỉ có review ở cấp đơn hàng, không cho biết cụ thể sản phẩm nào gây ra sự bất mãn. Do đó, các sản phẩm trong cùng một đơn cùng kế thừa nhãn đánh giá của đơn. Điểm rủi ro của một sản phẩm chỉ thể hiện nguy cơ đơn hàng nhận đánh giá thấp trong bối cảnh của sản phẩm đó, không phải bằng chứng rằng sản phẩm là nguyên nhân trực tiếp.
+
+Ví dụ, một khách đặt hai sản phẩm từ hai người bán khác nhau và đơn vẫn giao đúng hạn. Tuy nhiên, đơn có phí vận chuyển cao, nhiều bên cùng tham gia xử lý, đồng thời một người bán có lịch sử giao hàng thiếu ổn định. Trước khi khách để lại review, hệ thống có thể xếp đơn này vào nhóm cần theo dõi. Nhân viên sau đó có thể kiểm tra tình trạng đơn hoặc chuẩn bị phương án hỗ trợ phù hợp thay vì chờ phản hồi tiêu cực xuất hiện.
+
+Một yêu cầu quan trọng của đề tài là chỉ sử dụng thông tin tồn tại tại thời điểm đơn được xác nhận giao hàng. Các thông tin xuất hiện sau đó như nội dung review, thời gian tạo review hoặc phản hồi của người bán không được dùng làm đầu vào. Cách tiếp cận này giúp hạn chế \emph{data leakage}, tức tình trạng mô hình vô tình sử dụng thông tin mà trong thực tế chưa có tại thời điểm dự báo (Kapoor \& Narayanan, 2023).
+
+\section{Mục tiêu của đề tài}
+\label{sec:muc-tieu}
+
+Mục tiêu tổng quát của đề tài là xây dựng một quy trình Machine Learning và hệ thống hỗ trợ vận hành nhằm nhận diện, xếp hạng và theo dõi các đơn hàng giao đúng hạn nhưng có nguy cơ nhận đánh giá thấp.
+
+Đề tài xây dựng tập dữ liệu ở cấp sản phẩm từ dữ liệu Olist, sử dụng các thông tin về sản phẩm, người bán, thanh toán, phí vận chuyển, cấu trúc đơn hàng và lịch sử vận hành trước thời điểm giao. Mô hình tạo điểm rủi ro cho từng sản phẩm, sau đó tổng hợp thành điểm của đơn hàng theo quy tắc \emph{max-v1}, nghĩa là đơn được đại diện bởi điểm cao nhất trong các sản phẩm thuộc đơn. Kết quả mô hình là \emph{Risk Queue}, trong đó các đơn có rủi ro cao hơn được đưa lên trước để phù hợp với nguồn lực kiểm tra có hạn.
+
+Bên cạnh phần dự báo, đề tài cũng xây dựng hệ thống web hỗ trợ quy trình xử lý case. Trong hệ thống, nhân viên có thể theo dõi danh sách rủi ro, xem chi tiết đơn, nhận hoặc cập nhật tình trạng chăm sóc cho từng đơn hàng, ghi nhận quá trình liên hệ và lưu lại lịch sử xử lý. Cấp quản lý có thể phân công các ca xử lý đơn hàng, theo dõi tình trạng vận hành, quản lý các tham số và xem lịch sử quyết định. Hệ thống được định hướng là công cụ hỗ trợ ra quyết định, không tự động áp dụng hành động đối với khách hàng.
+
+\section{Phạm vi và giới hạn}
+\label{sec:pham-vi}
+
+Phạm vi nghiên cứu giới hạn ở dữ liệu Olist trong giai đoạn quan sát. Quần thể chính gồm các đơn đã giao đúng hoặc sớm hơn ngày dự kiến và có review được tạo sau thời điểm giao. Kết quả chỉ phản ánh nguy cơ khách hàng để lại review 1--2 sao trong nhóm đơn có review quan sát được. Một khách không để lại review không có nghĩa là họ hài lòng, vì hành vi viết review là hành vi tự chọn (Li \& Hitt, 2008).
+
+Đề tài không khẳng định điểm rủi ro là nguyên nhân của sự bất mãn, không đo lường trực tiếp khả năng khách hàng rời bỏ và không chứng minh rằng một hành động chăm sóc cụ thể sẽ làm thay đổi kết quả. Khách có rủi ro cao cũng chưa chắc là khách phản hồi tốt nhất với can thiệp; vì vậy, điểm dự báo chỉ là thông tin hỗ trợ để con người cân nhắc, không thay thế quyết định của nhân viên hoặc quản lý (Ascarza, 2018).
+
+Các kết quả Machine Learning hiện có là kết quả phát triển và cần được diễn giải thận trọng. Chưa có đánh giá cuối cùng trên một tập kiểm tra thay thế được niêm phong trước khi chạy mô hình, vì vậy không thể xem các chỉ số hiện tại là bằng chứng xác nhận về hiệu quả triển khai thực tế. Tương tự vậy, giao diện hiện tại sử dụng dữ liệu giả lập để minh họa quy trình vận hành; phần giao diện thử nghiệm chứng minh được cách hệ thống tiếp nhận và xử lý \emph{Risk Queue}, không phải hiệu năng của mô hình trên dữ liệu Olist thật.
+
+\section{Phương pháp nghiên cứu}
+\label{sec:phuong-phap-nghien-cuu}
+
+Đề tài được thực hiện theo hướng kết hợp giữa nghiên cứu tài liệu, phân tích dữ liệu và phát triển hệ thống thông tin. Trước hết, nhóm tổng hợp các nghiên cứu liên quan đến sự hài lòng khách hàng, chất lượng giao hàng, đánh giá trực tuyến và ứng dụng Machine Learning trong thương mại điện tử. Bước này giúp xác định vấn đề nghiên cứu, giới hạn diễn giải kết quả và các yếu tố cần xem xét khi nhận diện những đơn giao đúng hạn nhưng có nguy cơ nhận đánh giá thấp.
+
+Tiếp theo, nhóm khảo sát bộ dữ liệu Olist để hiểu cấu trúc dữ liệu, mối quan hệ giữa đơn hàng, sản phẩm, người bán, thanh toán, vận chuyển và review của khách hàng. Từ dữ liệu gốc, nhóm xây dựng tập dữ liệu phục vụ mô hình, chỉ sử dụng các thông tin đã có tại thời điểm đơn hàng được xác nhận giao. Cách tiếp cận này giúp hạn chế việc sử dụng thông tin xuất hiện sau khi khách hàng đánh giá, từ đó giảm nguy cơ \emph{data leakage} trong quá trình dự báo (Kapoor \& Narayanan, 2023).
+
+Sau đó, nhóm xây dựng và so sánh các mô hình dự báo nhằm ước lượng nguy cơ review thấp. Kết quả dự báo được sử dụng để xếp thứ tự ưu tiên các đơn hàng cần xem xét, thay vì thay thế hoàn toàn quyết định của con người. Cuối cùng, nhóm phát triển hệ thống web để trình bày danh sách rủi ro, hỗ trợ nhân viên theo dõi và xử lý case, đồng thời cung cấp dashboard và lịch sử xử lý cho cấp quản lý. Phần giao diện sử dụng dữ liệu giả lập để minh họa quy trình vận hành; dữ liệu này không được sử dụng để đánh giá hiệu năng của mô hình.
