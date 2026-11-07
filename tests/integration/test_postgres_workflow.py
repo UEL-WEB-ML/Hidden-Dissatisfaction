@@ -352,6 +352,10 @@ def test_complete_then_reopen_starts_a_new_cycle_and_keeps_history(
         db, "SELECT original_queued_at FROM app.review_cases WHERE order_id=%s", order_id
     )
     commands.add_contact(_contact(order_id, specialist, "REACHED"))
+    from hidden_dissatisfaction.infrastructure.postgres_risk_queue import PostgresRiskOrderQuery
+
+    queue = PostgresRiskOrderQuery(RUNTIME_DSN or "")
+    assert queue.get_order(order_id).contact_count == 1  # type: ignore[union-attr]
     commands.complete(order_id, specialist, False, "HAS_ISSUE", "found")
     with pytest.raises(WorkflowPolicyError) as err:
         commands.reopen(order_id, manager, " ", False)
@@ -366,6 +370,7 @@ def test_complete_then_reopen_starts_a_new_cycle_and_keeps_history(
         or (None,) * 5
     )
     assert (status, assignee, cycle_no, reopened, original) == ("PENDING", None, 2, 1, queued)
+    assert queue.get_order(order_id).contact_count == 0  # type: ignore[union-attr]
     assert (
         _scalar(
             db,
@@ -383,6 +388,11 @@ def test_decision_is_appended_to_the_current_cycle_without_changing_status(
     manager, specialist = _user(db, "MANAGER"), _user(db, "SPECIALIST")
     order_id = make_case(assignee=specialist)
     commands = _commands()
+    with pytest.raises(WorkflowPolicyError) as open_case:
+        commands.add_decision(
+            AddDecision(order_id, manager, "FOLLOW_UP_CUSTOMER", "r", "n", None, None, None)
+        )
+    assert open_case.value.code == "INVALID_STATE"
     commands.complete(order_id, manager, True, "NO_ISSUE", None)
     saved = commands.add_decision(
         AddDecision(
@@ -446,11 +456,139 @@ def test_detail_projects_cycles_contacts_decisions_and_role_based_audit(
         "none",
     )
     assert order["items_count"] == 1 and order["top_item"]["product_item_id"].endswith("-1")
+    expected_threshold = _scalar(
+        db,
+        "SELECT p.threshold_version FROM ml.predictions p JOIN app.review_cases c "
+        "ON c.prediction_id=p.prediction_id WHERE c.order_id=%s",
+        order_id,
+    )
+    assert order["top_item"]["threshold_version"] == expected_threshold
+    assert order["top_item"]["aggregation_rule"] == "max-v1"
     assert as_manager["next_step"]["decision"] == "WORK_WITH_SELLER"
     contact = as_manager["contacts"][0]
     assert contact["attempt_no"] == 1 and contact["evidence"][0]["file_id"] == str(file_id)
     assert [c["text"] for c in as_manager["comments"]] == ["called"]
     assert len(as_manager["cycles"]) == 1 and as_manager["cycles"][0]["contact_count"] == 1
+
+
+def test_superseded_prediction_keeps_existing_case_actionable_and_seed_skips_it(
+    db: psycopg.Connection[Any], make_case: Callable[..., str], prediction_id: str
+) -> None:
+    from hidden_dissatisfaction.infrastructure.postgres_operational_reads import (
+        PostgresOperationalReadModel,
+    )
+    from hidden_dissatisfaction.infrastructure.postgres_queue_seeding import (
+        PostgresQueueSeedStore,
+    )
+    from hidden_dissatisfaction.infrastructure.postgres_risk_queue import PostgresRiskOrderQuery
+
+    assert RUNTIME_DSN
+    specialist = _user(db, "SPECIALIST")
+    old_order = make_case(score=0.6, assignee=specialist)
+    prediction = db.execute(
+        "SELECT model_release_id, threshold_version FROM ml.predictions WHERE prediction_id=%s",
+        (prediction_id,),
+    ).fetchone()
+    assert prediction is not None
+    release_id, threshold_version = prediction
+    next_prediction = uuid4()
+    db.execute(
+        """INSERT INTO ml.predictions(prediction_id, model_release_id, threshold_version,
+                   source_run_id, input_hash, model_input_hash, scored_at, state)
+           VALUES (%s,%s,%s,%s,%s,%s,now(),'READY')""",
+        (
+            next_prediction,
+            release_id,
+            threshold_version,
+            uuid4(),
+            uuid4().hex * 2,
+            uuid4().hex * 2,
+        ),
+    )
+    new_order = uuid4().hex
+    for order_id, score in ((old_order, 0.9), (new_order, 0.55)):
+        item_id = f"{order_id}-1"
+        db.execute(
+            "INSERT INTO ml.item_prediction_scores(prediction_id, order_id, order_item_id, "
+            "product_item_id, score) VALUES (%s,%s,'1',%s,%s)",
+            (next_prediction, order_id, item_id, score),
+        )
+        db.execute(
+            "INSERT INTO ml.order_prediction_scores(prediction_id, order_id, score, "
+            "aggregation_rule, top_product_item_id, top_item_score, item_count, item_value) "
+            "VALUES (%s,%s,%s,'max-v1',%s,%s,1,10)",
+            (next_prediction, order_id, score, item_id, score),
+        )
+
+    db.execute(
+        "UPDATE ml.predictions SET state='SUPERSEDED' WHERE prediction_id=%s", (prediction_id,)
+    )
+    db.execute(
+        "UPDATE ml.predictions SET state='ACTIVE' WHERE prediction_id=%s", (next_prediction,)
+    )
+
+    historical = PostgresRiskOrderQuery(RUNTIME_DSN).get_order(old_order)
+    assert historical is not None and historical.risk_score == pytest.approx(0.6)
+    workload = PostgresOperationalReadModel(RUNTIME_DSN).principal(
+        str(specialist), datetime.now(UTC)
+    )
+    assert workload is not None and workload["active_count"] == 1
+
+    _commands().complete(old_order, specialist, False, "NO_ISSUE", None)
+    detail = _reads().detail(old_order, datetime.now(UTC), include_audit=True)
+    assert detail["order"]["risk_score"] == pytest.approx(0.6)
+    workload = PostgresOperationalReadModel(RUNTIME_DSN).principal(
+        str(specialist), datetime.now(UTC)
+    )
+    assert workload is not None and workload["active_count"] == 0
+
+    seeded = PostgresQueueSeedStore(RUNTIME_DSN).seed(str(next_prediction), datetime.now(UTC))
+    assert (seeded.created, seeded.skipped) == (1, 1)
+    old_case = db.execute(
+        "SELECT prediction_id, count(*) OVER () FROM app.review_cases WHERE order_id=%s",
+        (old_order,),
+    ).fetchone()
+    assert old_case == (UUID(prediction_id), 1)
+    assert _scalar(db, "SELECT count(*) FROM app.review_cases WHERE order_id=%s", new_order) == 1
+
+
+def test_case_creation_locks_prediction_until_active_snapshot_is_committed(
+    db: psycopg.Connection[Any], prediction_id: str
+) -> None:
+    assert SETUP_DSN
+    order_id = uuid4().hex
+    item_id = f"{order_id}-1"
+    db.execute(
+        "INSERT INTO ml.item_prediction_scores(prediction_id, order_id, order_item_id, "
+        "product_item_id, score) VALUES (%s,%s,'1',%s,.7)",
+        (prediction_id, order_id, item_id),
+    )
+    db.execute(
+        "INSERT INTO ml.order_prediction_scores(prediction_id, order_id, score, aggregation_rule, "
+        "top_product_item_id, top_item_score, item_count, item_value) "
+        "VALUES (%s,%s,.7,'max-v1',%s,.7,1,10)",
+        (prediction_id, order_id, item_id),
+    )
+
+    with psycopg.connect(SETUP_DSN) as creating, psycopg.connect(SETUP_DSN) as promoting:
+        with creating.transaction():
+            creating.execute(
+                "INSERT INTO app.review_cases(order_id, prediction_id, aggregation_rule) "
+                "VALUES (%s,%s,'max-v1')",
+                (order_id, prediction_id),
+            )
+            promoting.execute("SET lock_timeout = '200ms'")
+            with pytest.raises(psycopg.errors.LockNotAvailable):
+                promoting.execute(
+                    "UPDATE ml.predictions SET state='SUPERSEDED' WHERE prediction_id=%s",
+                    (prediction_id,),
+                )
+            promoting.rollback()
+
+    assert (
+        _scalar(db, "SELECT state FROM ml.predictions WHERE prediction_id=%s", prediction_id)
+        == "ACTIVE"
+    )
 
 
 def test_dashboard_reconciles_with_queue_filters_and_supports_product_view(
@@ -479,6 +617,24 @@ def test_dashboard_reconciles_with_queue_filters_and_supports_product_view(
     product = reads.dashboard(now, **{**kwargs, "view": "product"})
     assert product["product"]["totals"]["orders"] == open_total
     assert product["product"]["totals"]["total_items"] >= open_total
+
+
+def test_queue_can_project_closed_cases_awaiting_manager_decision(
+    db: psycopg.Connection[Any], make_case: Callable[..., str]
+) -> None:
+    from hidden_dissatisfaction.infrastructure.postgres_risk_queue import PostgresRiskOrderQuery
+
+    specialist = _user(db, "SPECIALIST")
+    order_id = make_case(assignee=specialist)
+    _commands().complete(order_id, specialist, False, "HAS_ISSUE", None)
+
+    page = PostgresRiskOrderQuery(RUNTIME_DSN or "").list_orders(
+        QueueFilters(status="COMPLETED", needs_decision=True)
+    )
+
+    projected = next(item for item in page.items if item.order_id == order_id)
+    assert projected.queued_at is not None
+    assert projected.status == "COMPLETED"
 
 
 def test_audit_events_are_filtered_paginated_and_counted(

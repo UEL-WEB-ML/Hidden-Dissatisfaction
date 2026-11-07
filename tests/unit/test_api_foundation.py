@@ -8,10 +8,13 @@ pytest.importorskip("httpx")
 from fastapi.testclient import TestClient  # noqa: I001
 
 from hidden_dissatisfaction.api.app import create_app, readiness_check
+from hidden_dissatisfaction.application.claim import ClaimResult
 from hidden_dissatisfaction.application.parameters import (
     CreateParameterVersionCommand,
     ParameterVersion,
 )
+from hidden_dissatisfaction.application.queue import QueueOrder, QueuePage
+from hidden_dissatisfaction.domain.queue import QueueFilters
 from hidden_dissatisfaction.domain.auth import (
     AccessToken,
     InvalidCredentials,
@@ -80,9 +83,45 @@ class FakeOperationalReads:
     def users(self, role: str | None, now: datetime) -> list[dict[str, object]]:
         return [{"user_id": str(USER.id), "role": role or "SPECIALIST", "server_time": now}]
 
+    def principal(self, user_id: str, now: datetime) -> dict[str, object] | None:
+        if user_id != str(USER.id):
+            return None
+        return {"user_id": user_id, "server_time": now}
+
+
+class FakeClaimCase:
+    def execute(self, order_id: str, actor_id: object) -> ClaimResult:
+        assert actor_id == USER.id
+        return ClaimResult(order_id, active_count=1, capacity=5)
+
+
+class FakeRiskOrders:
+    def __init__(self) -> None:
+        self.exact_order_id: str | None = None
+
+    def get_order(self, order_id: str) -> QueueOrder | None:
+        self.exact_order_id = order_id
+        return QueueOrder(
+            order_id=order_id,
+            risk_score=0.6,
+            risk_level="MEDIUM",
+            status="IN_PROGRESS",
+            assignee_id=str(USER.id),
+            assignee_name=USER.full_name,
+            queued_at=datetime.now(UTC),
+            sla_due_at=None,
+            row_version=1,
+        )
+
+    def list_orders(self, filters: QueueFilters) -> QueuePage:
+        return QueuePage((), 0, filters.limit, filters.offset)
+
+    def filter_options(self) -> dict[str, tuple[str, ...]]:
+        return {"sellers": (), "categories": ()}
+
 
 def client() -> TestClient:
-    return TestClient(create_app(auth=FakeAuth()))
+    return TestClient(create_app(auth=FakeAuth(), operational_reads=FakeOperationalReads()))
 
 
 def test_health_readiness_can_be_overridden() -> None:
@@ -144,6 +183,7 @@ def test_manager_can_create_a_parameter_version() -> None:
 
     assert response.status_code == 201
     assert response.json()["value"] == "6"
+    assert response.json()["status"] == "SCHEDULED"
     assert parameters.command is not None
     assert parameters.command.actor_id == USER.id
 
@@ -181,6 +221,26 @@ def test_config_users_and_manager_parameter_reads() -> None:
     auth.user = User(USER.id, "manager", "hash", full_name="Manager", role=Role.MANAGER)
     assert test.get("/api/v1/parameters", headers=headers).status_code == 200
     assert test.get("/api/v1/users?role=INVALID", headers=headers).status_code == 422
+
+
+def test_claim_refreshes_by_exact_internal_order_id() -> None:
+    risk_orders = FakeRiskOrders()
+    test = TestClient(
+        create_app(
+            auth=FakeAuth(),
+            operational_reads=FakeOperationalReads(),
+            claim_case=FakeClaimCase(),
+            risk_orders=risk_orders,
+        )
+    )
+
+    response = test.post(
+        "/api/v1/orders/demo-1001/claim", headers={"Authorization": "Bearer token"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["order"]["order_id"] == "demo-1001"
+    assert risk_orders.exact_order_id == "demo-1001"
 
 
 def test_openapi_contract() -> None:

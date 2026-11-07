@@ -102,6 +102,22 @@ def test_config_reports_the_value_effective_now_not_a_scheduled_one() -> None:
     assert reads.config(now + timedelta(days=3))["soon_hours"] == scheduled
 
 
+def test_parameter_projection_matches_settings_page_contract() -> None:
+    from hidden_dissatisfaction.infrastructure.postgres_operational_reads import (
+        PostgresOperationalReadModel,
+    )
+
+    if not RUNTIME_DSN:
+        pytest.skip("P9_APP_RUNTIME_DSN is required")
+    result = PostgresOperationalReadModel(RUNTIME_DSN).parameters(datetime.now(UTC))
+    items, history = result["items"], result["history"]
+    assert isinstance(items, list) and isinstance(history, list)
+
+    assert len(items) == 14
+    assert all("scheduled" in item and "updated_by_name" in item for item in items)
+    assert all("old_value" in item and "status" in item for item in history)
+
+
 def test_concurrent_parameter_writes_serialize_without_duplicate_versions() -> None:
     from concurrent.futures import ThreadPoolExecutor
 

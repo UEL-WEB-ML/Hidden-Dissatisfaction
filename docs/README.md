@@ -1,6 +1,7 @@
 # Documentation index
 
 This repository is the single source of truth for the Hidden Dissatisfaction project.
+The as-built business and integration documentation is maintained in [`../BA/`](../BA/).
 
 ## Research contract
 
@@ -13,10 +14,12 @@ This repository is the single source of truth for the Hidden Dissatisfaction pro
 
 ## Product and integration contract
 
-1. [`BRD_olist_hidden_dissatisfaction.md`](BRD_olist_hidden_dissatisfaction.md) — BRD 4.2
-2. [`FRD_olist_hidden_dissatisfaction.md`](FRD_olist_hidden_dissatisfaction.md) — FRD 2.2
-3. [`API_CONTRACT_olist_hidden_dissatisfaction.md`](API_CONTRACT_olist_hidden_dissatisfaction.md) — API 0.5
-4. [`DATA_DICTIONARY_web_olist_hidden_dissatisfaction.md`](DATA_DICTIONARY_web_olist_hidden_dissatisfaction.md) — Data Dictionary 0.5
+1. [`../BA/BRD.md`](../BA/BRD.md) — as-built business requirements.
+2. [`../BA/FRD.md`](../BA/FRD.md) — as-built functional behavior.
+3. [`../BA/API_CONTRACT.md`](../BA/API_CONTRACT.md) — runtime API contract.
+4. [`../BA/DATA_DICTIONARY.md`](../BA/DATA_DICTIONARY.md) — physical PostgreSQL dictionary.
+5. [`../BA/ERD.md`](../BA/ERD.md) — physical entity relationships.
+6. [`../BA/TRACEABILITY.md`](../BA/TRACEABILITY.md) — implementation traceability and verification.
 
 ## Operations and evidence
 
@@ -30,7 +33,10 @@ This repository is the single source of truth for the Hidden Dissatisfaction pro
 - [`../references/`](../references/) — dated research-source snapshots.
 - [`../web/BaoCao_LaTeX/`](../web/BaoCao_LaTeX/) — report source.
 - [`../web/SoDo/`](../web/SoDo/) — diagrams.
-- [`../web/Wireframe/`](../web/Wireframe/) — static wireframe.
+- [`../web/Wireframe/`](../web/Wireframe/) — archived/reference-only static wireframe; not an active application path.
+
+The delivered static frontend is [`../frontend/prototype/`](../frontend/prototype/). This documentation
+does not claim browser E2E coverage for that frontend.
 
 ## Fixed system decisions
 

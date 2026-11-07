@@ -56,7 +56,9 @@ def validate_parameter_change(
     """Validate and normalize one new parameter version without mutating state."""
     if not reason.strip():
         raise ParameterValidationError("REASON_REQUIRED", "A reason is required")
-    if effective_at.tzinfo is None or now.tzinfo is None or effective_at < now:
+    if effective_at.tzinfo is None or now.tzinfo is None:
+        raise ParameterValidationError("PARAMETER_INVALID", "effective_at must include a timezone")
+    if effective_at < now:
         raise ParameterValidationError("PARAMETER_INVALID", "effective_at must not be in the past")
 
     definition = PARAMETER_DEFINITIONS.get(key)

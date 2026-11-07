@@ -10,27 +10,46 @@ from hidden_dissatisfaction.domain.queue import QueueFilters
 @dataclass(frozen=True)
 class QueueOrder:
     order_id: str
-    score: float
-    level: str
+    risk_score: float
+    risk_level: str
     status: str
     assignee_id: str | None
     assignee_name: str | None
     queued_at: datetime
     sla_due_at: datetime | None
     row_version: int
+    original_queued_at: datetime | None = None
     matched_item_id: str | None = None
+    top_item: object | None = None
+    top_factors: tuple[object, ...] = ()
+    items_count: int = 0
+    outcome: str | None = None
+    skip_reason: str | None = None
+    self_claim_allowed: bool = False
+    contact_count: int = 0
+
+    sla_state: str = "none"
+    sla_hours_left: float | None = None
+    aging_hours: float = 0.0
+    total_aging_hours: float = 0.0
+    is_escalated: bool = False
+    is_stale: bool = False
 
 
 @dataclass(frozen=True)
 class QueuePage:
     items: tuple[QueueOrder, ...]
     total: int
+    limit: int = 20
+    offset: int = 0
 
 
 class RiskOrderQueryPort(Protocol):
     """Read-only, stable Queue projection at one row per order."""
 
     def list_orders(self, filters: QueueFilters) -> QueuePage: ...
+
+    def get_order(self, order_id: str) -> QueueOrder | None: ...
 
     def filter_options(self) -> dict[str, tuple[str, ...]]: ...
 
@@ -61,7 +80,7 @@ def summarize_queue(
         # ponytail: scans the first 100 pending cases; add a level-exclusion filter if
         # a Specialist's head of queue can ever hold >100 consecutive HIGH cases.
         page = port.list_orders(QueueFilters(status="PENDING", limit=100))
-        first = next((o for o in page.items if not (specialist and o.level == "HIGH")), None)
+        first = next((o for o in page.items if not (specialist and o.risk_level == "HIGH")), None)
     return QueueSummary(
         high_pending=total(level="HIGH", status="PENDING"),
         high_pending_overdue=total(level="HIGH", status="PENDING", sla="over"),

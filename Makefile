@@ -1,4 +1,4 @@
-.PHONY: install quality test format clean-cache bootstrap bronze-manifest ingest warehouse train score demo-seed app-up frontend-test e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: install quality test format clean-cache start stop bootstrap bronze-manifest ingest warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -32,6 +32,15 @@ db-up:
 
 bootstrap: db-up migrate
 
+# Complete local application lifecycle. `stop` intentionally preserves named
+# volumes; use `docker compose down -v` only for an explicit data reset.
+start: bootstrap
+	$(COMPOSE) up -d --build api frontend
+	@$(COMPOSE) ps
+
+stop:
+	$(COMPOSE) down --remove-orphans
+
 bronze-manifest:
 	uv run --frozen --extra db hidden-dissatisfaction build-bronze-manifest --output data/interim/bronze-manifest.json
 
@@ -41,7 +50,8 @@ ingest:
 	uv run --frozen --extra db hidden-dissatisfaction ingest --manifest data/interim/bronze-manifest.json
 
 warehouse: bootstrap
-	$(COMPOSE) --profile jobs run --rm warehouse dbt build --exclude tag:release_only --project-dir dbt --profiles-dir dbt
+	@test -n "$(DBT_SOURCE_RUN_ID)" || (echo "DBT_SOURCE_RUN_ID is required" >&2; exit 1)
+	$(COMPOSE) --profile jobs run --rm warehouse dbt build --exclude tag:release_only --project-dir dbt --profiles-dir dbt --vars "{source_run_id: $(DBT_SOURCE_RUN_ID)}"
 
 train:
 	@test -n "$(TRAIN_COMMAND)" || (echo "TRAIN_COMMAND is required (opt-in)" >&2; exit 1)
@@ -54,11 +64,7 @@ score:
 demo-seed:
 	@set -a; . ./.env; set +a; DEMO_EVIDENCE_DIR=$${DEMO_EVIDENCE_DIR:-data/evidence} scripts/demo-seed.sh
 
-app-up: bootstrap
-	$(COMPOSE) up -d api frontend
-
-frontend-test:
-	$(COMPOSE) --profile quality run --rm frontend-test
+app-up: start
 
 e2e: app-up demo-seed
 	@set -a; . ./.env; set +a; test -x tests/smoke.sh && tests/smoke.sh || (echo "tests/smoke.sh is missing or not executable" >&2; exit 1)
@@ -71,17 +77,16 @@ release-check:
 clean-checkout:
 	scripts/clean-checkout-check.sh
 
-db-down:
-	docker compose down
+db-down: stop
 
 db-logs:
-	docker compose logs -f postgres
+	$(COMPOSE) logs -f postgres
 
 migrate:
-	docker compose run --rm migrate
+	$(COMPOSE) run --rm migrate
 
 migrate-info:
-	docker compose exec postgres psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -c 'SELECT version, applied_at FROM app.schema_migrations ORDER BY version'
+	$(COMPOSE) exec postgres psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -c 'SELECT version, applied_at FROM app.schema_migrations ORDER BY version'
 
 # Opt-in gate: this requires the complete Olist warehouse and a completed run.
 p4-release-verify:

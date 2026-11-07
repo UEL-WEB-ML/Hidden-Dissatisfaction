@@ -55,6 +55,9 @@ class _FakeQueue:
         self.calls.append(filters)
         return QueuePage(tuple(self.items), len(self.items))
 
+    def get_order(self, order_id: str) -> "QueueOrder | None":
+        return next((item for item in self.items if item.order_id == order_id), None)
+
     def filter_options(self) -> dict[str, tuple[str, ...]]:
         return {}
 

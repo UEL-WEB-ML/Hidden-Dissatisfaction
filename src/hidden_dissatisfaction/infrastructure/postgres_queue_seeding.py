@@ -19,15 +19,9 @@ class PostgresQueueSeedStore:
             with conn.transaction():
                 with conn.cursor() as cur:
                     cur.execute(
-                        """SELECT o.order_id, o.score,
-                        CASE WHEN o.score >= t.high_from THEN 'HIGH'
-                             WHEN o.score >= t.medium_from THEN 'MEDIUM' ELSE 'LOW' END AS risk_level
-                        FROM ml.order_prediction_scores o
-                        JOIN ml.predictions p ON p.prediction_id=o.prediction_id
-                        JOIN ml.model_thresholds t ON (t.model_release_id=p.model_release_id
-                          AND t.threshold_version=p.threshold_version)
-                        WHERE p.prediction_id=%s AND p.state='ACTIVE'
-                          AND o.aggregation_rule='max-v1'""",
+                        """SELECT order_id, score, risk_level
+                        FROM ml.v_queue_seed_orders
+                        WHERE prediction_id=%s AND aggregation_rule='max-v1'""",
                         (prediction_id,),
                     )
                     orders = cur.fetchall()
@@ -62,8 +56,8 @@ class PostgresQueueSeedStore:
                         )
                         cur.execute(
                             """INSERT INTO app.audit_events
-                            (case_id,order_id,provenance,event_type,new_value,reason)
-                            VALUES (%s,%s,'QUEUE_SEED','QUEUE_SEED','PENDING',%s)""",
+                            (case_id,order_id,provenance,event_type,new_value,reason,actor_kind)
+                            VALUES (%s,%s,'QUEUE_SEED','QUEUE_SEED','PENDING',%s,'SYSTEM')""",
                             (row[0], order_id, "prediction " + str(prediction_id)),
                         )
         return SeedSummary(created, skipped)

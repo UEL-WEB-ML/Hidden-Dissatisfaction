@@ -71,7 +71,7 @@ class PostgresCaseReads:
     def _connect(self) -> psycopg.Connection[Any]:
         return psycopg.connect(self._dsn, row_factory=dict_row)
 
-    def detail(self, order_id: str, now: datetime, include_audit: bool) -> dict[str, Any]:
+    def _legacy_detail(self, order_id: str, now: datetime, include_audit: bool) -> dict[str, Any]:
         """Return the full Order Detail payload; audit events only for Managers."""
         with self._connect() as conn:
             row = conn.execute(_CASE_ROWS + " WHERE c.order_id = %s", (order_id,)).fetchone()
@@ -86,8 +86,8 @@ class PostgresCaseReads:
             ).fetchone()
             items = conn.execute(
                 """SELECT i.product_item_id, i.risk_score::float AS risk_score, i.risk_level,
-                          i.top_factors, i.synthetic AS synthetic_data_flag, i.context,
-                          i.model_version, i.predicted_at,
+                          i.top_factors, i.context ->> 'category' AS category, i.synthetic AS synthetic_data_flag,
+                          i.model_version, i.predicted_at, i.threshold_version, i.aggregation_rule,
                           CASE WHEN i.synthetic THEN 'synthetic_v1' ELSE 'olist_order_items' END AS data_source
                    FROM ml.v_risk_items_for_web i
                    WHERE i.prediction_id = (SELECT prediction_id FROM app.review_cases WHERE order_id=%s)
@@ -199,6 +199,7 @@ class PostgresCaseReads:
                     order["predicted_at"] if "predicted_at" in order else order["scored_at"]
                 ),
                 "threshold_version": order["threshold_version"],
+                "matched_item_id": str(order["top_product_item_id"]),
                 "items_count": order["item_count"],
                 "top_item": items[0] if items else None,
                 "has_synthetic_item": any(i["synthetic_data_flag"] for i in items),
@@ -223,7 +224,7 @@ class PostgresCaseReads:
                 "contact_count": cycles[-1]["contact_count"] if cycles else 0,
                 "needs_decision": row["status"] in ("COMPLETED", "SKIPPED")
                 and not row["has_decision"],
-                **metrics,
+                **{key: value for key, value in metrics.items() if key != "stale_hours"},
             },
             "cycles": cycles,
             "contacts": contacts,
@@ -253,6 +254,16 @@ class PostgresCaseReads:
             "audit_events": audit,
             "seller_open_count": int(seller_open["n"]) if seller_open else 0,
         }
+
+    def detail(self, order_id: str, now: datetime, include_audit: bool) -> dict[str, Any]:
+        """Return the complete strict order-detail projection.
+
+        Keep this path on the established detail queries.  In particular, the
+        collections below are authoritative database projections (rather than
+        placeholders), and ``include_audit`` deliberately preserves the
+        specialist/manager visibility contract.
+        """
+        return self._legacy_detail(order_id, now, include_audit)
 
     def dashboard(
         self,
