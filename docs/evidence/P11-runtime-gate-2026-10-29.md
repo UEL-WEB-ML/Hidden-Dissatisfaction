@@ -1,5 +1,9 @@
 # P11 runtime gate — 2026-10-29
 
+> **Partly superseded (2026-11-04):** the Angular frontend mentioned below (build, `hd-root`
+> selector) was replaced by the static HTML/CSS/JS UI in `frontend/prototype/`. Frontend gates
+> here describe the old build; backend and Compose gates are unaffected.
+
 Status: **Compose E2E and authenticated synthetic walkthrough passed**
 
 ## Passed gates
@@ -47,3 +51,8 @@ real execution exposed two stale test fixtures; both were corrected, and all 17 
 
 The post-upgrade `npm audit --json` has zero reported vulnerabilities. The core P11 Compose/runtime
 gate and P10 frontend test execution gate are complete for the authenticated synthetic demo scope.
+
+## Disposition note
+
+This dated gate is retained as original evidence. The completed static frontend cutover is delivered
+under `frontend/prototype`; no additional browser E2E coverage is implied for it.

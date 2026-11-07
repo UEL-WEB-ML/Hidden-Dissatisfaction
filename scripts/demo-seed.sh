@@ -97,11 +97,11 @@ WHERE prediction_id = '00000000-0000-0000-0000-00000000d002' AND state = 'READY'
 
 INSERT INTO ml.item_prediction_scores(prediction_id, order_id, order_item_id, product_item_id, score, risk_context, top_factors, synthetic, synthetic_metadata)
 VALUES
-('00000000-0000-0000-0000-00000000d002','demo-1001','001','demo-1001-001',0.91,'{"seller_id":"demo-seller-a","category":"electronics"}','["Late shipment signal","Repeated delivery delay"]',true,'{"fixture":"P12"}'),
-('00000000-0000-0000-0000-00000000d002','demo-1002','001','demo-1002-001',0.78,'{"seller_id":"demo-seller-a","category":"home"}','["Payment friction","Long handling time"]',true,'{"fixture":"P12"}'),
-('00000000-0000-0000-0000-00000000d002','demo-1003','001','demo-1003-001',0.63,'{"seller_id":"demo-seller-b","category":"beauty"}','["Delivery variance","Repeat contact"]',true,'{"fixture":"P12"}'),
-('00000000-0000-0000-0000-00000000d002','demo-1004','001','demo-1004-001',0.54,'{"seller_id":"demo-seller-b","category":"toys"}','["Seller response delay"]',true,'{"fixture":"P12"}'),
-('00000000-0000-0000-0000-00000000d002','demo-1005','001','demo-1005-001',0.82,'{"seller_id":"demo-seller-c","category":"sports"}','["High order value","Delivery exception"]',true,'{"fixture":"P12"}')
+('00000000-0000-0000-0000-00000000d002','00000000000000000000000000001001','1','00000000000000000000000000001001-1',0.91,'{"seller_id":"demo-seller-a","category":"electronics"}','["Late shipment signal","Repeated delivery delay"]',true,'{"fixture":"P12"}'),
+('00000000-0000-0000-0000-00000000d002','00000000000000000000000000001002','1','00000000000000000000000000001002-1',0.78,'{"seller_id":"demo-seller-a","category":"home"}','["Payment friction","Long handling time"]',true,'{"fixture":"P12"}'),
+('00000000-0000-0000-0000-00000000d002','00000000000000000000000000001003','1','00000000000000000000000000001003-1',0.63,'{"seller_id":"demo-seller-b","category":"beauty"}','["Delivery variance","Repeat contact"]',true,'{"fixture":"P12"}'),
+('00000000-0000-0000-0000-00000000d002','00000000000000000000000000001004','1','00000000000000000000000000001004-1',0.54,'{"seller_id":"demo-seller-b","category":"toys"}','["Seller response delay"]',true,'{"fixture":"P12"}'),
+('00000000-0000-0000-0000-00000000d002','00000000000000000000000000001005','1','00000000000000000000000000001005-1',0.82,'{"seller_id":"demo-seller-c","category":"sports"}','["High order value","Delivery exception"]',true,'{"fixture":"P12"}')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO ml.order_prediction_scores(prediction_id, order_id, score, aggregation_rule, top_product_item_id, top_item_score, item_count, item_value, risk_context, top_factors, synthetic, synthetic_metadata)
@@ -111,18 +111,18 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO app.review_cases(order_id, prediction_id, aggregation_rule, status, assignee_id, original_queued_at, updated_at)
 VALUES
-('demo-1001','00000000-0000-0000-0000-00000000d002','max-v1','PENDING',NULL,now()-interval '1 hour',now()-interval '1 hour'),
-('demo-1002','00000000-0000-0000-0000-00000000d002','max-v1','IN_PROGRESS',(SELECT user_id FROM app.users WHERE username=:'demo_username'),now()-interval '5 hours',now()-interval '30 minutes'),
-('demo-1003','00000000-0000-0000-0000-00000000d002','max-v1','PENDING',NULL,now()-interval '26 hours',now()-interval '26 hours'),
-('demo-1004','00000000-0000-0000-0000-00000000d002','max-v1','COMPLETED',(SELECT user_id FROM app.users WHERE username=:'demo_username'),now()-interval '2 days',now()-interval '1 day'),
-('demo-1005','00000000-0000-0000-0000-00000000d002','max-v1','PENDING',NULL,now()-interval '3 hours',now()-interval '3 hours')
+('00000000000000000000000000001001','00000000-0000-0000-0000-00000000d002','max-v1','PENDING',NULL,now()-interval '1 hour',now()-interval '1 hour'),
+('00000000000000000000000000001002','00000000-0000-0000-0000-00000000d002','max-v1','IN_PROGRESS',(SELECT user_id FROM app.users WHERE username=:'demo_username'),now()-interval '5 hours',now()-interval '30 minutes'),
+('00000000000000000000000000001003','00000000-0000-0000-0000-00000000d002','max-v1','PENDING',NULL,now()-interval '26 hours',now()-interval '26 hours'),
+('00000000000000000000000000001004','00000000-0000-0000-0000-00000000d002','max-v1','COMPLETED',(SELECT user_id FROM app.users WHERE username=:'demo_username'),now()-interval '2 days',now()-interval '1 day'),
+('00000000000000000000000000001005','00000000-0000-0000-0000-00000000d002','max-v1','PENDING',NULL,now()-interval '3 hours',now()-interval '3 hours')
 ON CONFLICT (order_id) DO NOTHING;
 
 INSERT INTO app.review_cycles(case_id, cycle_no, started_at, ended_at, sla_due_at, parameter_version)
 SELECT c.case_id, 1, c.original_queued_at,
        CASE WHEN c.status = 'COMPLETED' THEN c.updated_at ELSE NULL END,
        c.original_queued_at + interval '24 hours', 'synthetic-demo-v1'
-FROM app.review_cases c WHERE c.order_id LIKE 'demo-%'
+FROM app.review_cases c WHERE c.prediction_id = '00000000-0000-0000-0000-00000000d002'
 ON CONFLICT (case_id, cycle_no) DO NOTHING;
 
 INSERT INTO app.assignments(case_id, assignee_id, assigned_at)
@@ -133,7 +133,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO app.case_comments(case_id, author_id, body)
 SELECT c.case_id, (SELECT user_id FROM app.users WHERE username=:'demo_username'),
        'Synthetic demo note: customer contact is pending.'
-FROM app.review_cases c WHERE c.order_id = 'demo-1002'
+FROM app.review_cases c WHERE c.order_id = '00000000000000000000000000001002'
   AND NOT EXISTS (SELECT 1 FROM app.case_comments x WHERE x.case_id = c.case_id);
 SQL
 echo "Synthetic Specialist and Manager accounts plus full local demo dataset seeded."

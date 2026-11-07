@@ -75,15 +75,24 @@ def test_comment_length_boundaries() -> None:
 
 def test_decision_requires_three_fields_and_future_due_date() -> None:
     today = NOW.date()
-    validate_decision("FOLLOW_UP_CUSTOMER", "why", "call", today, today)
+    validate_decision("COMPLETED", "FOLLOW_UP_CUSTOMER", "why", "call", today, today)
     with pytest.raises(WorkflowPolicyError) as reason:
-        validate_decision("FOLLOW_UP_CUSTOMER", "", "call", None, today)
+        validate_decision("COMPLETED", "FOLLOW_UP_CUSTOMER", "", "call", None, today)
     assert reason.value.code == "REASON_REQUIRED"
     for args in (("BOGUS", "r", "n", None), ("NO_FURTHER_ACTION", "r", " ", None)):
         with pytest.raises(WorkflowPolicyError):
-            validate_decision(*args, today)
+            validate_decision("COMPLETED", *args, today)
     with pytest.raises(WorkflowPolicyError):
-        validate_decision("NO_FURTHER_ACTION", "r", "n", today - timedelta(days=1), today)
+        validate_decision(
+            "COMPLETED", "NO_FURTHER_ACTION", "r", "n", today - timedelta(days=1), today
+        )
+
+
+@pytest.mark.parametrize("status", ["PENDING", "IN_PROGRESS"])
+def test_decision_rejects_open_cases(status: str) -> None:
+    with pytest.raises(WorkflowPolicyError) as error:
+        validate_decision(status, "NO_FURTHER_ACTION", "r", "n", None, NOW.date())
+    assert error.value.code == "INVALID_STATE"
 
 
 def test_contact_inputs_and_evidence_signatures() -> None:

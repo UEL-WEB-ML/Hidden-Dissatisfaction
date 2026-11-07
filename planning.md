@@ -27,13 +27,11 @@ Ngoài phạm vi:
 
 Khi tài liệu hoặc implementation mâu thuẫn, dùng thứ tự sau:
 
-1. `docs/BRD_olist_hidden_dissatisfaction.md` — BRD 4.2.
-2. `docs/FRD_olist_hidden_dissatisfaction.md` — FRD 2.2.
-3. `docs/API_CONTRACT_olist_hidden_dissatisfaction.md` — API Contract 0.5.
-4. `docs/DATA_DICTIONARY_web_olist_hidden_dissatisfaction.md` — Data Dictionary 0.5.
-5. `docs/research-design.md` và `docs/data-contract.md`.
-6. `docs/architecture.md` và tài liệu triển khai khác.
-7. Prototype/mock/code cũ.
+1. PostgreSQL migrations/schema runtime và implementation đã kiểm thử.
+2. `BA/` — bộ tài liệu as-built.
+3. `docs/research-design.md` và `docs/data-contract.md`.
+4. `docs/architecture.md` và tài liệu triển khai khác.
+5. Prototype/mock lịch sử.
 
 Mọi thay đổi contract phải sửa tài liệu có version trong cùng pull request trước hoặc cùng lúc với code. Không sửa code để “khớp mock” nếu mock trái contract.
 
@@ -157,7 +155,6 @@ Hidden-Dissatisfaction/
 ├── data/
 ├── dbt/
 ├── frontend/
-│   └── hidden-dissatisfaction-frontend/
 ├── infra/
 │   ├── postgres/
 │   │   ├── init/
@@ -205,7 +202,8 @@ Hidden-Dissatisfaction/
 └── uv.lock
 ```
 
-`web/Prototype` là reference/mock. Production Angular nằm ở `frontend/hidden-dissatisfaction-frontend`.
+`frontend/prototype` là đường dẫn frontend tĩnh đã bàn giao. `web/Wireframe` chỉ là tài liệu tham khảo
+đã lưu trữ, không phải đường dẫn ứng dụng đang hoạt động.
 
 ## 6. Definition of Ready và Definition of Done
 
@@ -277,7 +275,7 @@ Nhập snapshot, không tái tạo lịch sử source repository:
 - `scripts/load_bronze.py`.
 - `scripts/build_silver.py` để refactor, không giữ path cũ.
 - `sql/migrations/001_bronze.sql` vào migration sequence mới.
-- `web/Prototype/` làm reference/API mock.
+- `frontend/prototype/` là frontend đã bàn giao; `web/Wireframe/` chỉ là reference/archive.
 
 Không ghi đè tài liệu 4.2/2.2/0.5 hiện hành bằng bản cũ trên `origin/main`. Không giữ mặc định `ironman`, path `../Docker_Environment` hoặc env ngoài repository.
 
@@ -609,7 +607,7 @@ Fields phải khớp Data Dictionary 0.5. `top_factors` là association/explanat
 
 #### P7.1 — Chốt ERD vật lý
 
-Tạo `docs/ERD_olist_hidden_dissatisfaction.md` và source diagram. ERD phải thể hiện:
+Duy trì `BA/ERD.md` theo schema runtime. ERD phải thể hiện:
 
 - `app.users`.
 - `app.review_cases` 1–N `app.review_cycles`.
@@ -698,7 +696,7 @@ DB phải bảo vệ được các invariant không phụ thuộc actor/context:
 
 ### P9 — Backend feature slices F01–F12
 
-Mỗi slice dưới đây phải tuân thứ tự migration/domain/port/use case/adapter/router/test. Các endpoint và field lấy nguyên từ API Contract 0.5.
+Mỗi slice dưới đây phải tuân thứ tự migration/domain/port/use case/adapter/router/test. Các endpoint và field lấy từ `BA/API_CONTRACT.md`.
 
 #### P9.1 — Config, parameter và user queries — F10
 
@@ -860,7 +858,7 @@ Các bước:
 5. Kiểm tra không endpoint nào update ML schema/output.
 6. Load-test tối thiểu Queue/Dashboard với dữ liệu gần kích thước Olist; thêm indexes dựa trên `EXPLAIN ANALYZE`, không phỏng đoán.
 
-**DoD P9:** Backend đáp ứng toàn bộ API Contract 0.5 và traceability F01–F12.
+**DoD P9:** Backend đáp ứng toàn bộ `BA/API_CONTRACT.md` và traceability as-built.
 
 ### P10 — Production Angular frontend
 

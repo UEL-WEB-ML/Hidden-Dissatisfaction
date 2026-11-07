@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-vi="Cài đặt tham số · Hidden Dissatisfaction">Parameter settings · Hidden Dissatisfaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="topbar" id="topbar"></nav>
+
+  <div class="page" id="content">
+    <h1 data-vi="Cài đặt tham số">Parameter settings</h1>
+    <p class="sub" id="ps-sub"></p>
+
+    <div id="groups"></div>
+
+    <div class="box">
+      <h2 data-vi="Lịch sử thay đổi">Change history</h2>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script>
+    function el(id) { return document.getElementById(id); }
+    var P = null, BY = {}, SERVER_OFFSET = 0;
+    var GROUPS = [
+      ["SLA", L("SLA and deadlines", "SLA và thời hạn"), ["sla_calendar", "sla_hours_high", "sla_hours_medium", "sla_hours_low", "first_touch_hours", "soon_hours"]],
+      ["CAP", L("Workload", "Khối lượng việc"), ["capacity", "capacity_warn"]],
+      ["CON", L("Contact attempts", "Liên lạc khách"), ["max_contact", "retry_gap_days"]],
+      ["ESC", L("Escalation and reopen", "Escalation và mở lại"), ["stale_hours", "aging_days", "reopen_review_days", "reopen_review_times"]]
+    ];
+
+    function render() {
+      el("ps-sub").innerHTML = L("Parameter set in effect: ", "Bộ tham số đang hiệu lực: ") + "<code>" + escapeHtml(P.parameter_version) + "</code> · "
+        + L("server time ", "giờ máy chủ ") + viTime(P.server_time);
+      var html = "";
+      for (var g = 0; g < GROUPS.length; g++) {
+        var rows = "";
+        for (var k = 0; k < GROUPS[g][2].length; k++) {
+          var it = BY[GROUPS[g][2][k]], lab = PARAM_LABEL[it.key], sch = "";
+          for (var s = 0; s < it.scheduled.length; s++) {
+            sch += '<span class="sched-tag">' + L("→ ", "→ ") + paramValueText(it.key, it.unit, it.scheduled[s].value) + L(" from ", " từ ") + viTime(it.scheduled[s].effective_at) + "</span>";
+          }
+          rows += "<tr><td><b>" + lab[0] + "</b>" + (it.in_brd ? "" : ' <span class="brd-tag">' + L("Proposed addition", "Đề xuất bổ sung") + "</span>")
+            + '<div class="tiny">' + lab[1] + '</div><div class="tiny muted"><code>' + it.key + "</code></div></td>"
+            + '<td class="pv"><b>' + paramValueText(it.key, it.unit, it.value) + "</b>" + (sch ? "<div>" + sch + "</div>" : "") + "</td>"
+            + '<td class="tiny">v' + it.version + "<br>" + L("since ", "từ ") + viTime(it.effective_at) + "<br>" + escapeHtml(it.updated_by_name || "") + "</td>"
+            + '<td><button class="btn sm" onclick="edit(\'' + it.key + '\')">' + L("Change", "Đổi") + "</button></td></tr>";
+        }
+        html += '<div class="box"><h2>' + GROUPS[g][1] + '</h2><table class="small params"><thead><tr><th>' + L("Parameter", "Tham số") + "</th><th>" + L("Value in effect", "Giá trị đang hiệu lực")
+          + "</th><th>" + L("Version", "Phiên bản") + "</th><th></th></tr></thead><tbody>" + rows + "</tbody></table></div>";
+      }
+      el("groups").innerHTML = html;
+
+      // Lần đổi thật hiện trước; cấu hình ban đầu (v1, không có giá trị cũ) gom vào mục thu gọn cho bảng đỡ dài
+      var changes = "", initial = "", nInit = 0, initAt = null;
+      for (var i = 0; i < P.history.length; i++) {
+        var r = P.history[i], u = BY[r.key].unit;
+        var row = "<tr><td>" + viTime(r.created_at) + "</td><td>" + PARAM_LABEL[r.key][0] + "</td>"
+          + "<td>" + (r.old_value != null ? '<span class="old">' + paramValueText(r.key, u, r.old_value) + "</span> → " : "") + "<b>" + paramValueText(r.key, u, r.value) + "</b></td>"
+          + "<td>v" + r.version + "</td><td>" + viTime(r.effective_at) + "</td>"
+          + '<td><span class="pstat ' + r.status + '">' + { ACTIVE: L("In effect", "Đang hiệu lực"), SCHEDULED: L("Scheduled", "Đã lên lịch"), SUPERSEDED: L("Replaced", "Đã thay") }[r.status] + "</span></td>"
+          + "<td>" + escapeHtml(r.actor_name) + "</td><td>" + escapeHtml(r.reason) + "</td></tr>";
+        if (r.version == 1 && r.old_value == null) { initial += row; nInit++; initAt = r.created_at; }
+        else changes += row;
+      }
+      var head = '<table class="small"><thead><tr><th>' + L("Changed", "Lúc đổi") + "</th><th>" + L("Parameter", "Tham số") + "</th><th>" + L("Old → new", "Cũ → mới")
+        + "</th><th>" + L("Version", "Phiên bản") + "</th><th>" + L("Effective", "Hiệu lực") + "</th><th>" + L("Status", "Trạng thái") + "</th><th>" + L("By", "Người đổi") + "</th><th>" + L("Reason", "Lý do") + "</th></tr></thead><tbody>";
+      el("history").innerHTML = (changes ? head + changes + "</tbody></table>" : '<p class="muted">' + L("No changes since the initial setup.", "Chưa đổi tham số nào kể từ cấu hình ban đầu.") + "</p>")
+        + (nInit ? '<details class="more"><summary>' + L("Initial setup: " + nInit + " parameters, " + viTime(initAt), "Cấu hình ban đầu: " + nInit + " tham số, lúc " + viTime(initAt)) + "</summary>" + head + initial + "</tbody></table></details>" : "");
+    }
+
+    function edit(key) {
+      var it = BY[key], lab = PARAM_LABEL[key], input;
+      function defaultEffectiveTime() {
+        return fmtTime(new Date(Date.now() + SERVER_OFFSET + 120000)).replace(" ", "T");
+      }
+      var earliest = defaultEffectiveTime();
+      if (it.unit == "enum") {
+        input = '<select id="pm-val"><option value="CALENDAR"' + (it.value == "CALENDAR" ? " selected" : "") + ">" + SLA_CAL_LABEL.CALENDAR + '</option><option value="BUSINESS_HOURS"'
+          + (it.value == "BUSINESS_HOURS" ? " selected" : "") + ">" + SLA_CAL_LABEL.BUSINESS_HOURS + "</option></select>";
+      } else {
+        input = '<span class="with-unit"><input id="pm-val" type="number" step="1" min="1" value="' + it.value + '"> ' + UNIT_LABEL[it.unit] + "</span>";
+      }
+      openModal(L("Change: ", "Đổi: ") + lab[0], '<p class="tiny">' + lab[1] + "</p>"
+        + "<p>" + L("In effect now: ", "Đang hiệu lực: ") + "<b>" + paramValueText(key, it.unit, it.value) + "</b> (v" + it.version + ")</p>"
+        + '<div class="form-row"><label for="pm-val">' + L("New value", "Giá trị mới") + " *</label>" + input + "</div>"
+        + '<div class="form-row"><label for="pm-eff">' + L("Takes effect at", "Có hiệu lực lúc") + ' *</label><input id="pm-eff" type="datetime-local" value="' + earliest + '" min="' + earliest + '"></div>'
+        + '<div class="form-row"><label for="pm-reason">' + L("Reason", "Lý do") + ' *</label><textarea id="pm-reason" rows="2"></textarea></div>'
+        + '<p class="tiny">' + L("Open cases use the new value from that moment. Closed cases keep the values they were handled with.", "Case đang mở dùng giá trị mới từ thời điểm đó. Case đã đóng giữ giá trị đã dùng khi xử lý.") + "</p>",
+        L("Save new version", "Lưu phiên bản mới"), async function () {
+          if (!el("pm-reason").value.trim()) return { ok: false, msg: L("Enter a reason: every parameter change is audited.", "Nhập lý do: mọi thay đổi tham số đều được ghi lại.") };
+          try {
+            var effectiveAt = el("pm-eff").value == earliest ? defaultEffectiveTime() : el("pm-eff").value;
+            var r = await api.changeParameter(key, el("pm-val").value, apiTime(effectiveAt), el("pm-reason").value.trim());
+            toast(r.status == "SCHEDULED" ? L(lab[0] + ": v" + r.version + " scheduled for " + viTime(r.effective_at) + ".", lab[0] + ": v" + r.version + " lên lịch từ " + viTime(r.effective_at) + ".")
+              : L(lab[0] + ": v" + r.version + " is now in effect.", lab[0] + ": v" + r.version + " đã có hiệu lực."));
+            await load(); render();
+            return { ok: true };
+          } catch (e) { return apiFail(e); }
+        });
+    }
+
+    async function load() {
+      P = await api.listParameters();
+      SERVER_OFFSET = parseTime(P.server_time).getTime() - Date.now();
+      BY = {};
+      for (var i = 0; i < P.items.length; i++) BY[P.items[i].key] = P.items[i];
+    }
+
+    el("groups").innerHTML = '<div class="box">' + skeletonHtml(5) + "</div>";
+    boot("settings").then(async function () {
+      if (!requireManager()) return;
+      try { await load(); } catch (e) { el("groups").innerHTML = errorHtml(L("the parameters", "danh sách tham số")); return; }
+      render();
+    }).catch(function () { });
+  </script>
+</body>
+</html>

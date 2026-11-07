@@ -2,6 +2,26 @@
 
 Run every command from the repository root.
 
+## One-command application lifecycle
+
+Create and edit the environment file once:
+
+```bash
+cp .env.example .env
+```
+
+Replace all placeholder passwords and secrets, then use:
+
+```bash
+make start  # build, migrate and start PostgreSQL, API and frontend
+make stop   # stop the stack and preserve named volumes
+```
+
+The default URLs are `http://localhost:4200` for the frontend and
+`http://localhost:8000` for the API. `make start` does not seed or replace
+business data. Use `make demo-seed` explicitly when a fresh local database needs
+the synthetic review fixture.
+
 ## Python environment
 
 Python 3.11 and `uv` are required:

@@ -15,7 +15,9 @@ from hidden_dissatisfaction.application.parameters import (
     ParameterVersion,
 )
 from hidden_dissatisfaction.application.queue import (
-    QueuePage,
+    QueuePage as ApplicationQueuePage,
+)
+from hidden_dissatisfaction.application.queue import (
     RiskOrderQueryPort,
     summarize_queue,
 )
@@ -49,21 +51,45 @@ from .dependencies import (
     build_workflow_commands,
 )
 from .schemas import (
+    ClaimResponse,
     CreateParameterVersionRequest,
     LoginRequest,
     ParameterVersionResponse,
-    QueueOrderResponse,
-    QueuePageResponse,
+    Principal,
+    QueueOrder,
+    QueueSummary,
     TokenResponse,
     UpdateMeRequest,
     UserResponse,
+)
+from .schemas import (
+    QueuePage as PublicQueuePage,
 )
 from .workflow_routes import CaseReads, EvidenceFiles, build_workflow_router
 
 
 async def readiness_check() -> bool:
-    """Cheap readiness hook, intentionally replaceable in tests/deployment wiring."""
-    return True
+    """Check configured PostgreSQL connectivity and migration state when applicable."""
+    import os
+
+    dsn = os.getenv("HD_DATABASE_URL", "")
+    if not dsn.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
+        return False
+    if dsn.startswith("postgresql+asyncpg://"):
+        dsn = "postgresql://" + dsn.removeprefix("postgresql+asyncpg://")
+    try:
+        import psycopg
+        from psycopg.rows import dict_row
+
+        with psycopg.connect(dsn, connect_timeout=2, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT 1 FROM app.schema_migrations WHERE version = 'V022__historical_case_prediction_visibility.sql'
+            """
+            ).fetchone()
+            return row is not None
+    except Exception:
+        return False
 
 
 class AuthenticationService(Protocol):
@@ -90,6 +116,7 @@ class OperationalReadService(Protocol):
     def config(self, now: datetime) -> dict[str, object]: ...
     def parameters(self, now: datetime) -> dict[str, object]: ...
     def users(self, role: str | None, now: datetime) -> list[dict[str, Any]]: ...
+    def principal(self, user_id: str, now: datetime) -> dict[str, Any] | None: ...
 
 
 def create_app(
@@ -151,6 +178,19 @@ def create_app(
         )
 
     def user_response(user: User) -> UserResponse:
+        principal_reader = getattr(operational_reads, "principal", None)
+        workload = (
+            principal_reader(str(user.id), datetime.now(UTC))
+            if principal_reader
+            else next(
+                (
+                    u
+                    for u in operational_reads.users(user.role.value, datetime.now(UTC))
+                    if str(u["user_id"]) == str(user.id)
+                ),
+                {},
+            )
+        ) or {}
         return UserResponse(
             user_id=user.id,
             username=user.username,
@@ -158,11 +198,28 @@ def create_app(
             role=user.role,
             preferred_language=user.preferred_language,
             created_at=user.created_at,
+            active_count=workload.get("active_count"),
+            capacity=workload.get("capacity"),
+            slots_left=workload.get("slots_left"),
         )
 
-    def queue_page_response(page: QueuePage) -> QueuePageResponse:
-        return QueuePageResponse(
-            items=[QueueOrderResponse(**item.__dict__) for item in page.items], total=page.total
+    def queue_page_response(page: ApplicationQueuePage) -> PublicQueuePage:
+        """Translate the application queue DTO into the public API DTO.
+
+        Keeping this boundary explicit is important: the application page uses a
+        tuple and contains a couple of internal fields which are not part of the
+        HTTP contract.
+        """
+        return PublicQueuePage(
+            items=[
+                QueueOrder.model_validate(
+                    {k: v for k, v in item.__dict__.items() if k in QueueOrder.model_fields}
+                )
+                for item in page.items
+            ],
+            total=page.total,
+            limit=page.limit,
+            offset=page.offset,
         )
 
     def service() -> AuthenticationService:
@@ -245,6 +302,7 @@ def create_app(
         user: Annotated[User, Depends(current_user)],
     ) -> ParameterVersionResponse:
         require_manager(user)
+        now = datetime.now(UTC)
         try:
             version = parameter_versions.execute(
                 CreateParameterVersionCommand(
@@ -254,14 +312,17 @@ def create_app(
                     reason=body.reason,
                     actor_id=user.id,
                 ),
-                datetime.now(UTC),
+                now,
             )
         except ParameterValidationError as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={"code": exc.code, "message": str(exc), "details": None},
             ) from exc
-        return ParameterVersionResponse(**version.__dict__)
+        return ParameterVersionResponse(
+            **version.__dict__,
+            status="SCHEDULED" if version.effective_at > now else "ACTIVE",
+        )
 
     @app.get("/api/v1/config")
     async def get_config(_: Annotated[User, Depends(current_user)]) -> dict[str, object]:
@@ -286,8 +347,9 @@ def create_app(
             )
         return {"items": operational_reads.users(role, datetime.now(UTC))}
 
-    @app.get("/api/v1/orders", response_model=QueuePageResponse)
+    @app.get("/api/v1/orders", response_model=PublicQueuePage)
     async def list_orders(
+        user: Annotated[User, Depends(current_user)],
         q: str | None = None,
         level: str | None = None,
         status_filter: Annotated[str, Query(alias="status")] = "OPEN",
@@ -304,7 +366,9 @@ def create_app(
         sort: str = "priority",
         limit: int = 20,
         offset: int = 0,
-    ) -> QueuePageResponse:
+    ) -> PublicQueuePage:
+        if assignee == "me":
+            assignee = str(user.id)
         try:
             page = risk_orders.list_orders(
                 QueueFilters(
@@ -333,37 +397,47 @@ def create_app(
             ) from exc
         return queue_page_response(page)
 
-    @app.get("/api/v1/orders/summary")
-    async def order_summary(user: Annotated[User, Depends(current_user)]) -> dict[str, object]:
+    @app.get("/api/v1/orders/summary", response_model=QueueSummary)
+    async def order_summary(user: Annotated[User, Depends(current_user)]) -> QueueSummary:
         specialist = user.role is Role.SPECIALIST
-        me = next(
-            (
-                u
-                for u in operational_reads.users(user.role.value, datetime.now(UTC))
-                if str(u["user_id"]) == str(user.id)
-            ),
-            None,
+        principal_reader = getattr(operational_reads, "principal", None)
+        me_data = (
+            principal_reader(str(user.id), datetime.now(UTC))
+            if principal_reader
+            else next(
+                (
+                    u
+                    for u in operational_reads.users(user.role.value, datetime.now(UTC))
+                    if str(u["user_id"]) == str(user.id)
+                ),
+                None,
+            )
         )
-        summary = summarize_queue(
-            risk_orders, specialist=specialist, slots_left=me["slots_left"] if me else None
-        )
+        me = Principal.model_validate(me_data or user_response(user).model_dump())
+        summary = summarize_queue(risk_orders, specialist=specialist, slots_left=me.slots_left)
         first = summary.first_pending
-        return {
+        return QueueSummary(
             **{k: v for k, v in summary.__dict__.items() if k != "first_pending"},
-            "first_pending": (
-                QueueOrderResponse(**first.__dict__).model_dump(mode="json") if first else None
+            first_pending=(
+                QueueOrder.model_validate(
+                    {k: v for k, v in first.__dict__.items() if k in QueueOrder.model_fields}
+                )
+                if first
+                else None
             ),
-            "me": me,
-        }
+            me=me,
+        )
 
     @app.get("/api/v1/orders/filter-options")
-    async def order_filter_options() -> dict[str, tuple[str, ...]]:
+    async def order_filter_options(
+        _: Annotated[User, Depends(current_user)],
+    ) -> dict[str, tuple[str, ...]]:
         return risk_orders.filter_options()
 
-    @app.post("/api/v1/orders/{order_id}/claim")
+    @app.post("/api/v1/orders/{order_id}/claim", response_model=ClaimResponse)
     async def claim_order(
         order_id: str, user: Annotated[User, Depends(current_user)]
-    ) -> dict[str, object]:
+    ) -> ClaimResponse:
         if user.role is not Role.SPECIALIST:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -375,7 +449,7 @@ def create_app(
             )
         try:
             result = claim_case.execute(order_id, user.id)
-            page = risk_orders.list_orders(QueueFilters(query=order_id, limit=1))
+            refreshed = risk_orders.get_order(order_id)
         except ClaimNotFoundError as exc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -405,17 +479,19 @@ def create_app(
                 status_code=http_status,
                 detail={"code": code, "message": str(exc), "details": None},
             ) from exc
-        if not page.items:
+        if refreshed is None:
             raise RuntimeError("Claimed case is absent from the Queue projection")
-        order = QueueOrderResponse(**page.items[0].__dict__)
-        return {
-            "order": order,
-            "me": {
+        order = QueueOrder.model_validate(
+            {k: v for k, v in refreshed.__dict__.items() if k in QueueOrder.model_fields}
+        )
+        principal = Principal.model_validate(user_response(user).model_dump()).model_copy(
+            update={
                 "active_count": result.active_count,
                 "capacity": result.capacity,
                 "slots_left": result.capacity - result.active_count,
-            },
-        }
+            }
+        )
+        return ClaimResponse(order=order, me=principal)
 
     app.include_router(
         build_workflow_router(current_user, workflow_commands, reads, evidence_files)

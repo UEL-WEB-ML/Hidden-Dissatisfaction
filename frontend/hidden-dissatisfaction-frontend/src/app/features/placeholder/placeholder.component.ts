@@ -1,3 +1,0 @@
-import { Component, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-@Component({ selector: 'hd-placeholder', standalone: true, imports: [RouterLink], template: `<div class="placeholder"><span class="placeholder-orbit">◌</span><p class="eyebrow">{{ route.snapshot.data['eyebrow'] }}</p><h1>{{ route.snapshot.data['title'] }}</h1><p>This workspace is ready for the next feature slice. The foundation, access rules and API transport are in place.</p><a routerLink="/queue" class="button primary">Return to queue <span>→</span></a></div>` }) export class PlaceholderComponent { readonly route = inject(ActivatedRoute); }

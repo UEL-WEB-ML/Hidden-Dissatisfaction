@@ -10,7 +10,8 @@ Date: 2026-10-21
 
 From `ML_docs`:
 
-- BRD 4.2, FRD 2.2, API Contract 0.5 and Data Dictionary 0.5;
+- BRD 4.2, FRD 2.2, API Contract 0.5 and Data Dictionary 0.5 (later retired
+  after the implementation-based `BA/` set was established);
 - product-item problem statement and end-to-end ML theory;
 - dated research-source snapshots under `references/`;
 - LaTeX report sources and diagrams under `web/`.
@@ -32,6 +33,8 @@ The Compose paths were rewritten for this repository. The database and Compose p
 
 ## Known migration boundary
 
-The checked-in Python implementation, notebooks and historical Parquet artifact still represent the order-level baseline. Documentation now defines the target product-item architecture. This is an explicit migration backlog, not a claim that product-item training is already implemented.
+The as-built product contract is maintained in `BA/`. Research and modeling
+documents may describe target work, but they are not evidence that training or
+release functionality has been implemented.
 
 No source repository should be deleted until the team has reviewed and committed this consolidated snapshot.
