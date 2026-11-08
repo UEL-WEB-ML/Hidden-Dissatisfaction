@@ -1,187 +1,206 @@
 # Hidden Dissatisfaction
 
-Single-source repository for the Olist hidden-dissatisfaction research, product contracts, ML pipeline, PostgreSQL environment, web artifacts and thesis report.
+**Predicting 1–2★ reviews on orders that were delivered on time, and turning the scores into a prioritized case-handling workflow.**
 
-[![quality](https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/actions/workflows/quality.yml/badge.svg?branch=dev)](https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/actions/workflows/quality.yml)
+[![quality](https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/actions/workflows/quality.yml)
+![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
+![Data](https://img.shields.io/badge/data-Olist%20(Kaggle)-lightgrey)
+![Scope](https://img.shields.io/badge/scope-local%20demo%20%2F%20decision%20support-orange)
 
-> **Current scope:** local/demo decision-support system. Risk scores in the
-> bundled demo are deterministic fixtures, not production model inference.
+Late delivery is the best-known cause of bad reviews, so operations teams watch late orders. This project looks at the remainder: orders that arrived **on time or early** and still received 1–2 stars — *hidden dissatisfaction*. There is no delivery alert for these orders, so a customer-care team learns about them only after the review is posted.
+
+The repository contains the full path from raw data to a working tool:
+
+- a **warehouse** (PostgreSQL + dbt, Bronze → Silver → Intermediate → Gold) built from the Olist dataset;
+- an **ML pipeline** with leakage-controlled features, rolling-origin validation, calibration and a top-k priority threshold;
+- a **case-handling application** (FastAPI + static web UI) with role-based access, SLA tracking and an append-only audit trail;
+- the **course report** (LaTeX, Vietnamese) in [`Thesis/latex/`](Thesis/latex/main.tex).
+
+> **Read this first.** Model results are exploratory development results, not a confirmatory estimate. The bundled demo UI shows deterministic **synthetic scores**, not production model inference. All claims are predictive/associational, never causal.
+
+## Application
+
+The web app puts the risk score to work: specialists claim and contact customers, managers assign HIGH-risk cases, and every change is audited. The UI is in Vietnamese.
+
+**Risk queue** — orders ranked by priority, with SLA ageing, owner and next action.
+
+![Risk queue](Thesis/latex/images/ui-risk-queue.png)
+
+**Risk overview** — workload, SLA breaches, daily inflow and risk-band mix.
+
+![Risk overview dashboard](Thesis/latex/images/ui-dashboard.png)
+
+<table>
+  <tr>
+    <td width="50%"><b>Order detail</b> — score, item-level context and handling history<br><img src="Thesis/latex/images/ui-order-detail.png" alt="Order detail"></td>
+    <td width="50%"><b>Contact attempt</b> — evidence-backed customer contact<br><img src="Thesis/latex/images/ui-contact-attempt.png" alt="Contact attempt"></td>
+  </tr>
+</table>
+
+| Role | Can do |
+|---|---|
+| `SPECIALIST` | View the queue, claim valid LOW/MEDIUM cases within capacity, record contact attempts |
+| `MANAGER` | Assign HIGH cases, reopen cases, set decisions, review audit, change parameters |
+
+Cases move through `PENDING → IN_PROGRESS → COMPLETED / SKIPPED`. Authorization is enforced in the API (Bearer JWT), not in the browser.
+
+## Problem definition
+
+| | |
+|---|---|
+| **Population** | Orders delivered on time or early |
+| **Target** | Observed order review score of 1–2 (among reviewed orders) |
+| **ML grain** | Product item (`product_item_id`) — each item inherits its order's label (a *weak label*) |
+| **Split / workflow grain** | Order (`order_id`); all items of an order stay in the same split and bootstrap cluster |
+| **Prediction time** | Right after delivery confirmation, before any review information |
+| **Order score** | `max-v1`: the maximum item score in the order |
+| **Decision use** | Rank a human review queue. No automatic customer action |
+
+Because Olist only records reviews per order, an item score means *"this order is at risk in the context of this item"*. It does not show that the item caused the dissatisfaction.
+
+## Key findings
+
+**Exploratory analysis** (full details in the report):
+
+- Late delivery dominates: **62.4%** of late orders get 1–2★ versus **9.3%** of on-time orders (6.7× lift).
+- Among on-time orders, signals are weaker but real. Orders with two sellers are rated low **45.7%** of the time versus **8.7%** for single-seller orders; the rate rises from 7.5% (1 item) to 31.9% (4+ items).
+- The study population has **85,420 orders** and a positive rate of **9.21%** — strongly imbalanced, so accuracy is not reported.
+
+<table>
+  <tr>
+    <td width="50%"><img src="Thesis/latex/images/eda/14_score_factors.png" alt="Low-review rate by eight factors"></td>
+    <td width="50%"><img src="Thesis/latex/images/eda/09_promise_vs_reality.png" alt="Delivery promise versus reality"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Low-review rate by factor</sub></td>
+    <td align="center"><sub>Delivery promise vs. reality</sub></td>
+  </tr>
+</table>
+
+**Model** (Random Forest, depth 8, order-weighted, sigmoid-calibrated; 3-fold rolling-origin on the development partition; 61 features in 7 groups):
+
+| Metric (order level, mean of 3 folds) | Retained model | Base-features model | Random baseline |
+|---|---:|---:|---:|
+| PR-AUC | **0.1465** | 0.1363 | ≈ 0.09 (prevalence, approx.) |
+| Recall@5% | **0.1212** | – | 0.05 |
+| Brier (uncalibrated) | **0.1907** | 0.2018 | – |
+
+- The top 5% of orders captures about **2.4×** more low-review orders than random selection.
+- Sigmoid calibration reduces item-level Brier from 0.2203 to 0.1049.
+- The planned PR-AUC stopping target of 0.25 was **not reached**. Of nine feature-group experiments, three were retained (seller speed/volatility, order composition, product morphology) and six were rejected.
+- The historical test partition was exposed during development, so these figures are not confirmatory. Confirmatory claims stay blocked until a replacement holdout is run.
+
+## Architecture
+
+The pipeline is split into an **offline** flow (ingest, build features, train, batch-score) and an **online** flow that only *reads* the stored score snapshot to drive the queue, assignments and handling records. Scores live in the `ml` schema; the workflow and the append-only audit log live in the `app` schema.
+
+![System architecture](Thesis/latex/images/system-architecture.png)
+
+```text
+Olist CSV → Bronze → Silver → Intermediate → Gold (ml_modelling_items) → Parquet
+          → training & selection → release scoring (max-v1) → ml.* snapshots → API → Web UI
+```
+
+Code follows clean layers under [`src/hidden_dissatisfaction`](src/hidden_dissatisfaction): `domain` (pure rules, no I/O) → `application` (use cases, ports) → `infrastructure` (Postgres, joblib, parquet) → `api` (FastAPI, JWT) → `interfaces` (CLI), plus `modeling`. See [`docs/architecture-code-map.md`](docs/architecture-code-map.md).
+
+### Research invariants
+
+- Features are computable at delivery time and fitted on training data only, with strict history cutoffs.
+- All items of one `order_id` stay in the same temporal split and bootstrap cluster.
+- Minority-class and calibration metrics are reported: PR-AUC, Brier, Recall@5%.
+- No raw data, credentials or large artifacts are committed.
 
 ## Quick start
 
-### Prerequisites
-
-- Docker Engine or Docker Desktop with Compose v2.
-- GNU Make.
-- Git. Python 3.11 and `uv` are needed only for local development and tests.
-
-Create the local configuration once and replace the placeholder secrets:
+**Prerequisites:** Docker with Compose v2, GNU Make, Git. Python 3.11 and [`uv`](https://docs.astral.sh/uv/) are needed only for local development and tests.
 
 ```bash
-cp .env.example .env
-make start
+cp .env.example .env      # then replace the placeholder secrets
+make start                # PostgreSQL + migrations + API + frontend
+make demo-seed            # local review accounts and synthetic workflow fixtures
 ```
 
-`make start` starts PostgreSQL, applies forward-only migrations, builds the API
-and frontend images, and starts the complete application.
-
-| Service | Default URL |
+| Service | URL |
 |---|---|
 | Frontend | <http://localhost:4200> |
 | API | <http://localhost:8000> |
 | API readiness | <http://localhost:8000/health/ready> |
 
-For a fresh database that needs local review accounts and synthetic workflow
-fixtures:
+Demo credentials come from `.env` and the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env`. Stop with `make stop` (keeps volumes). Do not run `docker compose down -v` unless you intend a full local data reset.
+
+## Development
 
 ```bash
-make demo-seed
-```
-
-Local demo credentials come from `.env` and the Git-ignored evidence file at
-`data/evidence/P12-DEMO-CREDENTIALS.env`.
-
-Stop all services without deleting PostgreSQL or evidence volumes:
-
-```bash
-make stop
-```
-
-Do not use `docker compose down -v` unless a full local data reset is intended.
-
-## Project contract
-
-The system scores product items belonging to Olist orders delivered on time or early. Olist reviews exist only at order level, so every item inherits its containing order's observed review label. An item score represents low-review risk for the order in the context of that item; it does not prove that the item caused dissatisfaction.
-
-- **ML grain:** product item (`product_item_id`).
-- **Workflow, split and bootstrap grain:** order (`order_id`).
-- **Target:** observed order review score 1–2 among reviewed orders.
-- **Prediction time:** immediately after delivery confirmation and before review information is used.
-- **Initial order aggregation:** `max-v1`, the maximum item score in the order.
-- **Primary metric:** product-item and aggregated order PR-AUC, with order-clustered uncertainty.
-- **Decision use:** prioritize an order queue for human review; no automatic customer action or causal claim.
-
-See [`BA/README.md`](BA/README.md) for the as-built product contract and
-[`docs/README.md`](docs/README.md) for research and operational documentation.
-
-## Repository layout
-
-```text
-.
-├── configs/                  # Versioned experiment configuration
-├── data/
-│   ├── raw/olist/            # Nine local Olist CSV files; ignored by Git
-│   ├── interim/              # Validated intermediate data
-│   └── processed/            # Split-ready datasets and manifests
-├── BA/                       # As-built BRD, FRD, API, database and traceability
-├── dbt/                      # Silver/Gold transformations and data tests
-├── docs/                     # Research, architecture and operational documentation
-├── frontend/prototype/       # Delivered static frontend
-├── infra/                    # API/jobs images and PostgreSQL migrations
-├── notebooks/               # EDA and report-oriented notebooks
-├── references/              # Dated research-source snapshots
-├── reports/                  # Versioned experiment/report evidence
-├── src/hidden_dissatisfaction/
-├── tests/
-├── web/
-│   ├── Wireframe/
-│   ├── SoDo/
-│   └── BaoCao_LaTeX/
-├── compose.yaml
-├── .env.example
-└── pyproject.toml
-```
-
-The delivered static frontend is [`frontend/prototype/`](frontend/prototype/). `web/Wireframe/` is
-archived reference material only, not an active application path. Browser E2E coverage is not claimed
-by this repository-level documentation.
-
-## Local Python development
-
-Python 3.11 and [`uv`](https://docs.astral.sh/uv/) are required for local tests,
-CLI work and notebooks:
-
-```bash
-uv python install 3.11
 uv sync --frozen --extra db --extra api --extra ml --extra notebook --extra dev
-uv run pytest
-```
-
-The application startup does not ingest Olist automatically. Download the nine
-CSV files only when running warehouse or modeling work:
-
-```bash
-kaggle datasets download -d olistbr/brazilian-ecommerce -p data/raw/olist --unzip
-```
-
-The nine expected filenames are listed in [`docs/data-contract.md`](docs/data-contract.md).
-
-## Data and ML workflows
-
-The delivery graph is deliberately opt-in for data work: API startup never
-ingests the full dataset. Run `make bootstrap`, `make bronze-manifest`, and
-`make ingest` first. Use the completed run UUID printed by ingestion when the
-raw Olist files are present:
-
-```bash
-DBT_SOURCE_RUN_ID=<completed-run-uuid> make warehouse
-```
-
-The UUID must identify exactly one `COMPLETE` row in `bronze.ingestion_runs`.
-Training and
-scoring are explicit commands (`TRAIN_COMMAND=... make train` and
-`SCORE_COMMAND=... make score`). `make start` starts API and frontend after
-migrations; `make e2e` probes API live/readiness and the frontend shell, and
-verifies the containers are running. The smoke stack uses only schema/bootstrap
-fixtures and does not load the full Olist dataset. PostgreSQL and API ports bind
-to localhost; the frontend is published on `FRONTEND_PORT`. Evidence files
-persist in the `evidence_data` volume and are mounted read-write only by the API
-container.
-
-## Quality gates
-
-```bash
 uv run ruff check .
 uv run black --check .
 uv run mypy src tests
 uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
 ```
 
-Before promoting any modelling dataset or release, the mandatory P4 release
-gate must pass against the complete Olist warehouse and a completed Bronze
-ingestion run:
+`domain` and `application` must keep **100% test coverage**. The CLI is `hidden-dissatisfaction`.
+
+### Data and ML workflows (opt-in)
+
+API startup never ingests the dataset. Download the nine Olist CSVs only for warehouse or modelling work ([filenames](docs/data-contract.md)):
 
 ```bash
-DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<completed-run-uuid> \
-  make p4-release-verify
+kaggle datasets download -d olistbr/brazilian-ecommerce -p data/raw/olist --unzip
+make bootstrap && make bronze-manifest && make ingest
+DBT_SOURCE_RUN_ID=<completed-run-uuid> make warehouse
+TRAIN_COMMAND=... make train
+SCORE_COMMAND=... make score
 ```
 
-The target fails if `DBT_USER`, `DBT_PASSWORD`, or `DBT_SOURCE_RUN_ID` is
-unavailable, first builds `+gold.ml_modelling_items`, then runs
-`dbt test --select tag:release_only` with the same profile and source-run vars. `DBT_HOST`,
-`DBT_PORT`, `DBT_DATABASE`, and `DBT_TARGET_SCHEMA` can configure the
-warehouse connection. Ordinary CI does not run this gate because it does not
-require the full Olist data. GitHub Actions provides the same gate as a
-manually dispatched P4 release verification job; configure its required
-repository secrets before dispatching it.
+The run UUID must identify exactly one `COMPLETE` row in `bronze.ingestion_runs`. Before promoting any modelling dataset, run the release gate against the complete warehouse:
 
-## Current implementation status
+```bash
+DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<uuid> make p4-release-verify
+```
 
-The operational web workflow, API and PostgreSQL schemas are implemented and
-documented in [`BA/`](BA/). Training and release scoring remain explicit offline
-batch workflows; there is no online learning, automatic retraining or automatic
-model promotion. The local UI dataset may use real Olist order context, but its
-demo risk score must not be reported as model inference. Modeling completion is
-tracked in [`docs/modeling-training-plan.md`](docs/modeling-training-plan.md).
+## Repository layout
 
-The former `ML_docs` and `Docker_Environment` repositories are retained only as backups. New project changes belong here.
+```text
+.
+├── src/hidden_dissatisfaction/   # Python package (domain, application, infrastructure, api, interfaces, modeling)
+├── dbt/                          # Silver / Intermediate / Gold models and data tests
+├── frontend/prototype/           # Delivered static web UI (nginx)
+├── infra/                        # API/jobs images and PostgreSQL migrations
+├── configs/  scripts/  tests/    # Experiment config, helper scripts, test suite
+├── BA/                           # As-built BRD, FRD, API contract, ERD, traceability
+├── docs/                         # Architecture, ADRs, data contract, research design
+├── reports/  SERVER_CONTEXT/     # Experiment reports and training-server evidence
+├── notebooks/                    # EDA notebooks and figures
+├── Thesis/latex/                 # Course report (LaTeX, Vietnamese)
+├── web/                          # Web-course report, prototype and diagrams
+└── compose.yaml  .env.example  pyproject.toml
+```
 
-## Release boundary
+## Documentation
 
-P12 Gate 0 is documented in [`docs/evidence/P12-gate-0-release-boundary.md`](docs/evidence/P12-gate-0-release-boundary.md). The current scope is demo-only and non-confirmatory; confirmatory claims remain blocked pending the explicit P5 replacement-holdout gate.
+| Topic | Where |
+|---|---|
+| Current as-built product contract | [`BA/README.md`](BA/README.md), [`docs/BA_consolidated_as_built.md`](docs/BA_consolidated_as_built.md) |
+| Research design and data contract | [`docs/research-design.md`](docs/research-design.md), [`docs/data-contract.md`](docs/data-contract.md) |
+| Architecture and decisions | [`docs/architecture.md`](docs/architecture.md), [`docs/adr/`](docs/adr/) |
+| Experiment evidence | [`reports/`](reports/), [`SERVER_CONTEXT/`](SERVER_CONTEXT/) |
+| Release boundary | [`docs/evidence/P12-gate-0-release-boundary.md`](docs/evidence/P12-gate-0-release-boundary.md) |
+| Report | `cd Thesis/latex && latexmk -pdf main.tex` (needs `biber`) |
+
+Some files in `docs/` predate the current code; prefer `BA/` and `docs/BA_consolidated_as_built.md` when they disagree.
+
+## Limitations
+
+- **Weak labels:** reviews are per order; item scores are not causal attributions.
+- **Selection bias:** only customers who wrote a review are observed, so the model estimates *observed* dissatisfaction, not that of all customers.
+- **Exploratory results:** the historical test partition was exposed during development.
+- **Demo scores:** the UI uses deterministic fixtures (`olist-ui-demo-v1`), not the retained model.
+- **Batch only:** no online learning, automatic retraining or automatic promotion.
 
 ## Contributing
 
-Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request. Never
-commit `.env`, raw Olist CSV files, generated credentials, evidence uploads or
-unreviewed experiment artifacts.
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first. Never commit `.env`, raw Olist CSVs, credentials, evidence uploads or unreviewed experiment artifacts.
+
+## Data and attribution
+
+Built on the public [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (Kaggle). Course project, Faculty of Information Systems; see the report for authors and references.
