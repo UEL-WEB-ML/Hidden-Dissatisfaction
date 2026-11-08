@@ -1,0 +1,66 @@
+version: 2
+
+unit_tests:
+  - name: p4_history_strict_prior_fixture
+    description: Strict prior-history behavior, including support gating and item collapse.
+    model: int_p4_history
+    given:
+      - input: ref('int_p4_cohort')
+        rows:
+          # Two items from one order must count as one seller/category event.
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: multi_a, order_id: multi, seller_id: s_multi, product_category: c_multi, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: multi_b, order_id: multi, seller_id: s_multi, product_category: c_multi, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: seller_cross, order_id: seller_current, seller_id: s_multi, product_category: c_other, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: category_cross, order_id: category_current, seller_id: s_other, product_category: c_multi, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: strict_equal, order_id: equal_current, seller_id: s_equal, product_category: c_equal, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: zero_history, order_id: zero_current, seller_id: s_zero, product_category: c_zero, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: four_support, order_id: four_current, seller_id: s_four, product_category: c_four, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: five_support, order_id: five_current, seller_id: s_five, product_category: c_five, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: differing_scores, order_id: diff_current, seller_id: s_diff, product_category: c_diff, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: null_category, order_id: null_current, seller_id: s_null, product_category: null, prediction_at: '2024-01-10 00:00:00', review_created_at: '2024-01-11 00:00:00', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: seller_prior, order_id: seller_prior_order, seller_id: s_multi, product_category: c_prior, prediction_at: '2024-01-01 00:00:00', review_created_at: '2024-01-02 00:00:00', review_score: 4}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: category_prior, order_id: category_prior_order, seller_id: s_prior, product_category: c_multi, prediction_at: '2024-01-01 00:00:00', review_created_at: '2024-01-02 00:00:00', review_score: 3}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f4a, order_id: f4a, seller_id: s_four, product_category: c_four, prediction_at: '2024-01-01', review_created_at: '2024-01-02', review_score: 2}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f4b, order_id: f4b, seller_id: s_four, product_category: c_four, prediction_at: '2024-01-02', review_created_at: '2024-01-03', review_score: 3}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f4c, order_id: f4c, seller_id: s_four, product_category: c_four, prediction_at: '2024-01-03', review_created_at: '2024-01-04', review_score: 4}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f4d, order_id: f4d, seller_id: s_four, product_category: c_four, prediction_at: '2024-01-04', review_created_at: '2024-01-05', review_score: 5}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f5a, order_id: f5a, seller_id: s_five, product_category: c_five, prediction_at: '2024-01-01', review_created_at: '2024-01-02', review_score: 1}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f5b, order_id: f5b, seller_id: s_five, product_category: c_five, prediction_at: '2024-01-02', review_created_at: '2024-01-03', review_score: 2}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f5c, order_id: f5c, seller_id: s_five, product_category: c_five, prediction_at: '2024-01-03', review_created_at: '2024-01-04', review_score: 3}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f5d, order_id: f5d, seller_id: s_five, product_category: c_five, prediction_at: '2024-01-04', review_created_at: '2024-01-05', review_score: 4}
+          - {source_run_id: 00000000-0000-0000-0000-000000000004, product_item_id: f5e, order_id: f5e, seller_id: s_five, product_category: c_five, prediction_at: '2024-01-05', review_created_at: '2024-01-06', review_score: 5}
+    expect:
+      format: sql
+      rows: |
+        select product_item_id,
+          '00000000-0000-0000-0000-000000000004'::uuid as source_run_id,
+          seller_prior_review_count,
+          seller_prior_review_score_avg,
+          seller_history_low_support_flag,
+          category_prior_review_count,
+          category_prior_review_score_avg,
+          category_history_low_support_flag,
+          history_version
+        from (values
+          ('multi_a', 1, cast(null as numeric), 1, 1, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('multi_b', 1, cast(null as numeric), 1, 1, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('seller_cross', 1, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('category_cross', 0, cast(null as numeric), 1, 1, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('strict_equal', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('zero_history', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('four_support', 4, cast(null as numeric), 1, 4, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('five_support', 5, cast(3.0000000000000000 as numeric), 0, 5, cast(3.0000000000000000 as numeric), 0, 'p4-history-strict-prior-v1'),
+          ('differing_scores', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('null_category', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('seller_prior', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('category_prior', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f4a', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f4b', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f4c', 1, cast(null as numeric), 1, 1, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f4d', 2, cast(null as numeric), 1, 2, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f5a', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f5b', 0, cast(null as numeric), 1, 0, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f5c', 1, cast(null as numeric), 1, 1, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f5d', 2, cast(null as numeric), 1, 2, cast(null as numeric), 1, 'p4-history-strict-prior-v1'),
+          ('f5e', 3, cast(null as numeric), 1, 3, cast(null as numeric), 1, 'p4-history-strict-prior-v1')
+        ) as expected(product_item_id, seller_prior_review_count, seller_prior_review_score_avg, seller_history_low_support_flag, category_prior_review_count, category_prior_review_score_avg, category_history_low_support_flag, history_version)

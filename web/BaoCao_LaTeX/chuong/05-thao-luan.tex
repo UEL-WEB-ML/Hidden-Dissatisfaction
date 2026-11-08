@@ -1,0 +1,15 @@
+% =========================
+% chuong/05-thao-luan.tex
+% MỤC 5. THẢO LUẬN (outline ghi optional)
+% =========================
+
+\section{THẢO LUẬN}
+
+\subsection{Diễn giải có điều kiện}
+\textbf{Trạng thái: exploratory-only.} Hệ thống đáp ứng mục tiêu thiết kế: tập trung thông tin order, product item, hành động và audit trong một workflow có thể kiểm tra. Điểm mạnh là phân biệt score với quyết định, giữ lịch sử thay đổi và cho phép truy ngược provenance. Đây là kết luận về kiến trúc và khả năng kiểm toán, không phải kết luận rằng mô hình đã đạt một mức hiệu năng xác nhận.
+
+\subsection{Hạn chế, đạo đức và an toàn sử dụng}
+Review chỉ quan sát ở order và chỉ do một phần khách hàng cung cấp; item kế thừa nhãn nên không thể dùng để quy trách nhiệm cho sản phẩm, seller hay khách hàng. Dữ liệu Olist là Brazil giai đoạn 2016--2018 nên không tự động đại diện cho thị trường khác. Risk score có thể làm lệch nguồn lực chăm sóc; vì vậy nhân viên phải có quyền xem context, Manager chịu trách nhiệm quyết định, và mọi override cần reason/audit. Không được dùng output để tự động liên hệ, từ chối dịch vụ, phạt seller hoặc suy ra thuộc tính nhạy cảm.
+
+\subsection{Provenance của kết quả}
+P5 development gate và các run lịch sử được gắn nhãn \texttt{exploratory\_non\_confirmatory}. Các bảng/hình chỉ có giá trị khi trỏ tới run report và file artifact tương ứng trong `reports/`; không thay thế holdout bằng screenshot hoặc notebook. Replacement holdout là điều kiện bắt buộc trước mọi claim confirmatory theo P12 Gate 0.

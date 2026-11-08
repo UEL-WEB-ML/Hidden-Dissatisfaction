@@ -5,7 +5,7 @@
 //   Review Assignment · Review Status · Review Activity · Review Outcome · Audit Event
 //   User/Role · Parameter Configuration
 // Thêm theo feedback giao diện 13/10 (chưa có trong FRD, chờ BA bổ sung): Case Comment, Manager Decision, Contact Evidence.
-// Frontend KHÔNG đọc file này trực tiếp; mọi dữ liệu đi qua js/api.js theo API_CONTRACT_olist_hidden_dissatisfaction.md.
+// Frontend KHÔNG đọc file này trực tiếp; đây là dữ liệu cho mock contract lịch sử v0.5.
 // Khi có backend thật thì bỏ file này cùng mock-server.js.
 // =========================================================
 

@@ -1,0 +1,347 @@
+% ============================================================
+% settings.tex
+% THIẾT LẬP CHUNG CHO BÁO CÁO
+% ============================================================
+
+% ------------------------------------------------------------
+% KHỔ GIẤY VÀ LỀ
+% ------------------------------------------------------------
+\usepackage[
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=2cm
+]{geometry}
+
+
+% ------------------------------------------------------------
+% FONT + TIẾNG VIỆT
+% ------------------------------------------------------------
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes} % Tương đương Times New Roman
+
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\setotherlanguage{english}   % cho phần tài liệu tham khảo APA
+
+
+% ------------------------------------------------------------
+% GIÃN DÒNG
+% ------------------------------------------------------------
+\usepackage{setspace}
+\onehalfspacing
+
+
+% ------------------------------------------------------------
+% CÁC PACKAGE CẦN THIẾT
+% ------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{eso-pic}
+
+\usepackage{xcolor}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{longtable}
+
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+\usepackage{caption}
+\usepackage{float}
+
+\usepackage{csquotes}
+% \usepackage{microtype}   % tắt cho nhanh, tránh timeout Overleaf free
+
+\usepackage{hyperref}
+\usepackage{bookmark}
+
+
+% ------------------------------------------------------------
+% TÀI LIỆU THAM KHẢO APA 7
+% ------------------------------------------------------------
+\usepackage[
+    backend=biber,
+    style=apa,
+    language=english,        % APA không có bản tiếng Việt
+    sorting=nyt,
+    natbib=true
+]{biblatex}
+
+\addbibresource{tailieu.bib}
+
+
+% ------------------------------------------------------------
+% MÀU
+% ------------------------------------------------------------
+\definecolor{UELBlue}{HTML}{1F5A94}
+\definecolor{UELDarkBlue}{HTML}{174C7E}
+\definecolor{GuideGray}{HTML}{6B7280}
+
+
+% ------------------------------------------------------------
+% HYPERLINK
+% ------------------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=UELDarkBlue,
+    urlcolor=UELDarkBlue,
+    pdftitle={Do an cuoi ky - Phat trien Web Kinh doanh}
+}
+
+
+% ============================================================
+% ĐỊNH DẠNG ĐOẠN VĂN
+% ============================================================
+
+\usepackage{indentfirst}          % thụt đầu dòng cả đoạn đầu tiên sau tiêu đề
+\setlength{\parindent}{1.27cm}
+\setlength{\parskip}{0pt}
+
+\setlist[itemize]{
+    leftmargin=1.2cm,
+    itemsep=2pt,
+    topsep=3pt
+}
+
+\setlist[enumerate]{
+    leftmargin=1.2cm,
+    itemsep=2pt,
+    topsep=3pt
+}
+
+
+% ============================================================
+% ĐÁNH SỐ MỤC
+%
+% I.
+% II.
+%   II.1.
+%   II.2.
+% III.
+% ============================================================
+
+\renewcommand{\thesection}{\arabic{section}}
+
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+% Cho phép đánh số đến subsubsection
+\setcounter{secnumdepth}{3}
+
+
+% ============================================================
+% ĐỊNH DẠNG HEADING TRONG NỘI DUNG
+% ============================================================
+
+% SECTION
+\titleformat{\section}
+    {\bfseries\fontsize{14}{18}\selectfont}
+    {\thesection.}
+    {0.6em}
+    {}
+
+\titlespacing{\section}
+    {0pt}
+    {18pt}
+    {8pt}
+
+
+% SUBSECTION
+\titleformat{\subsection}
+    {\bfseries\fontsize{13}{17}\selectfont}
+    {\thesubsection.}
+    {0.6em}
+    {}
+
+\titlespacing{\subsection}
+    {0pt}
+    {12pt}
+    {5pt}
+
+
+% SUBSUBSECTION
+\titleformat{\subsubsection}
+    {\bfseries\fontsize{12}{16}\selectfont}
+    {\thesubsubsection.}
+    {0.6em}
+    {}
+
+\titlespacing{\subsubsection}
+    {0pt}
+    {10pt}
+    {4pt}
+
+
+% ============================================================
+% MỤC LỤC
+% STYLE GẦN GIỐNG TEMPLATE MẪU
+% ============================================================
+
+% polyglossia tự đặt lại tên theo tiếng Việt, nên phải ghi đè trong \captionsvietnamese
+\gappto\captionsvietnamese{\renewcommand{\contentsname}{MỤC LỤC}}
+
+% Chỉ hiện Section và Subsection
+% Không cho 1.1.1 chen vào mục lục
+\setcounter{tocdepth}{2}
+
+
+% ------------------------------------------------------------
+% TIÊU ĐỀ "MỤC LỤC"
+% ------------------------------------------------------------
+
+\setlength{\cftbeforetoctitleskip}{0pt}
+
+\renewcommand{\cfttoctitlefont}{%
+    \hfill\bfseries
+    \fontsize{14}{18}\selectfont
+}
+
+\renewcommand{\cftaftertoctitle}{\hfill}   % căn giữa chữ MỤC LỤC
+\setlength{\cftaftertoctitleskip}{0.9cm}
+
+
+% ------------------------------------------------------------
+% SECTION TRONG MỤC LỤC
+%
+% I.     MỞ ĐẦU ............................... 1
+% II.    ĐỊNH HƯỚNG NGHỀ NGHIỆP ............. 2
+% ------------------------------------------------------------
+
+\renewcommand{\cftsecfont}{
+    \bfseries
+    \fontsize{13}{17}\selectfont
+}
+
+\renewcommand{\cftsecpagefont}{
+    \bfseries
+    \fontsize{13}{17}\selectfont
+}
+
+% Khoảng cách giữa các section
+\setlength{\cftbeforesecskip}{0.48cm}
+
+% Không thụt section
+\setlength{\cftsecindent}{0cm}
+
+% Khoảng dành cho I., II., III.
+\setlength{\cftsecnumwidth}{1.7cm}
+
+% Thêm dấu chấm sau số La Mã
+\renewcommand{\cftsecaftersnum}{.}
+
+% Dấu chấm nối đến số trang
+\renewcommand{\cftsecleader}{
+    \cftdotfill{\cftdotsep}
+}
+
+
+% ------------------------------------------------------------
+% SUBSECTION TRONG MỤC LỤC
+%
+%     II.1.   Khảo sát các hướng nghề nghiệp .... 2
+% ------------------------------------------------------------
+
+\renewcommand{\cftsubsecfont}{
+    \normalfont
+    \fontsize{12}{16}\selectfont
+}
+
+\renewcommand{\cftsubsecpagefont}{
+    \normalfont
+    \fontsize{12}{16}\selectfont
+}
+
+% Khoảng cách giữa subsection
+\setlength{\cftbeforesubsecskip}{0.16cm}
+
+% Thụt vào
+\setlength{\cftsubsecindent}{0.9cm}
+
+% Khoảng dành cho II.1.
+\setlength{\cftsubsecnumwidth}{1.9cm}
+
+% Dấu "." cuối II.1.
+\renewcommand{\cftsubsecaftersnum}{.}
+
+% Dấu chấm nối
+\renewcommand{\cftsubsecleader}{
+    \cftdotfill{\cftdotsep}
+}
+
+
+% Khoảng cách giữa các dấu chấm
+\renewcommand{\cftdotsep}{1.5}
+
+
+% ============================================================
+% BẢNG
+% ============================================================
+
+\renewcommand{\arraystretch}{1.25}
+
+\newcolumntype{Y}{
+    >{\raggedright\arraybackslash}X
+}
+
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\figurename}{Hình}
+
+
+% ============================================================
+% CAPTION
+% ============================================================
+
+\captionsetup{
+    font=small,
+    labelfont=bf,
+    justification=centering
+}
+
+
+% ============================================================
+% PLACEHOLDER HƯỚNG DẪN
+% ============================================================
+
+\newcommand{\placeholder}[1]{%
+    {\color{GuideGray}\itshape [#1]}%
+}
+
+
+% ============================================================
+% FOOTER
+% Trang 1, Trang 2, ...
+% MÀU XANH UEL
+% ============================================================
+
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+\fancyhf{}
+
+\fancyfoot[C]{%
+    \textbf{Trang \thepage}%
+}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+
+% Kiểu plain cũng dùng footer giống nhau
+\fancypagestyle{plain}{
+    \fancyhf{}
+
+    \fancyfoot[C]{%
+        \textbf{Trang \thepage}%
+    }
+
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+}

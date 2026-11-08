@@ -1,12 +1,27 @@
 name: hidden_dissatisfaction
-version: '1.0'
+version: '1.0.0'
 config-version: 2
 profile: hidden_dissatisfaction
 model-paths: [models]
+test-paths: [tests]
+clean-targets: [target, dbt_packages]
+vars:
+  target_history_prior_strength: 25
+on-run-start:
+  - "{{ validate_source_run_id() }}"
 models:
   hidden_dissatisfaction:
-    +materialized: table
-    +schema: silver
-    gold:
+    silver:
+      +schema: silver
       +materialized: table
+    gold:
       +schema: gold
+      +materialized: table
+tests:
+  hidden_dissatisfaction:
+    +store_failures: false
+    # Normal builds intentionally omit the exhaustive historical reconciliation.
+    # Release jobs may run it explicitly with: dbt test --select tag:release_only
+seeds:
+  hidden_dissatisfaction:
+    +schema: seed

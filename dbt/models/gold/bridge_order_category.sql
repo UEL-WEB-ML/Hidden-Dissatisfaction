@@ -1,1 +1,3 @@
-select distinct i.source_run_id,i.order_id,p.category_name_code category_code from {{ ref('order_items') }} i join {{ ref('product_enriched') }} p using(product_id,source_run_id)
+select distinct oi.source_run_id, oi.order_id, p.category
+from {{ ref('stg_order_items') }} oi
+join {{ ref('stg_products') }} p using (source_run_id, product_id)

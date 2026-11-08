@@ -1,0 +1,91 @@
+% =========================
+% thanh-vien.tex
+% Trang 2: danh sách thành viên + ký tên
+% Trang 3: bảng phân công nhiệm vụ
+% =========================
+
+\clearpage
+\thispagestyle{empty}
+
+% Cột m{...} = căn giữa theo chiều dọc
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+\begin{center}
+{\bfseries\fontsize{13}{16}\selectfont DANH SÁCH THÀNH VIÊN}
+\end{center}
+
+\vspace{0.3cm}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|C{1cm}|C{4.3cm}|C{2.6cm}|C{2.2cm}|C{3.6cm}|}
+\hline
+\textbf{STT} & \textbf{HỌ VÀ TÊN} & \textbf{MSSV} &
+\textbf{MỨC ĐỘ ĐÓNG GÓP (\%)} & \textbf{KÝ TÊN} \\
+\hline
+% Ô ký tên: \rule{0pt}{1.6cm} giữ chiều cao dòng.
+% Có ảnh chữ ký thì thay bằng \includegraphics[height=1.3cm]{assets/ky-ten/truc.png}
+1 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
+2 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
+3 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
+4 & Vũ Sơn Trúc & K244161819 & 100\% & \rule{0pt}{1.6cm} \\ \hline
+5 & [Họ tên]    & [MSSV]     & 100\% & \rule{0pt}{1.6cm} \\ \hline
+\end{tabular}
+\end{center}
+
+
+% ------------------------------------------------------------
+% BẢNG PHÂN CÔNG NHIỆM VỤ
+% ------------------------------------------------------------
+
+\clearpage
+\thispagestyle{empty}
+
+\begin{center}
+{\bfseries\fontsize{13}{16}\selectfont BẢNG PHÂN CÔNG NHIỆM VỤ}
+\end{center}
+
+\vspace{0.3cm}
+
+% \nhiemvu{...} = danh sách gạch đầu dòng "-" gọn trong một ô bảng
+\newcommand{\nhiemvu}[1]{%
+  \begin{minipage}{\linewidth}
+    \vspace{4pt}
+    \begin{itemize}[label=-, leftmargin=0.6cm, nosep]
+      #1
+    \end{itemize}
+    \vspace{4pt}
+  \end{minipage}%
+}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|C{1cm}|C{4cm}|m{9.6cm}|}
+\hline
+\textbf{\textit{STT}} & \textbf{Họ và tên} & \multicolumn{1}{c|}{\textbf{Nhiệm vụ}} \\
+\hline
+\textbf{\textit{1}} & [Họ tên] & \nhiemvu{
+  \item Nhiệm vụ 1
+  \item Nhiệm vụ 2
+} \\ \hline
+\textbf{\textit{2}} & [Họ tên] & \nhiemvu{
+  \item Nhiệm vụ 1
+  \item Nhiệm vụ 2
+} \\ \hline
+\textbf{\textit{3}} & [Họ tên] & \nhiemvu{
+  \item Nhiệm vụ 1
+  \item Nhiệm vụ 2
+} \\ \hline
+\textbf{\textit{4}} & Vũ Sơn Trúc & \nhiemvu{
+  % \item Lead nhóm, lập kế hoạch và phân công nhiệm vụ
+  % \item Viết Abstract, mục 1, mục 4.1 (giao diện) và mục 6
+  % \item Thiết kế và xây dựng giao diện 4 màn hình
+  % \item Quay video demo
+  \item Đang cập nhật
+} \\ \hline
+\textbf{\textit{5}} & [Họ tên] & \nhiemvu{
+  \item Nhiệm vụ 1
+  \item Nhiệm vụ 2
+} \\ \hline
+\end{tabular}
+\end{center}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-vi="Quyết định · Hidden Dissatisfaction">Decisions · Hidden Dissatisfaction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="topbar" id="topbar"></nav>
+
+  <div class="page" id="content">
+    <h1 data-vi="Quyết định">Decisions</h1>
+    <p class="sub" data-vi="Xem đơn, kết quả model và việc nhân viên đã làm, rồi quyết định bước tiếp theo.">Review the order, the model output and what the specialist did, then decide the next step.</p>
+
+    <div class="pick-layout">
+      <aside class="box pick-list">
+        <h2 id="pl-title"></h2>
+        <ul class="plist" id="plist" role="listbox" aria-labelledby="pl-title"></ul>
+      </aside>
+      <section class="pick-main" id="main"></section>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script>
+    function el(id) { return document.getElementById(id); }
+    var id = new URLSearchParams(location.search).get("id");
+    var LIST = [], D = null, o = null, USERS = [];
+
+    async function loadList() {
+      // The Queue API defaults an omitted status to OPEN. Cases awaiting a Manager
+      // decision are closed, so query both valid closed statuses explicitly.
+      var pages = await Promise.all([
+        api.listOrders({ needs_decision: "true", status: "COMPLETED", limit: 50 }),
+        api.listOrders({ needs_decision: "true", status: "SKIPPED", limit: 50 })
+      ]);
+      LIST = pages[0].items.concat(pages[1].items).sort(function (a, b) {
+        return b.risk_score - a.risk_score || a.order_id.localeCompare(b.order_id);
+      });
+    }
+    function renderList() {
+      el("pl-title").innerHTML = L("Needs decision", "Cần quyết định") + ' <span class="counter">' + LIST.length + "</span>";
+      var html = "";
+      for (var i = 0; i < LIST.length; i++) {
+        var c = LIST[i], on = o && c.order_id == o.order_id;
+        html += '<li role="option" aria-selected="' + on + '"><a href="decision.html?id=' + encodeURIComponent(c.order_id).replace(/'/g, "%27") + '" class="' + (on ? "sel" : "") + '" onclick="pick(decodeURIComponent(\'' + encodeURIComponent(c.order_id).replace(/'/g, "%27") + '\')); return false;">'
+          + '<div class="pl-top"><span class="id">' + shortId(c.order_id) + "</span> " + badge(c.risk_level) + "</div>"
+          + '<div class="pl-mid">' + statusBadge(c.status) + " " + (outcomeText(c) ? '<span class="tiny">' + outcomeText(c) + "</span>" : "") + "</div>"
+          + '<div class="pl-bot tiny">' + (c.assignee_name ? escapeHtml(c.assignee_name) : L("Unassigned", "Chưa ai nhận")) + " · " + c.contact_count + "/" + config.max_contact + L(" attempts", " lần liên lạc") + "</div></a></li>";
+      }
+      el("plist").innerHTML = html || '<li class="empty">' + L("Nothing waits for a decision.", "Không có case nào chờ quyết định.") + "</li>";
+    }
+    function pick(oid) {
+      history.replaceState(null, "", "decision.html?id=" + oid);
+      id = oid;
+      loadOrder().then(renderAll).catch(function (e) { toast(e.message, "error"); });
+    }
+    async function loadOrder() { D = await api.getOrder(id); o = D.order; rememberOrder(o.order_id); }
+
+    function renderMain() {
+      if (!o) { el("main").innerHTML = '<div class="box empty">' + L("Pick a case on the left.", "Chọn một case ở cột trái.") + "</div>"; return; }
+      var cyc = D.contacts.filter(function (c) { return c.cycle_no == o.cycle_no; });
+
+      // 1. Đơn + output ML
+      var items = "";
+      for (var i = 0; i < o.items.length && i < 3; i++) {
+        var it = o.items[i];
+        items += "<li>" + badge(it.risk_level) + " <b>" + it.risk_score.toFixed(2) + "</b> " + escapeHtml(catLabel(it.category)) + (it.synthetic_data_flag ? " " + synthTag() : "")
+          + (it.top_factors[0] ? '<div class="tiny">' + escapeHtml(it.top_factors[0]) + "</div>" : "") + "</li>";
+      }
+      var p1 = '<div class="box dpanel"><h2>' + L("1. Order and model output", "1. Đơn và output model") + "</h2>"
+        + '<p>' + idLink(o.order_id, "order.html?id=" + encodeURIComponent(o.order_id)) + " " + badge(o.risk_level) + " <b>" + o.risk_score.toFixed(2) + "</b> <code>" + escapeHtml(o.aggregation_rule) + "</code></p>"
+        + '<p class="tiny">' + escapeHtml(catLabel(o.category)) + "</p>"
+        + '<ul class="mini-items">' + items + "</ul>"
+        + (o.items.length > 3 ? '<p class="tiny">' + L("+" + (o.items.length - 3) + " more in Order Detail", "+" + (o.items.length - 3) + " sản phẩm nữa ở Chi tiết đơn") + "</p>" : "") + "</div>";
+
+      // 2. Việc nhân viên đã làm trong chu kỳ này
+      var att = "";
+      for (var j = 0; j < cyc.length; j++) {
+        var c = cyc[j];
+        att += "<li" + (c.result == "REACHED" ? ' class="ok"' : "") + "><b>" + L("Attempt ", "Lần ") + c.attempt_no + " · " + viTime(c.contacted_at) + "</b>"
+          + CONTACT_METHOD_LABEL[c.method] + " · " + CONTACT_RESULT_LABEL[c.result]
+          + (c.evidence.length ? ' · <span class="file-chip sm">' + icon("clip") + c.evidence.length + "</span>" : "")
+          + (c.note ? '<div class="tiny">' + escapeHtml(c.note) + "</div>" : "") + "</li>";
+      }
+      var cms = "";
+      for (var k = 0; k < D.comments.length; k++) {
+        var cm = D.comments[k];
+        cms += "<li><b>" + escapeHtml(cm.author_name) + '</b> <span class="role-tag ' + escapeHtml(cm.author_role) + '">' + roleLabel(cm.author_role) + '</span> <span class="tiny">' + viTime(cm.created_at) + "</span><div>" + escapeHtml(cm.text) + "</div></li>";
+      }
+      var p2 = '<div class="box dpanel"><h2>' + L("2. What the specialist did", "2. Việc nhân viên đã làm") + (o.cycle_no > 1 ? ' <span class="cycle-tag">' + L("Cycle ", "Chu kỳ ") + o.cycle_no + "</span>" : "") + "</h2>"
+        + "<p>" + statusBadge(o.status) + " " + (outcomeText(o) ? "<b>" + outcomeText(o) + "</b>" : "") + " · " + (o.assignee_name ? escapeHtml(o.assignee_name) : L("Unassigned", "Chưa ai nhận")) + "</p>"
+        + '<ul class="timeline">' + (att || '<li class="empty">' + L("No contact attempts in this cycle.", "Chu kỳ này chưa có lần liên lạc.") + "</li>") + "</ul>"
+        + (cms ? '<h3 class="sec">' + L("Comments", "Nhận xét") + '</h3><ul class="comments">' + cms + "</ul>" : "")
+        + "</div>";
+
+      // 3. Quyết định trước
+      var prev = "";
+      for (var m = 0; m < D.decisions.length; m++) {
+        var d = D.decisions[m];
+        prev += '<li><span class="dec-tag">' + DECISION_LABEL[d.decision] + '</span> <span class="tiny">' + L("cycle ", "chu kỳ ") + d.cycle_no + " · " + escapeHtml(d.actor_name) + ", " + viTime(d.created_at) + "</span>"
+          + (d.reason ? '<div class="tiny">' + L("Reason: ", "Lý do: ") + escapeHtml(d.reason) + "</div>" : "")
+          + "<div>" + escapeHtml(d.next_step) + (d.next_step_assignee_name ? ' <span class="tiny">· ' + escapeHtml(d.next_step_assignee_name) + "</span>" : "") + "</div>" + (d.due_date ? '<div class="tiny">' + L("Due ", "Hạn ") + viTime(d.due_date) + "</div>" : "") + (d.note ? '<div class="tiny">' + escapeHtml(d.note) + "</div>" : "") + "</li>";
+      }
+      var p3 = prev ? '<div class="box dpanel"><h2>' + L("Earlier decisions", "Quyết định trước") + '</h2><ul class="plain">' + prev + "</ul></div>" : "";
+
+      // Form quyết định
+      var opts = "";
+      for (var key in DECISION_LABEL) {
+        opts += '<label class="dec-opt"><input type="radio" name="dec" value="' + key + '"><span><b>' + DECISION_LABEL[key] + "</b>"
+          + '<span class="tiny">' + {
+            NO_FURTHER_ACTION: L("Case is settled; nothing else to do.", "Case đã ổn, không cần làm gì thêm."),
+            FOLLOW_UP_CUSTOMER: L("Someone contacts the customer again (reopen if the case is closed).", "Liên lạc lại với khách (case đã đóng thì mở lại)."),
+            WORK_WITH_SELLER: L("The issue sits with the seller: packaging, handover, photos.", "Vấn đề nằm ở seller: đóng gói, giao hàng, ảnh sản phẩm."),
+            REFER_AFTER_SALES: L("Hand over to after-sales for returns or warranty. No automatic refund.", "Chuyển hậu mãi xử lý đổi trả, bảo hành. Không tự hoàn tiền.")
+          }[key] + "</span></span></label>";
+      }
+      var who = '<option value="">' + L("Not assigned", "Chưa giao ai") + "</option>";
+      for (var u = 0; u < USERS.length; u++) who += '<option value="' + encodeURIComponent(USERS[u].user_id) + '">' + escapeHtml(USERS[u].full_name) + (USERS[u].role == "MANAGER" ? " (Manager)" : "") + "</option>";
+      var eligible = isClosed(o) && o.needs_decision;
+      var form = eligible ? '<div class="box"><h2>' + L("Decision", "Quyết định") + "</h2>"
+        + '<form onsubmit="save(); return false;"><fieldset class="dec-opts"><legend class="sr">' + L("Decision", "Quyết định") + "</legend>" + opts + "</fieldset>"
+        + '<div class="form-row"><label for="dc-reason">' + L("Reason", "Lý do") + ' *</label><textarea id="dc-reason" rows="2" placeholder="' + L("e.g. Second packaging complaint for this seller this month", "vd: Seller này bị phàn nàn đóng gói lần thứ hai trong tháng") + '"></textarea></div>'
+        + '<div class="form-row"><label for="dc-next">' + L("Next step", "Bước tiếp theo") + ' *</label><textarea id="dc-next" rows="2" placeholder="' + L("e.g. Send packaging photos to the seller and ask for better padding", "vd: Gửi ảnh đóng gói cho seller, yêu cầu chèn lót kỹ hơn") + '"></textarea></div>'
+        + '<div class="grid2"><div class="form-row"><label for="dc-who">' + L("Who does the next step", "Người thực hiện bước tiếp theo") + '</label><select id="dc-who">' + who + "</select></div>"
+        + '<div class="form-row"><label for="dc-due">' + L("Due date", "Hạn") + '</label><input id="dc-due" type="date" min="' + inputDate(NOW) + '"></div></div>'
+        + '<div class="form-row"><label for="dc-note">' + L("Note", "Ghi chú") + '</label><input id="dc-note" type="text"></div>'
+        + '<p class="form-error" id="dc-error" role="alert"></p>'
+        + '<div class="actions"><button class="btn primary" type="submit" id="dc-save">' + L("Save decision", "Lưu quyết định") + "</button> "
+        + '<a class="btn" href="order.html?id=' + encodeURIComponent(o.order_id) + '">' + L("Reopen in Order Detail", "Mở lại ở Chi tiết đơn") + "</a></div></form></div>"
+        : '<div class="box empty">' + L("This case is not eligible for a new decision.", "Case này không đủ điều kiện ghi quyết định mới.") + "</div>";
+
+      el("main").innerHTML = '<div class="dgrid">' + p1 + p2 + "</div>" + p3 + form;
+    }
+
+    async function save() {
+      var pickEl = document.querySelector('input[name="dec"]:checked'), btn = el("dc-save");
+      if (!isClosed(o) || !o.needs_decision) { toast(L("This case is not eligible for a new decision.", "Case này không đủ điều kiện ghi quyết định mới."), "error"); return; }
+      if (!pickEl) { el("dc-error").textContent = L("Choose a decision.", "Chọn quyết định."); return; }
+      if (!el("dc-reason").value.trim()) { el("dc-error").textContent = L("Give a reason for this decision.", "Ghi lý do cho quyết định này."); return; }
+      btn.disabled = true;
+      try {
+        await api.addDecision(o.order_id, { decision: pickEl.value, reason: el("dc-reason").value.trim(), next_step: el("dc-next").value.trim(),
+          next_step_assignee_id: el("dc-who").value || null, due_date: el("dc-due").value || null, note: el("dc-note").value.trim() });
+        toast(L("Decision saved for order " + shortId(o.order_id) + ".", "Đã lưu quyết định cho đơn " + shortId(o.order_id) + "."));
+        await loadList();
+        var next = LIST.length ? LIST[0].order_id : null;
+        if (next) pick(next); else { await loadOrder(); renderAll(); }
+      } catch (e) { el("dc-error").textContent = safeText(e.message); btn.disabled = false; }
+    }
+
+    function renderAll() { renderTopbar("decision"); renderList(); renderMain(); }
+
+    el("main").innerHTML = '<div class="box">' + skeletonHtml(4) + "</div>";
+    boot("decision").then(async function () {
+      if (!requireManager()) return;
+      try {
+        var r = await Promise.all([loadList(), api.listUsers()]);
+        USERS = r[1].items;
+        if (!id) id = LIST.length ? LIST[0].order_id : null;
+        if (id) await loadOrder();
+      } catch (e) { el("main").innerHTML = errorHtml(L("this page", "trang này")); return; }
+      renderAll();
+    }).catch(function () { });
+  </script>
+</body>
+</html>

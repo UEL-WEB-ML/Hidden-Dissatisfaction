@@ -1,0 +1,22 @@
+% =========================
+% chuong/03-phuong-phap.tex  —  MỤC 3. PHƯƠNG PHÁP THỰC HIỆN:
+% =========================
+
+\section{PHƯƠNG PHÁP THỰC HIỆN}
+
+\subsection{Quy trình triển khai và đặc tả hệ thống}
+\textbf{Nguồn và trạng thái bằng chứng.} Nội dung thiết kế được đối chiếu với data contract, architecture, API/FRD và ERD. Đây là bằng chứng contract/implementation, không phải bằng chứng hiệu năng confirmatory. Luồng là nạp dữ liệu đã kiểm tra, tạo output theo product item, tổng hợp theo order bằng `max-v1`, đưa order vào hàng đợi, phân công xử lý, ghi Attempt/Decision và lưu audit append-only.
+
+\subsection{Đơn vị phân tích và chính sách weak label}
+Một product item là đơn vị đầu ra ML; một order là đơn vị workflow, chia tập và bootstrap. Cohort mục tiêu là order đã giao không muộn hơn ngày dự kiến và có review quan sát. Nhãn âm là review score 1--2 ở cấp order; item trong order kế thừa nhãn đó. Score item là tín hiệu rủi ro trong bối cảnh order, không phải bằng chứng item gây ra không hài lòng.
+
+\subsection{Dữ liệu, kiểm soát rò rỉ và workflow}
+Pipeline tách thời điểm dự đoán khỏi review, giữ toàn bộ item của một order trong cùng partition và không dùng identifier, review field hoặc metadata chia tập làm feature. Workflow dùng order làm case: hàng đợi được tạo từ output item đã tổng hợp, nhân viên xem context và lý do, ghi hành động, còn Manager có thể phân công/override với reason. Đây là luồng hỗ trợ quyết định, không phải tự động hóa quyết định khách hàng.
+
+\subsection{Dữ liệu và công cụ sử dụng}
+Nguồn là Brazilian E-Commerce Public Dataset by Olist với chín bảng quan hệ. Output chuẩn được quy định trong data contract tại \texttt{data/processed/modelling\_items.parquet} khi migration product-item hoàn tất. Artifact reporting hợp lệ, nếu tồn tại, được đọc từ \texttt{reports/experiments/}, \texttt{reports/figures/} và \texttt{reports/tables/}; đường dẫn không tự nó khẳng định có metric.
+
+\subsection{Công nghệ áp dụng}
+
+\subsection{Cách đánh giá và đo lường kết quả}
+Kế hoạch quy định PR-AUC ở item/order, calibration, ranking theo budget và bootstrap theo order; đây là protocol, không phải kết quả. P5 hiện là exploratory-only. Chỉ replacement holdout theo P12 Gate 0 mới cho phép chuyển sang claim confirmatory; số liệu không có artifact nguồn không được đưa vào báo cáo.

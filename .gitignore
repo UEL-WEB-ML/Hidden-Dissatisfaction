@@ -1,10 +1,64 @@
-# Olist raw runtime data and acquisition manifest
-data/raw/olist/*.csv
-data/raw/olist/manifest.json
-
-# dbt local artifacts; profiles.yml is intentionally tracked
-dbt/target/
-dbt/logs/
-dbt/dbt_packages/
-dbt/.user.yml
+notebooks/dataset/*.csv
+notebooks/dataset/*.parquet
+# Python
 __pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment and local tooling
+.env
+.idea/
+.vscode/
+
+# Local datasets and generated artifacts
+data/raw/*
+data/interim/*
+data/processed/*
+artifacts/models/*
+artifacts/predictions/*
+artifacts/checkpoints/
+artifacts/config/
+artifacts/metrics/
+artifacts/reproducibility/
+artifacts/selection/
+catboost_info/
+runs/
+logs/
+
+# Local dbt and agent state
+dbt/.user.yml
+dbt/logs/
+dbt/target/
+.slim/
+
+# Generated report output
+web/BaoCao_LaTeX/main.pdf
+reports/experiments/
+reports/figures/
+reports/tables/
+
+# Keep directory documentation/placeholders
+!data/raw/README.md
+!data/interim/README.md
+!data/processed/README.md
+!artifacts/models/.gitkeep
+!artifacts/predictions/.gitkeep
+
+# Uploaded contact evidence (local dev adapter)
+data/evidence/
+
+# Angular generated dependencies and build artifacts
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/coverage/
+frontend/**/.angular/

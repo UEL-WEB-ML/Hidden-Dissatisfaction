@@ -1,0 +1,11 @@
+% =========================
+% chuong/00-tom-tat.tex
+% TÓM TẮT (Abstract). Viết SAU CÙNG, khi các mục khác đã xong.
+% =========================
+
+\section*{TÓM TẮT}
+\addcontentsline{toc}{section}{TÓM TẮT}
+
+\textbf{Phạm vi bằng chứng: exploratory-only.} Báo cáo trình bày một hệ thống web hỗ trợ ưu tiên các đơn hàng có nguy cơ nhận đánh giá thấp dù đã giao không muộn hơn ngày dự kiến. Thiết kế tách product item (đơn vị đầu ra ML) khỏi order (đơn vị workflow, chia tập và kiểm toán), đồng thời ghi rõ việc item kế thừa nhãn review cấp order là weak label. Hệ thống nhận artifact từ pipeline, hiển thị hàng đợi rủi ro, thông tin giải thích và lịch sử xử lý, nhưng không tự động liên hệ khách hàng hay suy ra quan hệ nhân quả. Các mô tả dữ liệu, kiến trúc và audit được đối chiếu với contract của repository. Artifact huấn luyện và kết quả hiện có chỉ phục vụ phát triển/demo; Gate 1 không bổ sung hay ngụ ý metric ML xác nhận. Việc chuyển sang kết luận confirmatory vẫn phụ thuộc replacement holdout theo P12 Gate 0.
+
+\noindent\textbf{Từ khóa:} thương mại điện tử, sự không hài lòng ẩn, hệ thống hỗ trợ ra quyết định, weak label, audit
