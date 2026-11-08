@@ -2,7 +2,7 @@
 
 ## Before coding
 
-1. Read `docs/README.md`, `docs/research-design.md`, and `docs/data-contract.md`.
+1. Read `BA/README.md` and the research invariants in this file.
 2. Write down the prediction-time impact of every proposed feature.
 3. Keep changes scoped to one reproducible vertical slice.
 

@@ -10,7 +10,7 @@ quality:
 	black --check .
 	mypy src tests
 	pytest --cov=hidden_dissatisfaction --cov-report=term-missing
-	# Domain and application layers must stay fully covered (planning.md 4.4)
+	# Domain and application layers must stay fully covered
 	pytest tests/unit tests/contract -q --cov=hidden_dissatisfaction.domain --cov=hidden_dissatisfaction.application --cov-fail-under=100
 
 test:

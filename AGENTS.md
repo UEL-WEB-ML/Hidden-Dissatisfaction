@@ -48,4 +48,4 @@ Predicts "hidden dissatisfaction" (1–2★ reviews despite on-time delivery) on
 - Never commit raw data, credentials, or large artifacts.
 
 ## Docs
-`docs/` is partly outdated. `docs/BA_consolidated_as_built.md` reflects the current code. `planning.md` holds the plan, and `SERVER_CONTEXT/` holds experiment evidence from the training server.
+`BA/` reflects the current code as built.

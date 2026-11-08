@@ -101,7 +101,7 @@ Olist CSV → Bronze → Silver → Intermediate → Gold (ml_modelling_items) �
           → training & selection → release scoring (max-v1) → ml.* snapshots → API → Web UI
 ```
 
-Code follows clean layers under [`src/hidden_dissatisfaction`](src/hidden_dissatisfaction): `domain` (pure rules, no I/O) → `application` (use cases, ports) → `infrastructure` (Postgres, joblib, parquet) → `api` (FastAPI, JWT) → `interfaces` (CLI), plus `modeling`. See [`docs/architecture-code-map.md`](docs/architecture-code-map.md).
+Code follows clean layers under [`src/hidden_dissatisfaction`](src/hidden_dissatisfaction): `domain` (pure rules, no I/O) → `application` (use cases, ports) → `infrastructure` (Postgres, joblib, parquet) → `api` (FastAPI, JWT) → `interfaces` (CLI), plus `modeling`.
 
 ### Research invariants
 
@@ -126,7 +126,7 @@ make demo-seed            # local review accounts and synthetic workflow fixture
 | API | <http://localhost:8000> |
 | API readiness | <http://localhost:8000/health/ready> |
 
-Demo credentials come from `.env` and the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env`. Stop with `make stop` (keeps volumes). Do not run `docker compose down -v` unless you intend a full local data reset.
+The smoke stack (`make e2e`) uses only schema and bootstrap fixtures and does not load the full Olist dataset. Demo credentials come from `.env` and the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env`. Stop with `make stop` (keeps volumes). Do not run `docker compose down -v` unless you intend a full local data reset.
 
 ## Development
 
@@ -142,7 +142,7 @@ uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
 
 ### Data and ML workflows (opt-in)
 
-API startup never ingests the dataset. Download the nine Olist CSVs only for warehouse or modelling work ([filenames](docs/data-contract.md)):
+API startup never ingests the dataset. Download the nine Olist CSVs only for warehouse or modelling work:
 
 ```bash
 kaggle datasets download -d olistbr/brazilian-ecommerce -p data/raw/olist --unzip
@@ -168,8 +168,6 @@ DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<uuid> make p4-release-verify
 ├── infra/                        # API/jobs images and PostgreSQL migrations
 ├── configs/  scripts/  tests/    # Experiment config, helper scripts, test suite
 ├── BA/                           # As-built BRD, FRD, API contract, ERD, traceability
-├── docs/                         # Architecture, ADRs, data contract, research design
-├── reports/  SERVER_CONTEXT/     # Experiment reports and training-server evidence
 ├── notebooks/                    # EDA notebooks and figures
 ├── Thesis/latex/                 # Course report (LaTeX, Vietnamese)
 ├── web/                          # Web-course report, prototype and diagrams
@@ -180,14 +178,8 @@ DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<uuid> make p4-release-verify
 
 | Topic | Where |
 |---|---|
-| Current as-built product contract | [`BA/README.md`](BA/README.md), [`docs/BA_consolidated_as_built.md`](docs/BA_consolidated_as_built.md) |
-| Research design and data contract | [`docs/research-design.md`](docs/research-design.md), [`docs/data-contract.md`](docs/data-contract.md) |
-| Architecture and decisions | [`docs/architecture.md`](docs/architecture.md), [`docs/adr/`](docs/adr/) |
-| Experiment evidence | [`reports/`](reports/), [`SERVER_CONTEXT/`](SERVER_CONTEXT/) |
-| Release boundary | [`docs/evidence/P12-gate-0-release-boundary.md`](docs/evidence/P12-gate-0-release-boundary.md) |
-| Report | `cd Thesis/latex && latexmk -pdf main.tex` (needs `biber`) |
-
-Some files in `docs/` predate the current code; prefer `BA/` and `docs/BA_consolidated_as_built.md` when they disagree.
+| As-built product contract (BRD, FRD, API, ERD, data dictionary, traceability) | [`BA/README.md`](BA/README.md) |
+| Report (Vietnamese) | [`Thesis/latex/main.tex`](Thesis/latex/main.tex) — build with `cd Thesis/latex && latexmk -pdf main.tex` (needs `biber`) |
 
 ## Limitations
 
