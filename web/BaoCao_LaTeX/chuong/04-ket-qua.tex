@@ -1,16 +1,292 @@
 % =========================
 % chuong/04-ket-qua.tex  —  MỤC 4. KẾT QUẢ VÀ PHÂN TÍCH
-%   4.1  Trúc (giao diện)  +  Quân (cơ sở dữ liệu)
-%   4.2  Trân (khoảng trống và cách giải quyết) — phải cùng người viết mục 2
-% Ảnh để trong thư mục hinh/, tên không dấu, không khoảng trắng.
+% Ảnh màn hình chụp ngày 05/11/2026 từ hệ thống chạy bằng Docker (nhánh dev, commit 1a8a767),
+% dữ liệu 100 đơn Olist thật + 5 đơn giả lập.
+% Bản viết cũ (chỉ có prototype) đã sao lưu ở Plan/BaoCao_LaTeX_backup_2026-11-05.
 % =========================
 
 \section{KẾT QUẢ VÀ PHÂN TÍCH}
 
-\subsection{Kết quả phân tích và thiết kế hệ thống}
-\textbf{Trạng thái bằng chứng: ready cho mô tả thiết kế; exploratory-only cho ML.} Kết quả Gate 1 là bộ contract và workflow có thể truy vết: product-item output gắn với order case; Risk Queue hiển thị mức ưu tiên và context; Order Detail cho phép xem item; Action Tracking ghi Attempt/Decision; Data Quality cung cấp nguồn và trạng thái dữ liệu. Thay đổi quan trọng có actor, thời gian, reason và audit event theo ERD/API.
+% ------------------------------------------------------------
+\subsection{Mô tả các kết quả đạt được}
 
-Các đường dẫn artifact reproducible được giữ nguyên: `data/processed/`, `reports/experiments/`, `reports/figures/` và `reports/tables/`. Chỉ trích dẫn file tồn tại trong run tương ứng; không dùng đường dẫn để khẳng định metric.
+Sau bảy tuần, nhóm hoàn thành một hệ thống web chạy được đầy đủ luồng từ khi một đơn hàng có kết
+quả dự đoán rủi ro tới khi case được xử lý, đóng và có quyết định của quản lý. Bảng~\ref{tab:ket-qua}
+tóm tắt các sản phẩm chính.
 
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}p{10.8cm}|}
+\caption{Tóm tắt kết quả đạt được}\label{tab:ket-qua}\\ \hline
+\textbf{Hạng mục} & \textbf{Kết quả} \\ \hline \endfirsthead
+\hline \textbf{Hạng mục} & \textbf{Kết quả} \\ \hline \endhead
+Phân tích thiết kế & 8 sơ đồ BPMN, 1 FDD, 5 DFD (ngữ cảnh, mức 0, ba sơ đồ mức 1), 1 sơ đồ Use Case với 12 bảng đặc tả, 2 sơ đồ ERD, sơ đồ kiến trúc và vòng đời case \\ \hline
+Giao diện & 9 trang HTML (khoảng 2.700 dòng), 1 tệp CSS (khoảng 1.300 dòng), 3 tệp JavaScript (khoảng 730 dòng); song ngữ Việt - Anh; dùng được ở ba khổ màn hình \\ \hline
+Máy chủ API & 23 endpoint nghiệp vụ và 3 endpoint kiểm tra sức khỏe (28 thao tác HTTP theo tài liệu OpenAPI); lỗi trả về theo một cấu trúc JSON thống nhất \\ \hline
+Cơ sở dữ liệu & 2 schema, 24 bảng và view, 220 cột; 22 tệp migration \\ \hline
+Tài liệu & BRD, FRD, API contract, từ điển dữ liệu, ERD và bảng truy vết UI - API - CSDL theo hệ thống thực tế \\ \hline
+Triển khai & Một lệnh \texttt{make start} dựng toàn bộ hệ thống bằng Docker Compose \\ \hline
+\end{longtable}
+}
+
+% ------------------------------------------------------------
+\subsection{Giao diện và các chức năng}
+
+\subsubsection{Ý tưởng chủ đạo}
+
+Giao diện được thiết kế quanh một câu hỏi: \textit{người dùng cần biết gì và làm gì tiếp theo}. Với
+nhân viên, câu trả lời là ``nên gọi khách nào trước''; với quản lý, câu trả lời là ``chỗ nào đang
+tắc và cần mình quyết định''. Giảng viên góp ý ngày 13/10 rằng mỗi màn hình phải thể hiện rõ hệ
+thống giúp cải thiện chất lượng chăm sóc khách hàng; nhóm vì vậy thêm các khối ``Việc cần làm'',
+``Chất lượng chăm sóc'' và ``Gợi ý khi gọi khách''. Giao diện trải qua hai bước: wireframe trên Figma
+để thống nhất bố cục, sau đó prototype HTML, CSS, JavaScript chạy với máy chủ giả, rồi nối với máy
+chủ thật.
+
+Các nguyên tắc áp dụng cho mọi màn hình:
+
+\begin{itemize}
+    \item \textbf{Một hành động chính trên mỗi màn hình.} Chỉ một nút được tô màu đậm. Ở Chi tiết đơn,
+    nút chính đổi theo bước: chưa liên lạc thì là \textit{Ghi lần liên lạc}, đã liên lạc được thì là
+    \textit{Hoàn tất}.
+    \item \textbf{Màu có một nghĩa.} Đỏ, vàng cam, xanh lá chỉ dành cho mức rủi ro HIGH, MEDIUM, LOW;
+    đỏ đậm còn dùng cho quá hạn SLA. Mức rủi ro luôn kèm chữ và biểu tượng ba cột, nên người khó phân
+    biệt màu vẫn đọc được.
+    \item \textbf{Có trạng thái đang tải, trống và lỗi.} Khi lỗi, giao diện hiện thông báo và nút thử
+    lại thay vì hiện số 0 dễ gây hiểu nhầm.
+    \item \textbf{Bắt buộc lý do ở thao tác cần truy vết.} Chuyển người, mở lại, vượt capacity, bỏ qua
+    đều bắt buộc lý do.
+    \item \textbf{Hiển thị đúng quyền, nhưng máy chủ vẫn kiểm tra.} Mỗi vai trò chỉ thấy nút và màn
+    hình của mình; máy chủ vẫn kiểm tra quyền ở mọi yêu cầu, vì mã giao diện chạy trên máy người dùng
+    và có thể bị sửa.
+\end{itemize}
+
+Bảng~\ref{tab:man-hinh} liệt kê các màn hình và quyền truy cập.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.1cm}|>{\raggedright\arraybackslash}p{2.3cm}|>{\raggedright\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{5.2cm}|}
+\caption{Các màn hình của hệ thống}\label{tab:man-hinh}\\ \hline
+\textbf{Màn hình} & \textbf{Tệp} & \textbf{Nhân viên} & \textbf{Quản lý} & \textbf{API chính} \\ \hline \endfirsthead
+\hline \textbf{Màn hình} & \textbf{Tệp} & \textbf{Nhân viên} & \textbf{Quản lý} & \textbf{API chính} \\ \hline \endhead
+Đăng nhập & login.html & Có & Có & /auth/login, /auth/me \\ \hline
+Tổng quan rủi ro & overview.html & Không & Có & /dashboard \\ \hline
+Risk Queue & index.html & Có & Có & /orders, /orders/summary \\ \hline
+Chi tiết đơn & order.html & Có & Có & /orders/\{id\} và các thao tác \\ \hline
+Liên lạc khách & attempt.html & Có & Không & /orders/\{id\}/contacts, /files \\ \hline
+Quyết định & decision.html & Không & Có & /orders/\{id\}/decisions \\ \hline
+Lịch sử thao tác & audit.html & Không & Có & /audit-events \\ \hline
+Cài đặt tham số & settings.html & Không & Có & /parameters, /config \\ \hline
+Hồ sơ & profile.html & Có & Có & /auth/me \\ \hline
+\end{longtable}
+}
+
+\subsubsection{Trang đăng nhập}
+
+Trang đăng nhập chia hai cột (Hình~\ref{fig:web-login}): cột trái giới thiệu mục đích hệ thống bằng
+một câu ``Giao đúng hạn chưa chắc khách đã hài lòng'' và minh họa một đơn được đánh dấu rủi ro; cột
+phải là biểu mẫu với nút chọn ngôn ngữ, ô tên đăng nhập, ô mật khẩu có nút hiện/ẩn. Khi nhập sai,
+thông báo hiện ngay dưới ô mật khẩu (Hình~\ref{fig:web-login-sai}).
+
+\hinh{web-login.png}{Trang đăng nhập}{web-login}
+\hinh[0.6\textwidth]{web-login-sai-mat-khau.png}{Thông báo khi nhập sai tài khoản hoặc mật khẩu (phần biểu mẫu)}{web-login-sai}
+
+\subsubsection{Risk Queue}
+
+Đây là màn hình nhân viên dùng nhiều nhất (Hình~\ref{fig:web-rq-spec}). Ba ô trên cùng trả lời câu hỏi
+``bắt đầu từ đâu'': số đơn HIGH chờ quản lý giao, đơn nên bắt đầu kèm nút \textit{Nhận}, và số đơn
+mình đang giữ trên capacity. Bốn bộ lọc dùng hằng ngày luôn hiện; các bộ lọc ít dùng nằm sau nút
+\textit{Lọc thêm}. Mỗi dòng có mã đơn (bấm để sao chép), điểm và thanh điểm, mức rủi ro, sản phẩm cần
+kiểm tra, thời gian chờ, trạng thái SLA, trạng thái case, người phụ trách và nút thao tác. Nút thao
+tác đổi theo vai trò và trạng thái: nhân viên thấy \textit{Nhận} ở đơn LOW/MEDIUM đang chờ và
+\textit{Chờ Manager giao} ở đơn HIGH; quản lý thấy thêm cột người phụ trách và bộ lọc theo nhân viên
+(Hình~\ref{fig:web-rq-mgr}).
+
+\hinh{web-spec-risk-queue.png}{Risk Queue của nhân viên}{web-rq-spec}
+\hinh{web-mgr-risk-queue.png}{Risk Queue của quản lý}{web-rq-mgr}
+
+\subsubsection{Chi tiết đơn}
+
+Màn hình chia hai cột (Hình~\ref{fig:web-order}). Cột trái là kết quả mô hình: điểm, mức rủi ro trên
+thang 0--1 có vạch ngưỡng, cách tổng hợp, phiên bản mô hình và ngưỡng; danh sách sản phẩm trong đơn
+với điểm từng sản phẩm; các yếu tố liên quan; dòng thời gian và thông tin đơn. Giao diện ghi rõ điểm
+rủi ro dùng để ưu tiên, không phải kết luận khách không hài lòng. Cột phải dành cho xử lý: ba con số
+SLA còn lại, số lần đã liên lạc và thời gian trong hàng đợi; các nút \textit{Ghi lần liên lạc},
+\textit{Hoàn tất}, \textit{Bỏ qua}; thông tin case; bước tiếp theo; lịch sử trạng thái; nhận xét; và
+gợi ý khi gọi khách. Thanh trên cùng có ô tìm đơn khác và nút \textit{Đơn trước}, \textit{Đơn sau} theo
+thứ tự của Risk Queue.
+
+\hinh{web-spec-order-detail.png}{Chi tiết đơn của nhân viên đang giữ case}{web-order}
+
+Với quản lý, Chi tiết đơn có thêm nút giao, chuyển người, mở lại, ghi chú cho mô hình và mục lịch sử
+thao tác của đơn (Hình~\ref{fig:web-order-mgr}). Các thao tác mở hộp thoại riêng, có ô bắt buộc được
+đánh dấu sao (Hình~\ref{fig:web-dlg}).
+
+\hinh{web-mgr-order-closed.png}{Chi tiết một case đã đóng, xem bằng tài khoản quản lý}{web-order-mgr}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.32\textwidth]{hinh/web-dlg-hoan-tat.png}\hfill
+    \includegraphics[width=0.32\textwidth]{hinh/web-dlg-bo-qua.png}\hfill
+    \includegraphics[width=0.32\textwidth]{hinh/web-dlg-giao-don.png}
+    \caption{Hộp thoại Hoàn tất, Bỏ qua (nhân viên) và Giao đơn (quản lý)}
+    \label{fig:web-dlg}
+\end{figure}
+
+\subsubsection{Liên lạc khách}
+
+Trang chỉ dành cho nhân viên (Hình~\ref{fig:web-attempt}). Cột trái là các đơn mình đang giữ kèm
+SLA và số lần đã liên lạc; cột phải là biểu mẫu ghi lần liên lạc với thời điểm, phương thức, kết
+quả, ngày hẹn lại (tự gợi ý theo tham số), nội dung khách nói, vùng đính kèm minh chứng và mã tham
+chiếu. Bên dưới là lịch sử liên lạc của chu kỳ hiện tại. Khi đủ số lần liên lạc tối đa, biểu mẫu
+bị khóa và giao diện hướng dẫn bỏ qua với lý do phù hợp.
+
+\hinh{web-spec-attempt.png}{Trang ghi nhận liên lạc khách hàng}{web-attempt}
+
+\subsubsection{Tổng quan rủi ro}
+
+Trang Tổng quan chỉ dành cho quản lý (Hình~\ref{fig:web-overview}). Khối màu xanh đầu trang nêu việc
+gấp nhất: số đơn HIGH chưa có người nhận, các đơn đó, nút \textit{Giao ngay} và số chỗ trống của
+từng nhân viên. Bên phải là ba chỉ số: quá hạn SLA, đang xử lý, chờ quyết định, và khối \textit{Việc
+cần làm} xếp theo mức ảnh hưởng tới khách. Phần dưới gồm biểu đồ số case vào hàng đợi theo ngày, phân
+bố mức rủi ro và tiến độ xử lý, các chỉ số chất lượng chăm sóc (tỉ lệ khách được gọi, gọi lần đầu
+đúng hạn, thời gian tới cuộc gọi đầu, vấn đề phát hiện sớm), chỗ trống của từng nhân viên, người bán
+và ngành hàng tập trung rủi ro, các đơn cần can thiệp và các thay đổi gần đây. Mỗi con số bấm được để
+mở Risk Queue đã lọc sẵn đúng điều kiện đó.
+
+\hinh[0.88\textwidth]{web-mgr-overview.png}{Trang Tổng quan rủi ro của quản lý}{web-overview}
+
+\subsubsection{Quyết định, Lịch sử thao tác và Cài đặt}
+
+Trang Quyết định (Hình~\ref{fig:web-decision}) liệt kê các case đã đóng cần quyết định; khi chọn một
+case, quản lý thấy kết quả mô hình, việc nhân viên đã làm và biểu mẫu quyết định với bốn lựa chọn.
+Trang Lịch sử thao tác (Hình~\ref{fig:web-audit}) mặc định xếp các đơn thành cột theo trạng thái
+hiện tại, mỗi thẻ là một đơn với các thao tác gần nhất; có thể chuyển sang dạng bảng và lọc theo loại
+thao tác, người làm, mã đơn hoặc chỉ thao tác vượt quy tắc. Trang Cài đặt (Hình~\ref{fig:web-settings})
+nhóm 14 tham số thành bốn nhóm: SLA và thời hạn, khối lượng việc, liên lạc khách, escalation và mở
+lại; mỗi tham số có giá trị hiện hành, phiên bản, người đổi và nút \textit{Đổi}; cuối trang là lịch sử
+thay đổi, kể cả các thay đổi đã hẹn giờ.
+
+\hinh{web-mgr-decision.png}{Trang Quyết định}{web-decision}
+\hinh{web-mgr-audit.png}{Trang Lịch sử thao tác}{web-audit}
+\hinh[0.85\textwidth]{web-mgr-settings.png}{Trang Cài đặt tham số}{web-settings}
+
+\subsubsection{Hiển thị trên nhiều kích thước màn hình}
+
+Giao diện được kiểm tra ở ba độ rộng: máy tính 1440 điểm ảnh, máy tính bảng 820 điểm ảnh và điện
+thoại 390 điểm ảnh. Ở màn hình hẹp, thanh điều hướng bên trái thu thành thanh trên cùng, bảng Risk
+Queue chuyển thành dạng thẻ, các khối hai cột xếp thành một cột (Hình~\ref{fig:web-mobile} và
+Hình~\ref{fig:web-tablet}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.24\textwidth,height=0.55\textheight,keepaspectratio]{hinh/web-m-login.png}\hfill
+    \includegraphics[width=0.24\textwidth,height=0.55\textheight,keepaspectratio]{hinh/web-m-risk-queue.png}\hfill
+    \includegraphics[width=0.24\textwidth,height=0.55\textheight,keepaspectratio]{hinh/web-m-order.png}\hfill
+    \includegraphics[width=0.24\textwidth,height=0.55\textheight,keepaspectratio]{hinh/web-m-overview.png}
+    \caption{Đăng nhập, Risk Queue, Chi tiết đơn và Tổng quan trên điện thoại}
+    \label{fig:web-mobile}
+\end{figure}
+
+\hinh[0.55\textwidth]{web-t-risk-queue.png}{Risk Queue trên máy tính bảng}{web-tablet}
+
+\subsubsection{Kết nối giao diện với máy chủ}
+
+Để giao diện và máy chủ được làm song song, nhóm thống nhất trước tài liệu API contract: mỗi
+endpoint nhận gì, trả về JSON gồm những trường nào và trả mã lỗi nào khi vi phạm quy tắc. Các
+endpoint được suy ra từ chức năng trong FRD, các mã lỗi suy ra từ quy tắc trong BRD. Trong giao diện,
+mọi lời gọi đi qua tệp \texttt{api.js}; khi máy chủ chưa xong, tệp này nối với máy chủ giả, khi máy
+chủ xong chỉ cần đổi cấu hình. Contract được nâng từ v0.1 (05/10) tới v0.5 theo các thay đổi của BRD,
+FRD và được đối chiếu lại với mã nguồn ngày 02/11: 28/28 thao tác HTTP, 24/24 bảng và view, 220/220
+cột vật lý đều có trong tài liệu.
+
+% ------------------------------------------------------------
+\subsection{Kết quả kiểm thử}
+
+Nhóm kiểm thử hai đợt. Đợt một ngày 03/11/2026 trên bản mã trước khi sửa lỗi, theo bộ ca kiểm thử
+viết từ BRD, FRD và API contract, gồm ba vòng: gọi API với dữ liệu giả lập, gọi API với 100 đơn Olist
+thật, và bấm giao diện theo từng vai trò. Các lỗi tìm được ở đợt này được nhóm sửa ngày 04/11. Đợt
+hai ngày 05/11/2026 kiểm lại trên bản đã sửa (commit \texttt{1a8a767}); Bảng~\ref{tab:kiem-thu} là
+kết quả của đợt hai.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{5.4cm}|>{\raggedright\arraybackslash}p{5cm}|>{\raggedright\arraybackslash}p{4cm}|}
+\caption{Kết quả kiểm thử trên bản đã sửa lỗi (05/11/2026)}\label{tab:kiem-thu}\\ \hline
+\textbf{Bộ kiểm thử} & \textbf{Phạm vi} & \textbf{Kết quả} \\ \hline \endfirsthead
+\hline \textbf{Bộ kiểm thử} & \textbf{Phạm vi} & \textbf{Kết quả} \\ \hline \endhead
+Kiểm thử đơn vị và hợp đồng API (pytest) & Quy tắc nghiệp vụ, cấu trúc JSON của API & 204/204 đạt \\ \hline
+\texttt{smoke.sh} & Máy chủ API, trang web, chuyển tiếp \texttt{/api/v1} & Đạt \\ \hline
+\texttt{demo\_e2e.sh} & Đăng nhập và gọi các API chính bằng hai vai trò & Đạt \\ \hline
+Bấm giao diện tự động (Playwright) & 8 bước trên các luồng từng có lỗi ở đợt một & 7/8 bước đạt \\ \hline
+\end{longtable}
+}
+
+Bảng~\ref{tab:loi} đối chiếu các lỗi giao diện và API tìm được ở đợt một với kết quả kiểm lại ở đợt
+hai. Ngoài ra, đợt một còn ghi nhận hai lỗi ở lệnh dựng kho dữ liệu thuộc phần việc của môn Học máy,
+nên không đưa vào bảng này.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{6.6cm}|>{\raggedright\arraybackslash}p{8.2cm}|}
+\caption{Các lỗi tìm được ở đợt một và kết quả kiểm lại}\label{tab:loi}\\ \hline
+\textbf{Lỗi tìm được ngày 03/11} & \textbf{Kiểm lại ngày 05/11} \\ \hline \endfirsthead
+\hline \textbf{Lỗi tìm được ngày 03/11} & \textbf{Kiểm lại ngày 05/11} \\ \hline \endhead
+Nhận đơn báo lỗi 500 dù cơ sở dữ liệu đã ghi nhận & Đã sửa: bấm Nhận trả về 200, giao diện cập nhật đúng \\ \hline
+Danh sách hiện ``undefined/3'' lần liên lạc & Đã sửa: API trả thêm số lần liên lạc, không còn chữ ``undefined'' \\ \hline
+Không tìm được đơn giả lập theo mã & Đã sửa: mã giả lập đổi sang dạng 32 ký tự hex như mã Olist; tìm theo 8 ký tự đầu trả đúng đơn \\ \hline
+Giao diện gửi thời gian không có múi giờ nên không lưu được lần liên lạc & Đã sửa: thời gian gửi lên có múi giờ, lưu lần liên lạc trả về 201 \\ \hline
+Ghi quyết định với ô Hạn để trống bị từ chối & Đã sửa: ô trống được gửi là \texttt{null}, lưu quyết định trả về 201 \\ \hline
+Đổi tham số trên giao diện bị từ chối do thời gian không có múi giờ & Phần thời gian đã sửa; còn một lỗi mới: giao diện gửi giá trị số dưới dạng chuỗi (\texttt{"2"} thay vì \texttt{2}) nên máy chủ trả về 422. Đổi trực tiếp qua API thì thành công. Cách sửa: chuyển giá trị sang kiểu số trước khi gửi (\texttt{settings.html}, dòng 103) \\ \hline
+\end{longtable}
+}
+
+Một bài học từ quá trình kiểm thử: các vòng gọi API trực tiếp đều đạt gần như toàn bộ, nhưng hai lỗi
+liên quan đến định dạng dữ liệu (thời gian không có múi giờ, giá trị số gửi dưới dạng chuỗi) chỉ lộ ra
+khi bấm giao diện. Vì vậy, kiểm thử một hệ thống web cần cả kiểm thử API lẫn kiểm thử qua giao diện.
+
+% ------------------------------------------------------------
+\subsection{Phân tích và đánh giá kết quả}
+
+Bảng~\ref{tab:doi-chieu} đối chiếu kết quả với các mục tiêu cụ thể ở mục~\ref{sec:muc-tieu}.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.4cm}|>{\raggedright\arraybackslash}p{2cm}|>{\raggedright\arraybackslash}p{8cm}|}
+\caption{Đối chiếu kết quả với mục tiêu}\label{tab:doi-chieu}\\ \hline
+\textbf{Mục tiêu} & \textbf{Mức đạt} & \textbf{Minh chứng} \\ \hline \endfirsthead
+\hline \textbf{Mục tiêu} & \textbf{Mức đạt} & \textbf{Minh chứng} \\ \hline \endhead
+1. Phân tích, mô hình hóa nghiệp vụ & Đạt & Mục 3.1: BPMN, FDD, DFD, Use Case, vòng đời case \\ \hline
+2. Thiết kế cơ sở dữ liệu & Đạt & Hai ERD, 22 migration, ràng buộc ở tầng CSDL \\ \hline
+3. Chín màn hình theo hai vai trò & Đạt phần lớn & Mục 4.2; phân quyền kiểm cả trên giao diện và máy chủ; còn lỗi đổi tham số trên trang Cài đặt (Bảng~\ref{tab:loi}) \\ \hline
+4. Máy chủ API kiểm tra quy tắc, ghi nhật ký & Đạt & 28 thao tác HTTP; nhật ký append-only; kiểm thử ở Bảng~\ref{tab:kiem-thu} \\ \hline
+5. Tích hợp kết quả dự đoán & Đạt phần lớn & Hệ thống nhận kết quả qua schema \texttt{ml}, tạo case và hiển thị điểm, mức, phiên bản; chặn kết quả của mô hình chưa kiểm chứng. Bản trình diễn dùng bộ kết quả mẫu \\ \hline
+6. Song ngữ, ba khổ màn hình & Đạt phần lớn & Nhãn giao diện song ngữ; một số thông báo lỗi từ máy chủ vẫn bằng tiếng Anh (Hình~\ref{fig:web-login-sai}) \\ \hline
+\end{longtable}
+}
+
+Về mặt nghiệp vụ, hệ thống biến một con số rủi ro thành một quy trình có trách nhiệm rõ ràng: mỗi
+case có người giữ, có hạn xử lý, có số lần liên lạc, có kết quả bắt buộc, có quyết định của quản lý
+và có nhật ký không sửa được. Đây là phần mà các nghiên cứu ở mục 2.2 chưa đề cập. Về mặt kỹ thuật,
+việc đặt các quy tắc quan trọng ở cả máy chủ lẫn cơ sở dữ liệu giúp dữ liệu nhất quán ngay cả khi
+giao diện có lỗi; ví dụ ở lỗi nhận đơn của đợt một, dù giao diện báo lỗi, cơ sở dữ liệu vẫn chỉ ghi nhận một người nhận
+đơn.
+
+% ------------------------------------------------------------
 \subsection{Khoảng trống của các phương pháp hiện có và cách hệ thống giải quyết}
-Khoảng trống chính là chuyển tín hiệu rủi ro thành quy trình có người chịu trách nhiệm, thay vì xem một score là quyết định. Kiến trúc giải quyết bằng phân tách ML grain và workflow grain, kiểm soát quyền, trạng thái, tham số có hiệu lực và audit append-only. Hệ thống vẫn không giải quyết selection bias, weak label, drift hay câu hỏi item nào gây trải nghiệm xấu. Vì vậy output chỉ để ưu tiên human review, không sanction seller, hoàn tiền tự động hay tuyên bố nhân quả.
+
+Bảng~\ref{tab:khoang-trong} tổng hợp các khoảng trống rút ra từ mục 2.2 và cách hệ thống giải quyết.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{5cm}|>{\raggedright\arraybackslash}p{9.8cm}|}
+\caption{Khoảng trống và cách hệ thống giải quyết}\label{tab:khoang-trong}\\ \hline
+\textbf{Khoảng trống} & \textbf{Cách hệ thống giải quyết} \\ \hline \endfirsthead
+\hline \textbf{Khoảng trống} & \textbf{Cách hệ thống giải quyết} \\ \hline \endhead
+Doanh nghiệp theo dõi tỉ lệ giao đúng hạn, nên bỏ sót đơn đúng hạn mà khách vẫn không hài lòng \parencite{ravula2023} & Risk Queue chỉ gồm đơn đã giao đúng hạn, xếp theo nguy cơ bị đánh giá thấp \\ \hline
+Mô hình dự đoán dừng ở nhãn, chưa thành công cụ vận hành \parencite{orman2026} & Mỗi kết quả dự đoán thành một case có người giữ, SLA, kết quả và quyết định \\ \hline
+Điểm rủi ro cao chưa chắc nên ưu tiên tuyệt đối \parencite{ascarza2018, li2026} & Hiển thị SLA, thời gian chờ, người bán cạnh điểm số; quản lý giao và điều chỉnh được; kết quả xử lý được lưu để đánh giá hiệu quả sau này \\ \hline
+Người dùng e ngại hoặc tin nhầm gợi ý của thuật toán \parencite{dietvorst2018, bansal2021} & Nhân viên tự quyết định sau khi liên lạc; giao diện nhắc điểm số không phải kết luận; quản lý ghi chú phản hồi về mô hình \\ \hline
+Xử lý bị động, chờ khách phàn nàn \parencite{nazifi2021} & Liên hệ chủ động theo SLA trước khi khách đánh giá \\ \hline
+Khó truy vết ai làm gì trong chăm sóc khách hàng & Nhật ký append-only cho mọi thao tác; thao tác vượt quy tắc bắt buộc lý do và được gắn nhãn \\ \hline
+\end{longtable}
+}

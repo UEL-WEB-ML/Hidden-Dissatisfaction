@@ -62,3 +62,6 @@ frontend/**/node_modules/
 frontend/**/dist/
 frontend/**/coverage/
 frontend/**/.angular/
+
+# draw.io editor backups
+.$*.bkp

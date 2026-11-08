@@ -1,10 +1,12 @@
 % =========================
 % chuong/01-gioi-thieu.tex  —  người viết: Trúc
 % MỤC 1. GIỚI THIỆU
-% Số liệu mô tả phải được tái lập từ pipeline version hóa trước khi nộp báo cáo.
-% Cohort: delivered, order_delivered_customer_date <= order_estimated_delivery_date.
-% Nhãn: review_score 1--2; chính sách multiple-review hiện giữ câu trả lời mới nhất
-% và phải được chốt trong luận văn. Không dùng số liệu từ lần đếm theo chính sách khác.
+% Số liệu Olist theo định nghĩa của BRD (đếm lại ngày 30/09/2026, bản gốc 99.441 đơn):
+% chỉ lấy đơn order_status = delivered có ngày nhận; đúng hạn khi
+% order_delivered_customer_date <= order_estimated_delivery_date (so cả ngày lẫn giờ);
+% đơn có nhiều review thì tính là "bị chê" nếu có ít nhất một review_score <= 2.
+% Kết quả: 88.644 đơn đúng hạn, 88.163 có review, 8.164 bị chê;
+% đơn trễ 7.661 có review, 4.146 bị chê. Số ngày tính theo ngày lịch.
 % =========================
 
 \section{GIỚI THIỆU}
@@ -15,9 +17,9 @@
 Trong thương mại điện tử, điểm đánh giá của khách hàng là một trong những thông tin
 người mua xem trước khi ra quyết định. Nghiên cứu trên hơn 15 triệu đơn hàng của nền
 tảng Tmall cho thấy trải nghiệm giao hàng ảnh hưởng đến điểm đánh giá, và điểm đánh giá
-đó có liên hệ với khả năng mua hàng của những khách đến sau và doanh số người bán
-\parencite{deshpande2023}. Vì vậy, review thấp là một tín hiệu dịch vụ đáng theo dõi,
-nhưng dữ liệu quan sát không đủ để quy trực tiếp thành doanh thu bị mất.
+đó tiếp tục ảnh hưởng đến khả năng mua hàng của những khách đến sau cũng như doanh số
+của người bán \parencite{deshpande2023}. Vì vậy, một đánh giá thấp không chỉ phản ánh
+một khách hàng không hài lòng mà còn kéo theo thiệt hại về doanh thu.
 
 Giao hàng trễ là nguyên nhân thường được nhắc đến nhất. \textcite{ravula2023} cho thấy
 khách hàng chấm điểm thấp hơn rõ rệt khi đơn đến trễ, trong khi giao sớm chỉ được cộng
@@ -26,17 +28,63 @@ chính của chất lượng dịch vụ. Tuy vậy, giao nhanh hơn chưa chắ
 khi nhà bán lẻ tách đơn để giao nhanh từng phần, sự phiền toái khi nhận nhiều lần giao
 có thể triệt tiêu lợi ích của tốc độ và làm giảm việc mua lại \parencite{brylla2022}.
 
-Tuy nhiên, khi phân tích bộ dữ liệu công khai của Olist \parencite{olist2018}, nhóm nhận
-thấy vẫn tồn tại các đơn được giao trước hoặc đúng ngày dự kiến nhưng nhận review 1 hoặc
-2 sao. Tỷ lệ và số lượng chính thức phải được tái lập từ pipeline theo đúng chính sách
-multiple-review đã version hóa trước khi đưa vào báo cáo kết quả. Quan sát này cho thấy
-``đúng hạn'' không đồng nghĩa với ``hài lòng'' và tạo ra một nhóm case mà quy tắc chỉ theo
-dõi giao trễ sẽ bỏ sót.
+Tuy nhiên, khi phân tích bộ dữ liệu công khai của Olist, một doanh nghiệp thương mại
+điện tử tại Brazil \parencite{olist2018}, nhóm nhận thấy chỉ số giao đúng hạn không phản
+ánh đầy đủ mức độ hài lòng. Trong số các đơn đã giao và có đánh giá, 88.163 đơn được giao
+trước hoặc đúng ngày dự kiến, nhưng vẫn có 8.164 đơn (9,26\%) bị chấm 1 hoặc 2 sao. Tính
+trên toàn bộ các đơn bị chấm 1 hoặc 2 sao, có đến 66,3\% là đơn đã giao đúng hạn. Nói cách
+khác, phần lớn khách hàng không hài lòng rơi vào đúng những đơn mà chỉ số giao hàng đang
+báo là tốt.
+
+Một chi tiết giải thích phần nào hiện tượng này: đơn giao sớm của Olist đến sớm hơn ngày
+dự kiến trung vị 13 ngày, tức ngày dự kiến được đặt khá rộng. Vì thế, ``đúng hạn'' không
+đồng nghĩa với ``nhanh''. Ngay trong nhóm đơn đúng hạn, đơn có thời gian giao từ 0 đến 3
+ngày bị chê 7,0\%, còn đơn giao trên 30 ngày bị chê đến 23,8\%.
 
 Nhóm gọi hiện tượng này là \textit{sự không hài lòng ẩn} (hidden dissatisfaction): khách
 hàng không hài lòng dù đơn hàng không có dấu hiệu bất thường nào trên các chỉ số vận hành.
 Đây là lý do nhóm chọn đề tài xây dựng một hệ thống web giúp doanh nghiệp nhận diện và xử
 lý sớm những đơn hàng này.
+
+% ------------------------------------------------------------
+\subsection{Doanh nghiệp và bài toán kinh doanh}
+
+\subsubsection{Mô hình kinh doanh của Olist}
+
+Olist là doanh nghiệp thương mại điện tử tại Brazil, kết nối các người bán nhỏ với nhiều sàn
+thương mại điện tử thông qua một hợp đồng duy nhất. Người bán đăng sản phẩm qua cửa hàng Olist
+Store và gửi hàng trực tiếp cho khách bằng các đối tác vận chuyển của Olist. Khi khách nhận hàng,
+hoặc khi tới ngày giao dự kiến, khách nhận được một khảo sát qua email để chấm điểm từ 1 đến 5 và
+viết nhận xét \parencite{olist2018}.
+
+Mô hình này đặt Olist vào vị trí chịu trách nhiệm về trải nghiệm của khách nhưng không trực tiếp
+đóng gói hay giao hàng. Một đánh giá thấp vừa làm giảm uy tín của cửa hàng trên sàn, vừa ảnh hưởng
+tới doanh số của người bán \parencite{deshpande2023}. Vì vậy, khoảng thời gian từ lúc đơn được giao
+tới lúc khách trả lời khảo sát là cơ hội để doanh nghiệp chủ động liên hệ và giải quyết vấn đề, trước
+khi sự không hài lòng trở thành một đánh giá công khai.
+
+Trong đồ án, nhóm giả định hệ thống web được dùng bởi bộ phận chăm sóc khách hàng của một doanh nghiệp
+vận hành như Olist. Người dùng trực tiếp là nhân viên chăm sóc khách hàng và quản lý của họ; người
+hưởng lợi gián tiếp là khách hàng (được hỏi thăm và hỗ trợ sớm) và người bán (nhận phản hồi qua các
+quyết định ``làm việc với người bán'').
+
+\subsubsection{Quy tắc kinh doanh}
+
+Hệ thống vận hành theo các quy tắc kinh doanh sau. Các con số là giá trị mặc định; quản lý có thể
+thay đổi ở màn hình Cài đặt mà không cần sửa mã nguồn.
+
+\begin{itemize}
+    \item Mỗi đơn có nguy cơ chỉ tạo một hồ sơ xử lý (case); điểm rủi ro do mô hình cung cấp, không ai
+    được sửa.
+    \item Thời hạn xử lý (SLA) phụ thuộc mức rủi ro: 4 giờ cho mức cao, 24 giờ cho mức trung bình, 48
+    giờ cho mức thấp.
+    \item Mỗi nhân viên giữ tối đa 5 case cùng lúc; đơn mức cao chỉ được quản lý giao, nhân viên không
+    tự nhận.
+    \item Mỗi case được liên hệ khách tối đa 3 lần; lần cuối vẫn không liên lạc được thì case tự đóng.
+    \item Đóng case bắt buộc chọn kết quả hoặc lý do bỏ qua; chỉ quản lý được mở lại case đã đóng.
+    \item Mọi thao tác nhận, giao, liên lạc, đóng, mở lại, quyết định đều được ghi vào nhật ký, không
+    sửa hay xóa được.
+\end{itemize}
 
 % ------------------------------------------------------------
 \subsection{Vấn đề cần giải quyết}
@@ -72,23 +120,33 @@ dự đoán rủi ro được chuyển thành danh sách ưu tiên, lời giải
 nhân viên chăm sóc khách hàng có thể sử dụng hằng ngày?}
 
 % ------------------------------------------------------------
-\subsection{Mục tiêu của dự án}
+\subsection{Mục tiêu của dự án}\label{sec:muc-tieu}
 
 \textbf{Mục tiêu tổng quát:} xây dựng một hệ thống web hỗ trợ nhân viên chăm sóc khách hàng
 phát hiện và xử lý các đơn hàng giao đúng hạn nhưng có nguy cơ nhận đánh giá tiêu cực.
+Thông qua đó, hệ thống hướng tới tạo giá trị cho hoạt động bán hàng trực tuyến theo một chuỗi tác
+động: khi đơn có nguy cơ được phát hiện sớm, nhân viên có thể liên hệ và giải quyết vấn đề trước khi
+khách đánh giá; nhờ đó số đánh giá 1--2 sao giảm, điểm đánh giá của cửa hàng và người bán trên sàn
+được giữ vững, từ đó tăng niềm tin của người mua sau và doanh số \parencite{deshpande2023}, đồng
+thời giữ chân khách hàng cũ.
 
 \textbf{Mục tiêu cụ thể:}
 
 \begin{enumerate}
-    \item Phân tích và thiết kế hệ thống thông qua các sơ đồ Use Case, DFD, BPMN và ERD.
-    \item Thiết kế cơ sở dữ liệu dựa trên 9 bảng dữ liệu Olist, bổ sung các bảng do hệ thống
-    tạo ra để lưu kết quả dự đoán, hành động xử lý và người dùng.
-    \item Xây dựng bốn màn hình chính: danh sách đơn cần ưu tiên (Risk Queue), chi tiết lý do
-    rủi ro của từng đơn (Order Detail), ghi nhận và theo dõi xử lý (Action Tracking), và
-    minh bạch nguồn dữ liệu (Data Quality).
-    \item Tích hợp output ML cấp product item và kết quả tổng hợp cấp order theo \texttt{max-v1},
-    kèm model version, threshold version, aggregation rule và các yếu tố liên quan.
-    \item Đảm bảo giao diện hiển thị được trên máy tính, máy tính bảng và điện thoại.
+    \item Phân tích và mô hình hóa nghiệp vụ chăm sóc khách hàng chủ động bằng các sơ đồ BPMN,
+    phân rã chức năng (FDD), luồng dữ liệu (DFD), Use Case và vòng đời của một case xử lý.
+    \item Thiết kế cơ sở dữ liệu quan hệ gồm hai phần: phần nghiệp vụ lưu người dùng, case, chu kỳ
+    xử lý, phân công, lần liên lạc, quyết định, nhật ký thao tác và tham số; phần dự đoán lưu kết
+    quả chấm điểm rủi ro ở dạng chỉ đọc.
+    \item Xây dựng chín màn hình web: Đăng nhập, Tổng quan rủi ro (Overview), danh sách đơn ưu tiên
+    (Risk Queue), Chi tiết đơn (Order Detail), Liên lạc khách hàng, Quyết định, Lịch sử thao tác,
+    Cài đặt tham số và Hồ sơ người dùng, phân quyền theo hai vai trò nhân viên và quản lý.
+    \item Xây dựng máy chủ API trả dữ liệu JSON, tự kiểm tra quyền và quy tắc nghiệp vụ ở mỗi yêu
+    cầu, đồng thời ghi lại mọi thao tác quan trọng để truy vết.
+    \item Tích hợp kết quả dự đoán rủi ro vào hệ thống theo một cấu trúc dữ liệu thống nhất gồm mã
+    đơn, điểm rủi ro, mức rủi ro, các yếu tố liên quan và phiên bản mô hình.
+    \item Đảm bảo giao diện dùng được bằng tiếng Việt và tiếng Anh, hiển thị tốt trên máy tính,
+    máy tính bảng và điện thoại.
 \end{enumerate}
 
 % ------------------------------------------------------------
@@ -102,18 +160,20 @@ phát hiện và xử lý các đơn hàng giao đúng hạn nhưng có nguy cơ
     \item Đối tượng phân tích: các đơn đã giao đến khách và được giao trước hoặc đúng ngày dự
     kiến. Đơn giao trễ không thuộc phạm vi vì nguyên nhân không hài lòng đã rõ.
     \item Người dùng: nhân viên chăm sóc khách hàng và người quản lý của doanh nghiệp.
-    \item Sản phẩm: hệ thống web ở mức nguyên mẫu (prototype), chạy được với dữ liệu thật
-    của Olist và kết quả dự đoán rủi ro.
+    \item Sản phẩm: hệ thống web chạy cục bộ bằng Docker, gồm giao diện, máy chủ API và cơ sở
+    dữ liệu, được trình diễn với 100 đơn hàng thật của Olist.
 \end{itemize}
 
 \textbf{Giới hạn:}
 
 \begin{itemize}
-    \item Báo cáo web không tự huấn luyện lại mô hình; nó nhận artifact từ pipeline ML của
-    dự án và tập trung vào contract, trình bày, sử dụng và lưu trữ kết quả.
-    \item Olist chỉ có review cấp order, không có nhãn riêng cho product item. Mỗi item kế
-    thừa nhãn order; score item chỉ phản ánh rủi ro của order trong bối cảnh item và không
-    chứng minh item gây ra review thấp.
+    \item Việc xây dựng mô hình dự đoán thuộc môn Học máy và không được trình bày trong báo cáo này.
+    Hệ thống web xem kết quả dự đoán là dữ liệu đầu vào chỉ đọc, và tập trung vào cách đưa kết quả đó
+    vào quy trình chăm sóc khách hàng: trình bày, phân công, ghi nhận và theo dõi. Bản trình diễn dùng
+    một bộ kết quả dự đoán mẫu có gắn nhãn riêng, vì mô hình của môn Học máy chưa qua bước kiểm chứng
+    cuối cùng.
+    \item Olist chỉ có một điểm đánh giá chung cho cả sản phẩm và giao hàng, không tách riêng
+    từng khía cạnh, nên lý do rủi ro chỉ mang tính gợi ý.
     \item Chỉ một phần khách hàng chủ động viết đánh giá, nên những người đánh giá không đại
     diện đầy đủ cho toàn bộ người mua \parencite{li2008}. Đơn không có đánh giá không được
     xem là đơn khách hài lòng.
@@ -138,12 +198,15 @@ các bước sau:
     như tỉ lệ đơn giao đúng hạn bị đánh giá thấp để xác định vấn đề.
     \item \textbf{Phân tích yêu cầu:} xác định người dùng, nhu cầu thông tin và các chức năng
     cần có, thể hiện qua sơ đồ Use Case, DFD và BPMN.
-    \item \textbf{Thiết kế:} thiết kế cơ sở dữ liệu (ERD), thống nhất cấu trúc dữ liệu kết
-    quả dự đoán, và thiết kế giao diện bằng wireframe trên Figma trước khi lập trình.
-    \item \textbf{Xây dựng và tích hợp:} xây dựng giao diện bằng HTML, CSS và JavaScript, đọc
-    dữ liệu ở định dạng JSON, kết nối với cơ sở dữ liệu và nạp kết quả dự đoán rủi ro.
-    \item \textbf{Kiểm thử và đánh giá:} kiểm tra các chức năng chính và hiển thị trên ba kích
-    thước màn hình, sau đó đối chiếu kết quả với các mục tiêu đã đặt ra.
+    \item \textbf{Thiết kế:} thiết kế cơ sở dữ liệu (ERD), thống nhất tài liệu đặc tả API (API
+    contract) giữa giao diện và máy chủ, và thiết kế giao diện bằng wireframe trên Figma trước khi
+    lập trình.
+    \item \textbf{Xây dựng và tích hợp:} xây dựng giao diện bằng HTML, CSS và JavaScript thuần,
+    trao đổi dữ liệu JSON với máy chủ FastAPI, lưu trữ bằng PostgreSQL và đóng gói toàn bộ bằng
+    Docker Compose.
+    \item \textbf{Kiểm thử và đánh giá:} kiểm thử theo bộ ca kiểm thử suy ra từ BRD, FRD và API
+    contract, bấm thử giao diện theo từng vai trò, kiểm tra hiển thị trên ba kích thước màn hình,
+    sau đó đối chiếu kết quả với các mục tiêu đã đặt ra.
 \end{enumerate}
 
 Chi tiết về dữ liệu, công nghệ sử dụng và cách đánh giá được trình bày ở mục 3.

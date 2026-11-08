@@ -1,24 +1,213 @@
 % =========================
-% chuong/02-co-so-ly-thuyet.tex  —  người viết: Trân (BA Web)
+% chuong/02-co-so-ly-thuyet.tex
 % MỤC 2. CƠ SỞ LÝ THUYẾT
-% Thầy dặn: viết CUỐI, sau khi biết hệ thống thực sự dùng gì. Gom tài liệu thì làm sớm.
-% Tài liệu: ưu tiên từ 2021, KHÔNG dùng MDPI, Frontiers, Hindawi. Thêm vào tailieu.bib.
-% Không trùng câu chữ với mục 2 của báo cáo môn ML.
+% Tài liệu: ưu tiên từ 2021, KHÔNG dùng MDPI, Frontiers, Hindawi. DOI đã kiểm qua Crossref ngày 05/11/2026.
 % =========================
 
 \section{CƠ SỞ LÝ THUYẾT}
 
+% ------------------------------------------------------------
 \subsection{Tổng quan các khái niệm liên quan}
 
-\placeholder{Sự hài lòng của khách hàng trong thương mại điện tử; đánh giá trực tuyến;
-sự không hài lòng ẩn; hệ thống hỗ trợ ra quyết định.}
+\subsubsection{Ứng dụng web trong hoạt động kinh doanh thương mại điện tử}
 
+Trong thương mại điện tử, ứng dụng web có hai nhóm vai trò. Nhóm thứ nhất hướng tới khách hàng:
+website bán hàng, trang sản phẩm, giỏ hàng, thanh toán. Nhóm thứ hai phục vụ vận hành nội bộ: các
+ứng dụng web quản lý đơn hàng, chăm sóc khách hàng, báo cáo cho quản lý. Nhóm thứ hai không trực tiếp
+tạo ra đơn hàng nhưng quyết định chất lượng dịch vụ sau bán, từ đó ảnh hưởng tới đánh giá, uy tín và
+khả năng khách quay lại mua.
+
+So với phần mềm cài trên máy, nền tảng web phù hợp cho nghiệp vụ vận hành ở bốn điểm: người dùng chỉ
+cần trình duyệt, nhiều người làm việc cùng lúc trên cùng một dữ liệu, quyền truy cập được phân theo
+vai trò, và doanh nghiệp cập nhật hệ thống một lần cho mọi người dùng. Hệ thống trong đồ án thuộc nhóm
+thứ hai: một ứng dụng web nội bộ giúp bộ phận chăm sóc khách hàng biết nên liên hệ ai trước, ghi lại
+đã làm gì, và giúp quản lý theo dõi chất lượng chăm sóc qua các con số.
+
+\subsubsection{Sự hài lòng của khách hàng và đánh giá trực tuyến}
+
+Sự hài lòng của khách hàng là mức độ trải nghiệm thực tế đáp ứng hoặc vượt kỳ vọng của khách
+hàng đối với sản phẩm và dịch vụ. Trong thương mại điện tử, sự hài lòng được thể hiện rõ nhất qua
+điểm đánh giá sau khi nhận hàng. Điểm đánh giá vừa là phản hồi cho doanh nghiệp, vừa là thông tin
+công khai mà người mua sau tham khảo, nên một đánh giá thấp ảnh hưởng trực tiếp đến doanh số của
+người bán \parencite{deshpande2023}. Tuy nhiên, chỉ một phần khách hàng chủ động viết đánh giá, và
+những người viết thường có trải nghiệm rất tốt hoặc rất tệ \parencite{li2008}. Vì vậy, đánh giá là
+tín hiệu có giá trị nhưng không đại diện đầy đủ cho toàn bộ khách hàng.
+
+\subsubsection{Sự không hài lòng ẩn}
+
+Trong đồ án này, \textit{sự không hài lòng ẩn} (hidden dissatisfaction) được hiểu là trường hợp
+khách hàng chấm 1 hoặc 2 sao cho một đơn hàng mà các chỉ số vận hành không báo bất thường, cụ thể là
+đơn đã được giao trước hoặc đúng ngày dự kiến. Những đơn này không xuất hiện trong các báo cáo theo
+dõi giao trễ, nên doanh nghiệp chỉ biết khách không hài lòng khi đánh giá đã được đăng. Như đã trình
+bày ở mục 1.1, nhóm này chiếm 66,3\% số đơn bị chấm thấp trong dữ liệu Olist.
+
+\subsubsection{Khôi phục dịch vụ và chăm sóc khách hàng chủ động}
+
+Khôi phục dịch vụ (service recovery) là các hành động doanh nghiệp thực hiện để khắc phục một trải
+nghiệm không tốt của khách hàng. \textcite{vanvaerenbergh2019} mô tả khôi phục dịch vụ như một hành
+trình gồm ba giai đoạn: trước khi khách phàn nàn, trong lúc xử lý và sau khi xử lý; doanh nghiệp có
+thể can thiệp ngay từ giai đoạn đầu thay vì chờ khách lên tiếng. Nghiên cứu của
+\textcite{nazifi2021} trong ngành hàng không cho thấy chủ động liên hệ khách trước khi sự cố được
+khách cảm nhận giúp giảm phản hồi tiêu cực trên mạng rõ rệt so với xử lý bị động. Hệ thống trong đồ
+án áp dụng tinh thần này: nhân viên liên hệ khách có nguy cơ không hài lòng trước khi họ để lại đánh
+giá.
+
+\subsubsection{Hệ thống hỗ trợ ra quyết định và vai trò của con người}
+
+Hệ thống hỗ trợ ra quyết định (Decision Support System) là hệ thống thông tin giúp người dùng ra
+quyết định dựa trên dữ liệu và mô hình, nhưng quyết định cuối cùng vẫn thuộc về con người. Đây là
+điểm quan trọng khi hệ thống dùng kết quả của mô hình học máy. Tổng quan của \textcite{burton2020}
+cho thấy người dùng thường e ngại thuật toán (algorithm aversion), nhất là
+sau khi thấy thuật toán sai. \textcite{dietvorst2018} chỉ ra người dùng chấp nhận thuật toán chưa
+hoàn hảo hơn nếu họ được điều chỉnh kết quả, dù chỉ một chút. Thí nghiệm của \textcite{bansal2021}
+cho thấy việc kèm lời giải thích không tự động làm đội người và AI ra quyết định tốt hơn, vì người dùng
+có thể tin theo cả những gợi ý sai. Từ các kết quả này, nhóm thiết kế hệ thống để điểm rủi ro chỉ là
+căn cứ ưu tiên: nhân viên đọc yếu tố liên quan, tự liên hệ khách, tự ghi kết quả, và giao diện luôn
+nhắc rằng điểm số không phải kết luận.
+
+\subsubsection{Bảng điều khiển (dashboard)}
+
+\textcite{sarikaya2019} phân loại dashboard theo mục đích sử dụng và chỉ ra dashboard vận hành cần
+giúp người xem nhận ra việc phải làm, chứ không chỉ hiển thị số liệu. \textcite{bach2023} tổng hợp
+các mẫu thiết kế dashboard, trong đó có nguyên tắc đặt chỉ số quan trọng nhất ở vị trí dễ thấy, nhóm
+các chỉ số liên quan và cho phép đi từ con số tổng hợp tới dữ liệu chi tiết. Trang Tổng quan của hệ
+thống áp dụng các nguyên tắc này: số đơn mức cao chờ giao được đặt đầu tiên, mỗi con số đều bấm được
+để mở danh sách đơn đã lọc sẵn.
+
+% ------------------------------------------------------------
 \subsection{Các nghiên cứu và dự án liên quan}
 
-\placeholder{Tóm tắt các bài trong tab LƯỢT KHẢO theo nhóm: (1) giao hàng và đánh giá,
-(2) dự đoán sự hài lòng, (3) ưu tiên xử lý khi nguồn lực có hạn, (4) can thiệp chủ động.}
+Nhóm chia các nghiên cứu liên quan thành bốn hướng.
 
+\textbf{Giao hàng và đánh giá của khách hàng.} \textcite{deshpande2023} dùng dữ liệu hơn 15 triệu
+đơn trên Tmall và chứng minh hiệu quả giao hàng ảnh hưởng tới điểm đánh giá, từ đó ảnh hưởng tới
+doanh số. \textcite{ravula2023} cho thấy giao trễ làm điểm giảm mạnh, còn giao sớm chỉ được cộng rất
+ít. \textcite{brylla2022} chỉ ra giao nhanh bằng cách tách đơn có thể phản tác dụng. Các nghiên cứu
+này giải thích vì sao giao đúng hạn là cần nhưng chưa đủ, nhưng không đưa ra công cụ để doanh nghiệp
+xử lý từng đơn.
+
+\textbf{Dự đoán sự hài lòng trên dữ liệu Olist.} \textcite{orman2026} so sánh các mô hình học sâu để
+phân loại đơn hài lòng và không hài lòng. Hướng này tập trung vào độ chính xác của mô hình và dừng ở
+nhãn dự đoán; kết quả chưa được đưa vào một quy trình mà nhân viên có thể dùng hằng ngày.
+
+\textbf{Ưu tiên xử lý khi nguồn lực có hạn.} \textcite{ascarza2018} chứng minh khách hàng có rủi ro
+cao nhất chưa chắc là nhóm phản hồi tốt nhất với việc chăm sóc. \textcite{lemmens2020} đề xuất chọn
+khách để can thiệp theo lợi nhuận kỳ vọng thay vì chỉ theo xác suất rời bỏ. \textcite{li2026} cho thấy
+xếp hạng bằng học máy không phải lúc nào cũng tốt hơn quy tắc đơn giản. Bài học cho hệ thống là danh
+sách ưu tiên phải hiển thị thêm thông tin nghiệp vụ (SLA, thời gian chờ, người bán) để con người tự
+điều chỉnh, và phải ghi lại kết quả xử lý để sau này đánh giá được hiệu quả.
+
+\textbf{Can thiệp chủ động và cộng tác người--máy.} \textcite{nazifi2021} và
+\textcite{vanvaerenbergh2019} ủng hộ can thiệp sớm; \textcite{dietvorst2018} và
+\textcite{bansal2021} cho thấy người dùng cần quyền điều chỉnh và cần hiểu giới hạn của gợi ý.
+
+Bảng~\ref{tab:nghien-cuu} tóm tắt các nghiên cứu chính và phần hệ thống kế thừa.
+
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{4.1cm}|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{4.3cm}|}
+\caption{Các nghiên cứu liên quan và phần hệ thống kế thừa}\label{tab:nghien-cuu}\\
+\hline
+\textbf{Nghiên cứu} & \textbf{Kết quả chính} & \textbf{Hạn chế với bài toán} & \textbf{Hệ thống kế thừa} \\ \hline
+\endfirsthead
+\hline
+\textbf{Nghiên cứu} & \textbf{Kết quả chính} & \textbf{Hạn chế với bài toán} & \textbf{Hệ thống kế thừa} \\ \hline
+\endhead
+\textcite{deshpande2023} & Giao hàng ảnh hưởng tới điểm đánh giá và doanh số & Không xét đơn giao đúng hạn mà vẫn bị chê & Lý do cần xử lý trước khi khách đánh giá \\ \hline
+\textcite{ravula2023} & Giao trễ làm điểm giảm mạnh, giao sớm cộng ít & Chỉ xét thời gian giao & Không coi ``đúng hạn'' là ``đã ổn'' \\ \hline
+\textcite{orman2026} & So sánh mô hình phân loại sự hài lòng trên Olist & Dừng ở nhãn, chưa có quy trình sử dụng & Kết quả mô hình là đầu vào, hệ thống lo phần sử dụng \\ \hline
+\textcite{ascarza2018}; \textcite{lemmens2020} & Rủi ro cao chưa chắc nên ưu tiên & Bối cảnh rời bỏ dịch vụ & Ghi kết quả xử lý để đo hiệu quả về sau \\ \hline
+\textcite{li2026} & Học máy không luôn hơn quy tắc đơn giản & Bài toán giao vận & Hiển thị SLA, thời gian chờ cạnh điểm số \\ \hline
+\textcite{nazifi2021} & Chủ động liên hệ giảm phản hồi tiêu cực & Ngành hàng không & Quy trình liên hệ khách sớm có SLA \\ \hline
+\textcite{dietvorst2018}; \textcite{bansal2021} & Người dùng cần quyền điều chỉnh, giải thích không tự đủ & Thí nghiệm có kiểm soát & Con người quyết định, có ghi chú phản hồi về mô hình \\ \hline
+\textcite{bach2023}; \textcite{sarikaya2019} & Mẫu thiết kế dashboard vận hành & Không gắn với nghiệp vụ cụ thể & Bố cục trang Tổng quan, bấm từ số tới đơn \\ \hline
+\end{longtable}
+}
+
+% ------------------------------------------------------------
 \subsection{Lý thuyết và mô hình được áp dụng}
 
-\placeholder{Kiến trúc ứng dụng web (giao diện, API, cơ sở dữ liệu); các sơ đồ phân tích
-thiết kế dùng trong đồ án (Use Case, DFD, BPMN, ERD); thiết kế giao diện đáp ứng nhiều kích thước màn hình.}
+\subsubsection{Kiến trúc client--server và ứng dụng web nhiều trang}
+
+Hệ thống theo kiến trúc client--server ba tầng. Tầng trình bày là các trang web chạy trên trình
+duyệt; tầng xử lý là máy chủ API kiểm tra quyền và quy tắc nghiệp vụ; tầng dữ liệu là cơ sở dữ liệu
+quan hệ. Trình duyệt và máy chủ trao đổi qua giao thức HTTP \parencite{rfc9110}. Giao diện được xây
+theo mô hình nhiều trang (multi-page application): mỗi màn hình là một tệp HTML riêng, dùng chung
+một tệp CSS và các tệp JavaScript; sau khi tải trang, JavaScript gọi API theo kiểu AJAX để lấy dữ liệu JSON rồi dựng
+nội dung bằng DOM. Cách làm này không cần framework, đúng với các kiến thức HTML, CSS, JavaScript,
+DOM và JSON của học phần.
+
+\subsubsection{HTML, CSS và JavaScript}
+
+\begin{itemize}
+    \item \textbf{HTML5} mô tả cấu trúc trang: thanh điều hướng, bảng, biểu mẫu (form) với các ô
+    \texttt{input}, \texttt{select}, \texttt{textarea}; thuộc tính \texttt{role} và \texttt{aria-*} giúp
+    trình đọc màn hình hiểu các hộp thoại.
+    \item \textbf{CSS3} định dạng giao diện. Hệ thống dùng biến CSS cho bảng màu và khoảng cách,
+    Flexbox và Grid để dàn trang, và media query để đổi bố cục theo độ rộng màn hình (thiết kế
+    đáp ứng - responsive design).
+    \item \textbf{JavaScript} xử lý sự kiện người dùng, kiểm tra dữ liệu nhập trước khi gửi, gọi
+    API theo kỹ thuật AJAX bằng đối tượng \texttt{XMLHttpRequest} \parencite{mdnxhr}, đọc và dựng
+    dữ liệu JSON lên trang qua DOM (kể cả các hộp thoại xác nhận được tạo bằng DOM), và lưu một
+    số thiết lập (ngôn ngữ, mã đăng nhập) ở \texttt{localStorage}.
+\end{itemize}
+
+\subsubsection{RESTful API và định dạng JSON}
+
+REST là phong cách kiến trúc trong đó mỗi tài nguyên có một địa chỉ (URL) và được thao tác bằng các
+phương thức HTTP chuẩn \parencite{fielding2000}. Hệ thống dùng \texttt{GET} để đọc, \texttt{POST}
+để tạo bản ghi mới hoặc thực hiện một thao tác nghiệp vụ (nhận đơn, hoàn tất, mở lại),
+\texttt{PATCH} để cập nhật thiết lập người dùng. Mã trạng thái HTTP cho biết kết quả: 200/201 khi
+thành công, 401 khi chưa đăng nhập, 403 khi không đủ quyền, 404 khi không tìm thấy, 409 khi trạng
+thái không cho phép (ví dụ hai người cùng nhận một đơn) và 422 khi dữ liệu gửi lên không hợp lệ.
+Dữ liệu trao đổi ở dạng JSON, tên trường viết kiểu \texttt{snake\_case}, thời gian theo chuẩn ISO
+8601 có múi giờ.
+
+\subsubsection{Xác thực bằng JWT và lưu mật khẩu an toàn}
+
+JSON Web Token (JWT) là chuỗi mã có chữ ký số, chứa thông tin người dùng và thời hạn hiệu lực
+\parencite{rfc7519}. Sau khi đăng nhập đúng, máy chủ cấp JWT; trình duyệt gửi kèm mã này trong tiêu
+đề \texttt{Authorization: Bearer} ở mỗi yêu cầu, máy chủ kiểm tra chữ ký để biết ai đang gọi và vai
+trò gì. Mật khẩu không được lưu nguyên văn mà lưu dạng băm bằng thuật toán Argon2, là thuật toán được
+OWASP khuyến nghị cho lưu trữ mật khẩu \parencite{owaspargon}.
+
+\subsubsection{FastAPI và PostgreSQL}
+
+FastAPI là framework Python để xây dựng API \parencite{fastapidocs}. Mỗi endpoint khai báo kiểu dữ
+liệu vào và ra bằng thư viện Pydantic, nhờ đó dữ liệu sai kiểu bị từ chối tự động và tài liệu API
+(OpenAPI) được sinh ra từ mã nguồn. PostgreSQL là hệ quản trị cơ sở dữ liệu quan hệ mã nguồn mở
+\parencite{postgres16}. Ngoài khóa chính, khóa ngoại và ràng buộc \texttt{CHECK}, hệ thống dùng
+trigger của PostgreSQL để buộc một số bảng chỉ được thêm mới (append-only), và dùng cột phiên bản
+dòng (\texttt{row\_version}) để tránh hai người cùng sửa một case cùng lúc.
+
+\subsubsection{Docker Compose và Nginx}
+
+Docker đóng gói mỗi thành phần cùng môi trường chạy của nó thành một container; Docker Compose khai
+báo và khởi động nhiều container cùng lúc bằng một tệp cấu hình \parencite{dockercompose}. Hệ thống
+gồm bốn dịch vụ: cơ sở dữ liệu, bước tạo bảng (migration), máy chủ API và máy chủ web Nginx. Nginx
+vừa phục vụ các trang tĩnh vừa chuyển các yêu cầu \texttt{/api/v1} sang máy chủ API, nên trình duyệt
+chỉ làm việc với một địa chỉ duy nhất.
+
+\subsubsection{Các mô hình phân tích và thiết kế hệ thống}
+
+\begin{itemize}
+    \item \textbf{BPMN 2.0} (Business Process Model and Notation) mô tả quy trình nghiệp vụ bằng sự
+    kiện bắt đầu, kết thúc, công việc, cổng rẽ nhánh và các làn (lane) thể hiện ai làm việc gì
+    \parencite{omg2014bpmn}.
+    \item \textbf{Sơ đồ phân rã chức năng (FDD)} chia hệ thống thành các nhóm chức năng và chức năng
+    con theo dạng cây.
+    \item \textbf{Sơ đồ luồng dữ liệu (DFD)} mô tả dữ liệu đi từ tác nhân bên ngoài qua các tiến
+    trình xử lý tới kho dữ liệu. Nhóm dùng ký hiệu Gane--Sarson với ba mức: sơ đồ ngữ cảnh, mức 0 và
+    mức 1.
+    \item \textbf{Sơ đồ Use Case} của UML mô tả tác nhân và các chức năng họ sử dụng, cùng các quan hệ
+    «include», «extend» và kế thừa giữa tác nhân \parencite{omg2017uml}.
+    \item \textbf{Sơ đồ thực thể - liên kết (ERD)} mô tả các bảng dữ liệu và quan hệ giữa chúng
+    \parencite{chen1976}; nhóm vẽ theo ký hiệu chân quạ (crow's foot) để thể hiện bản số một - nhiều.
+\end{itemize}
+
+\subsubsection{Thiết kế giao diện đáp ứng và dễ tiếp cận}
+
+Giao diện được thiết kế để dùng được trên nhiều kích thước màn hình bằng media query và bố cục linh
+hoạt. Nhóm tham khảo hướng dẫn WCAG 2.2 \parencite{w3c2023wcag} ở ba điểm: độ tương phản giữa chữ và
+nền, không dùng màu là cách duy nhất để truyền đạt thông tin (mức rủi ro luôn có chữ và biểu tượng đi
+kèm màu), và mọi nút có nhãn đọc được.
