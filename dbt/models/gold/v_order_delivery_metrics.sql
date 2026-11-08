@@ -1,1 +1,0 @@
-select source_run_id,order_id, delivered_customer_at-purchase_at delivery_interval, (delivered_customer_at is not null and delivered_customer_at < purchase_at) anomaly_delivery_before_purchase, (estimated_delivery_at is not null and delivered_customer_at is not null and delivered_customer_at > estimated_delivery_at) delivered_late from {{ ref('orders') }}
