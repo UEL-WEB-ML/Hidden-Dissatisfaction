@@ -1,4 +1,4 @@
-.PHONY: install quality test format clean-cache start stop bootstrap bronze-manifest ingest warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
+.PHONY: up down install quality test format clean-cache start stop bootstrap bronze-manifest ingest warehouse train score demo-seed app-up e2e release-check clean-checkout db-up db-down db-logs migrate migrate-info p4-release-verify
 
 COMPOSE ?= docker compose
 
@@ -32,9 +32,22 @@ db-up:
 
 bootstrap: db-up migrate
 
+# One-command lifecycle: `make up` creates .env with random secrets if missing,
+# starts everything and seeds the demo accounts; `make down` stops it.
+up: start demo-seed
+	@echo "Frontend: http://localhost:$${FRONTEND_PORT:-4200}  |  API: http://localhost:$${API_PORT:-8000}"
+	@echo "Demo credentials: data/evidence/P12-DEMO-CREDENTIALS.env"
+
+down: stop
+
+.env:
+	@set -e; r() { openssl rand -hex 16; }; app=$$(r); pg=$$(r); \
+	sed "s|change-me-app-runtime-password|$$app|g; s|change-me-before-first-start|$$pg|g; s|replace-with-a-long-random-secret|$$(r)$$(r)|; s|replace-with-a-unique-local-demo-password|$$(r)|" .env.example > .env; \
+	echo "Created .env with generated local secrets"
+
 # Complete local application lifecycle. `stop` intentionally preserves named
 # volumes; use `docker compose down -v` only for an explicit data reset.
-start: bootstrap
+start: .env bootstrap
 	$(COMPOSE) up -d --build api frontend
 	@$(COMPOSE) ps
 

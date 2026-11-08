@@ -115,10 +115,11 @@ Code follows clean layers under [`src/hidden_dissatisfaction`](src/hidden_dissat
 **Prerequisites:** Docker with Compose v2, GNU Make, Git. Python 3.11 and [`uv`](https://docs.astral.sh/uv/) are needed only for local development and tests.
 
 ```bash
-cp .env.example .env      # then replace the placeholder secrets
-make start                # PostgreSQL + migrations + API + frontend
-make demo-seed            # local review accounts and synthetic workflow fixtures
+make up      # start everything
+make down    # stop everything (data volumes are kept)
 ```
+
+`make up` creates `.env` with random local secrets on first run, starts PostgreSQL, applies migrations, builds and starts the API and frontend, and seeds the demo accounts. It needs Docker, `make` and `openssl` (included with Git for Windows, so run it from Git Bash).
 
 | Service | URL |
 |---|---|
@@ -126,7 +127,7 @@ make demo-seed            # local review accounts and synthetic workflow fixture
 | API | <http://localhost:8000> |
 | API readiness | <http://localhost:8000/health/ready> |
 
-The smoke stack (`make e2e`) uses only schema and bootstrap fixtures and does not load the full Olist dataset. Demo credentials come from `.env` and the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env`. Stop with `make stop` (keeps volumes). Do not run `docker compose down -v` unless you intend a full local data reset.
+The smoke stack (`make e2e`) uses only schema and bootstrap fixtures and does not load the full Olist dataset. Demo login credentials are written to the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env`. Do not run `docker compose down -v` unless you intend a full local data reset.
 
 ## Development
 
