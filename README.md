@@ -131,7 +131,7 @@ The smoke stack (`make e2e`) uses only schema and bootstrap fixtures and does no
 ## Development
 
 ```bash
-uv sync --frozen --extra db --extra api --extra ml --extra notebook --extra dev
+uv sync --frozen --extra db --extra api --extra ml --extra dev
 uv run ruff check .
 uv run black --check .
 uv run mypy src tests
@@ -168,9 +168,8 @@ DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<uuid> make p4-release-verify
 ├── infra/                        # API/jobs images and PostgreSQL migrations
 ├── configs/  scripts/  tests/    # Experiment config, helper scripts, test suite
 ├── BA/                           # As-built BRD, FRD, API contract, ERD, traceability
-├── notebooks/                    # EDA notebooks and figures
 ├── Thesis/latex/                 # Course report (LaTeX, Vietnamese)
-├── web/                          # Web-course report, prototype and diagrams
+├── web/                          # Early static prototype and use-case / user-flow diagrams
 └── compose.yaml  .env.example  pyproject.toml
 ```
 

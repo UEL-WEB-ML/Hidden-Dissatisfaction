@@ -1,5 +1,3 @@
-notebooks/dataset/*.csv
-notebooks/dataset/*.parquet
 # Python
 __pycache__/
 *.py[cod]
@@ -42,7 +40,6 @@ dbt/target/
 .slim/
 
 # Generated report output
-web/BaoCao_LaTeX/main.pdf
 reports/experiments/
 reports/figures/
 reports/tables/
