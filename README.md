@@ -169,7 +169,6 @@ DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<uuid> make p4-release-verify
 ├── configs/  scripts/  tests/    # Experiment config, helper scripts, test suite
 ├── BA/                           # As-built BRD, FRD, API contract, ERD, traceability
 ├── Thesis/latex/                 # Course report (LaTeX, Vietnamese)
-├── web/                          # Early static prototype and use-case / user-flow diagrams
 └── compose.yaml  .env.example  pyproject.toml
 ```
 
