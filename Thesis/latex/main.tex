@@ -86,18 +86,60 @@ Nhóm xin hoàn toàn chịu trách nhiệm về nội dung của đồ án này
 
 \vspace{1cm}
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+{\large\textbf{DANH SÁCH THÀNH VIÊN}}\\[0.8cm]
+{\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|c|>{\centering\arraybackslash}p{6cm}|c|>{\centering\arraybackslash}p{3.3cm}|}
+\hline
+\textbf{STT} & \textbf{HỌ VÀ TÊN} & \textbf{MSSV} & \textbf{MỨC ĐỘ ĐÓNG GÓP (\%)} \\
+\hline
+1 & Vũ Anh Đào & K244161779 & 100\% \\
+\hline
+2 & Nguyễn Trần Thái Huy & K244161784 & 100\% \\
+\hline
+3 & Vòng Hữu Quân & K244161803 & 100\% \\
+\hline
+4 & Nguyễn Minh Trung & K244161818 & 100\% \\
+\hline
+5 & Vũ Sơn Trúc (Nhóm trưởng) & K244161819 & 100\% \\
+\hline
+\end{tabular}}
+\end{center}
+
+\clearpage
+\begin{table}[!htbp]
+\centering
+\caption{Phân công công việc của nhóm}\label{tab:team-assignment}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}cL{2.8cm}L{5.5cm}L{5.5cm}@{}}
 \toprule
-STT & MSSV & Họ và tên \\
+\textbf{STT} & \textbf{Thành viên} & \textbf{Công việc dự án} & \textbf{Phân công viết báo cáo} \\
 \midrule
-1 & K244161784 & Nguyễn Trần Thái Huy \\
-2 & K244161819 & Vũ Sơn Trúc \\
-3 & K244161818 & Nguyễn Minh Trung \\
-4 & K244161803 & Vòng Hữu Quân \\
-5 & K244161779 & Vũ Anh Đào \\
+1 & Nguyễn Trần Thái Huy &
+Phụ trách chính phần lập trình, tích hợp kỹ thuật và học máy: xây dựng pipeline dữ liệu và mô hình theo thời gian; phát triển đặc trưng, huấn luyện, hiệu chỉnh, đánh giá và xuất mô hình; đồng thời trực tiếp phát triển, hoàn thiện nhiều thành phần backend và workflow xử lý case như hàng đợi rủi ro, nhận/giao đơn, liên hệ, đóng/mở lại case, dashboard, audit và tham số vận hành. Bên cạnh đó, phụ trách kiểm thử tự động, CI, dữ liệu demo, hardening phát hành và các lệnh vận hành toàn hệ thống. &
+Viết toàn bộ Chương 3; cung cấp bảng chỉ số mô hình cho Chương 4; hỗ trợ tích hợp, chuẩn hóa và đối chiếu nội dung báo cáo với hệ thống đã triển khai. \\
+\midrule
+2 & Vũ Sơn Trúc &
+Phụ trách giao diện, đồng thời hỗ trợ BA: xây dựng luồng người dùng và Figma; đặc tả API; phát triển các màn đăng nhập, dashboard, hàng đợi rủi ro, chi tiết đơn và lịch sử kiểm toán; bảo đảm hiển thị đa thiết bị và kết nối giao diện với API. &
+Viết phần giao diện và demo của Chương 4; viết Chương 5 (Thảo luận). \\
+\midrule
+3 & Nguyễn Minh Trung &
+Phụ trách backend và hỗ trợ điều phối kỹ thuật: xây dựng kiến trúc backend, các bảng Gold, API xác thực và phân quyền, Risk Queue, SLA, dashboard; đóng gói luồng dữ liệu, triển khai hệ thống và kiểm thử smoke test. &
+Viết phần hệ thống và API của Chương 4; viết Chương 6 (Kết luận) và Phụ lục; ghép và rà soát bản báo cáo cuối. \\
+\midrule
+4 & Vòng Hữu Quân &
+Phụ trách dữ liệu: EDA, nhãn và đặc trưng lịch sử; xây dựng luồng Bronze--Silver, bảng dữ liệu ứng dụng và dữ liệu demo; phát triển các API nhận, giao và xử lý đơn; hỗ trợ phân tích lỗi và các sơ đồ trình tự; thực hiện video demo hệ thống. &
+Viết phần còn lại của Chương 2 (nghiên cứu liên quan và cơ sở lý thuyết); viết phần EDA và dữ liệu của Chương 4. \\
+\midrule
+5 & Vũ Anh Đào &
+Phụ trách BA: xác định bài toán, phạm vi, tiêu chí thành công; xây dựng BRD, FRD, tiêu chí nghiệm thu và kịch bản kiểm thử; tham gia từ điển dữ liệu, ERD, kiến trúc hệ thống và kiểm thử đầu cuối. &
+Viết Tóm tắt, Chương 1 (Giới thiệu) và mục 2.1 (các khái niệm liên quan); thiết kế slide báo cáo và thuyết trình. \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{table}
+\clearpage
+
    % Lời cảm ơn, Lời cam kết
 \tableofcontents
 \listoffigures\addcontentsline{toc}{chapter}{Danh mục hình ảnh}
@@ -481,7 +523,7 @@ Luồng học máy gồm bảy bước nối tiếp (Hình~\ref{fig:ml-flow}), t
 
 \begin{figure}[htbp]\centering
   \includegraphics[width=\linewidth]{system-architecture}
-  \caption{Kiến trúc tổng thể hệ thống}\label{fig:arch}
+  \caption[Kiến trúc tổng thể hệ thống]{Kiến trúc tổng thể hệ thống --- \href{https://drive.google.com/file/d/1KQCf87vmt3pYd_h88GxXBbxqkOniqAdy/view?usp=sharing}{\colorbox{yellow!25}{\textcolor{blue}{\underline{Nhấn để xem sơ đồ}}}}}\label{fig:arch}
 \end{figure}
 
 \subsection{Đặc tả hệ thống}
@@ -1506,5 +1548,44 @@ Tái lập    & Seed & 42 \\
 \bottomrule
 \end{tabular}
 \end{table}
- \chapter{Tài liệu bổ trợ}
+\chapter{Tài liệu bổ trợ}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Liên kết tài liệu bổ trợ}
+\label{tab:supplementary-links}
+\begin{tabular}{|L{4.1cm}|L{10.1cm}|}
+\hline
+\textbf{Tài liệu} & \textbf{Liên kết} \\
+\hline
+Mã nguồn (nhánh dev) &
+\url{https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction} \\
+\hline
+Tài liệu BA (BRD, FRD, API, CSDL) &
+\url{https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/tree/main/BA} \\
+\hline
+Giao diện (mã nguồn) &
+\url{https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/tree/main/frontend/prototype} \\
+\hline
+Bộ dữ liệu Olist &
+\url{https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce} \\
+\hline
+Wireframe Figma &
+\url{https://www.figma.com/design/Hu5nSjxSduHLvmMiuIfukl} \\
+\hline
+Sơ đồ phân tích thiết kế (draw.io) &
+\url{https://drive.google.com/file/d/1KQCf87vmt3pYd_h88GxXBbxqkOniqAdy/view?usp=sharing} \\
+\hline
+Video demo &
+\url{https://drive.google.com/file/d/1s1gp1oE3QNO08yQW7cVYcQqGlpaLiG-I/view?usp=sharing} \\
+\hline
+Slide thuyết trình &
+\url{} \\
+\hline
+Bảng đánh giá mức độ đóng góp &
+\url{https://docs.google.com/spreadsheets/d/14XPuzFqWPm5pwAkDYC2ZCCTkKWzE4gTt/edit?usp=sharing&ouid=105328984933864743378&rtpof=true&sd=true} \\
+\hline
+\end{tabular}
+\end{table}
 \end{document}
