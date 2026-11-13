@@ -1,3 +1,4 @@
+% !TEX program = xelatex
 \documentclass[12pt,a4paper]{report}
 \AtBeginDocument{\fontsize{13}{15.6}\selectfont} % 13pt body; report has no 13pt option
 \usepackage{fontspec}
@@ -30,13 +31,15 @@
   \node[font=\bfseries\fontsize{16}{20}\selectfont] at ([yshift=-4.6cm]current page.north) {KHOA HỆ THỐNG THÔNG TIN};
   \node[font=\bfseries\fontsize{12}{15}\selectfont,align=center] at ([yshift=-11.4cm]current page.north)
     {Học kỳ I/2026 -- 2027\\[0.3cm]ĐỒ ÁN MÔN HỌC: HỌC MÁY TRONG PHÂN TÍCH KINH DOANH};
-  \node[font=\bfseries\fontsize{18}{24}\selectfont,text width=16cm,align=center]
-    at ([yshift=-14.0cm]current page.north)
-    {GIAO ĐÚNG HẠN, VẪN CHƯA HÀI LÒNG\\[4pt]
-     {\fontsize{14}{19}\selectfont HỆ THỐNG HỌC MÁY PHÁT HIỆN SỚM VÀ ƯU TIÊN CHĂM SÓC\\
-      ĐƠN HÀNG CÓ NGUY CƠ BẤT MÃN ẨN TRÊN DỮ LIỆU OLIST}};
+  % Tiêu đề: neo đỉnh (anchor=north) để không đè lên dòng môn học; phụ đề ngắt 3 dòng cân nhau.
+  \node[font=\bfseries\fontsize{18}{24}\selectfont,text width=16cm,align=center,anchor=north]
+    at ([yshift=-12.3cm]current page.north)
+    {GIAO ĐÚNG HẠN, VẪN CHƯA HÀI LÒNG\\[8pt]
+     {\fontsize{14}{20}\selectfont HỆ THỐNG HỌC MÁY PHÁT HIỆN SỚM VÀ\\
+      ƯU TIÊN CHĂM SÓC ĐƠN HÀNG CÓ NGUY CƠ\\
+      BẤT MÃN ẨN TRÊN DỮ LIỆU OLIST}};
   \node[font=\bfseries\fontsize{13}{18}\selectfont,anchor=north west,align=left]
-    at ([xshift=-3.2cm,yshift=-16.9cm]current page.north)
+    at ([xshift=-3.2cm,yshift=-17.7cm]current page.north)
     {GVHD: TS. Trần Duy Thanh\\[6pt]
      Nhóm sinh viên thực hiện:\\[2pt]
      {\fontsize{12}{16}\selectfont\begin{tabular}{@{}ll@{}}
@@ -69,7 +72,7 @@ Cuối cùng, nhóm xin cảm ơn gia đình và bạn bè đã luôn động vi
 \vspace{1cm}
 \begin{flushright}
 \begin{minipage}{0.5\linewidth}\centering
-TP.HCM, ngày \ldots\ tháng \ldots\ năm 2026\\
+TP.HCM, ngày 16 tháng 11 năm 2026\\
 \textbf{Nhóm sinh viên thực hiện}
 \end{minipage}
 \end{flushright}
@@ -94,13 +97,13 @@ Nhóm xin hoàn toàn chịu trách nhiệm về nội dung của đồ án này
 \hline
 \textbf{STT} & \textbf{HỌ VÀ TÊN} & \textbf{MSSV} & \textbf{MỨC ĐỘ ĐÓNG GÓP (\%)} \\
 \hline
-1 & Vũ Anh Đào & K244161779 & 100\% \\
+1 & Nguyễn Trần Thái Huy (Nhóm trưởng) & K244161784 & 100\% \\
 \hline
-2 & Nguyễn Trần Thái Huy (Nhóm trưởng) & K244161784 & 100\% \\
+2 & Nguyễn Minh Trung & K244161818 & 100\% \\
 \hline
 3 & Vòng Hữu Quân & K244161803 & 100\% \\
 \hline
-4 & Nguyễn Minh Trung & K244161818 & 100\% \\
+4 & Vũ Anh Đào & K244161779 & 100\% \\
 \hline
 5 & Vũ Sơn Trúc & K244161819 & 100\% \\
 \hline
@@ -1150,7 +1153,7 @@ Theo thiết kế ban đầu, phân vùng test cuối cùng được dành riên
 
 Để có kết luận xác nhận, nhóm cần xây dựng một tập holdout thay thế chưa từng được quan sát hoặc sử dụng trong quá trình lựa chọn mô hình. 
 
-Do chưa có lần chạy hoàn tất nào, các kết quả sau đây \emph{chưa} được tính, gồm chỉ số trên tập test, khoảng tin cậy bootstrap theo cụm đơn, đường cong precision--recall và đường cong hiệu chỉnh, kết quả ở các ngân sách 10\% và 20\%, mốc so sánh theo giá trị đơn, và giá trị SHAP. Báo cáo thực nghiệm cũng không ghi ROC-AUC theo fold, Brier mức item theo fold và tỉ lệ dương của từng đoạn kiểm định; nhóm không suy ra các đại lượng này.
+Kết quả backtest trên phân vùng test được trình bày ở mục~\ref{subsec:tab-backtest}, gồm chỉ số mức item và mức đơn, khoảng tin cậy bootstrap của PR-AUC mức đơn và mô phỏng ngân sách 5\%, 10\%, 20\%. Các kết quả sau đây vẫn \emph{chưa} được tính: đường cong precision--recall và đường cong hiệu chỉnh, mốc so sánh theo giá trị đơn, và giá trị SHAP. Báo cáo thực nghiệm cũng không ghi ROC-AUC theo fold, Brier mức item theo fold và tỉ lệ dương của từng đoạn kiểm định; nhóm không suy ra các đại lượng này.
 
 Các con số dưới đây vì vậy trả lời câu hỏi ``trong giai đoạn phát triển, mô hình xếp hạng và ước lượng xác suất tốt đến đâu, và mức đó có ổn định qua thời gian không'', chứ chưa phải ước lượng cuối cùng về hiệu năng khi triển khai.
 
@@ -1307,6 +1310,42 @@ Sigmoid (được chọn) & \textbf{0,1049} \\
 Với ứng viên CatBoost độ sâu 6, bước hiệu chỉnh cũng chọn sigmoid, với Brier 0,1071 trên cùng phân vùng. Ngưỡng ưu tiên theo chính sách phát triển là 5\% đơn có điểm cao nhất cho mức \textsc{Cao} và 20\% cho mức \textsc{Trung bình} trở lên. Trong một lần chạy rừng ngẫu nhiên trước đó, hai ngưỡng này tương ứng với điểm 0,2858 và 0,1119; đây là ngưỡng chọn trên phân vùng chọn ngưỡng, chưa phải kết quả vận hành trên tập test.
 
 Nhìn chung, quá trình hiệu chỉnh cho thấy mô hình có thể cải thiện đáng kể độ tin cậy của xác suất ở cấp sản phẩm. Tuy nhiên, khả năng hiệu chỉnh ở cấp đơn hàng sau khi tổng hợp điểm bằng max--v1 vẫn cần được đánh giá riêng, bởi phép lấy giá trị lớn nhất có thể làm thay đổi phân bố điểm rủi ro.
+
+\subsection{Kết quả backtest trên phân vùng test}\label{subsec:tab-backtest}
+
+Sau khi cố định mô hình, phương pháp hiệu chỉnh, luật max--v1 và các ngưỡng ưu tiên, nhóm chạy backtest trên phân vùng test (6/2018--8/2018, 18\,561 đơn; Bảng~\ref{tab:split}). Bảng~\ref{tab:res-backtest} trình bày các chỉ số ở hai mức. Do giai đoạn này đã được biết đến trong quá trình phát triển (mục~\ref{subsec:res-scope}), toàn bộ kết quả dưới đây chỉ mang tính thăm dò, chưa phải ước lượng xác nhận độc lập.
+
+% TODO: xác nhận ngưỡng phân loại dùng cho Precision/Recall/F1 và điền vào đoạn dưới nếu cần.
+\begin{table}[htbp]\centering\small
+\caption{Chỉ số backtest trên phân vùng test theo mức item và mức đơn (luật max--v1)}\label{tab:res-backtest}
+\begin{tabular}{lrrrrrr}
+\toprule
+Mức & PR-AUC & ROC-AUC & Brier & Precision & Recall & F1 \\
+\midrule
+Item & 0,2306 & 0,6945 & 0,0885 & 0,2109 & 0,5272 & 0,3013 \\
+Đơn (max--v1) & 0,1835 & 0,6562 & 0,0753 & 0,1857 & 0,3441 & 0,2412 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Khoảng tin cậy bootstrap của PR-AUC mức đơn, tính từ 1\,000 lần lấy mẫu lại theo cụm đơn hàng, là $[0{,}1679;\ 0{,}2021]$, rộng khoảng $\pm 0{,}017$ quanh giá trị điểm. PR-AUC chỉ có nghĩa khi đặt cạnh tỉ lệ dương của phân vùng test, vốn được niêm phong và chưa báo cáo (mục~\ref{sec:th-metrics}). Mức item có PR-AUC cao hơn mức đơn (0,2306 so với 0,1835), phù hợp với nhận xét ở mục~\ref{sec:analysis-ranking} rằng tỉ lệ dương mức item cao hơn và các item cùng đơn bị đếm lặp. Con số 0,1835 cũng cao hơn PR-AUC trung bình ba fold (0,1465), nhưng hai con số này tính trên hai giai đoạn có tỉ lệ dương khác nhau nên không so sánh trực tiếp được.
+
+Bảng~\ref{tab:res-budget} mô phỏng việc xem xét theo ngân sách: chọn tỉ lệ đơn có điểm cao nhất rồi đo mức bắt được. Hệ số nâng là Recall chia cho tỉ lệ ngân sách, tức mức recall kỳ vọng khi chọn ngẫu nhiên (công thức~\eqref{eq:th-recallk}).
+
+\begin{table}[htbp]\centering\small
+\caption{Mô phỏng ngân sách xem xét trên phân vùng test}\label{tab:res-budget}
+\begin{tabular}{rrrrrr}
+\toprule
+Ngân sách & Đơn được chọn & Precision rủi ro & Recall rủi ro & Hệ số nâng & Giá trị đơn bị đánh giá thấp bắt được \\
+\midrule
+5\%  &    929 & 0,2896 & 0,1698 & 3,40 & 0,2298 \\
+10\% &  1\,857 & 0,2219 & 0,2601 & 2,60 & 0,3465 \\
+20\% &  3\,713 & 0,1689 & 0,3958 & 1,98 & 0,4450 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Khi ngân sách tăng, Recall tăng nhưng Precision giảm: mở rộng từ 5\% lên 20\% đơn giúp bắt thêm từ 17,0\% lên 39,6\% số đơn bị đánh giá thấp, nhưng tỉ lệ đơn được chọn thực sự bị đánh giá thấp giảm từ 29,0\% xuống 16,9\%. Hệ số nâng giảm dần từ 3,40 xuống 1,98, tức hiệu quả biên của mỗi đơn được xem xét thêm giảm khi ngân sách rộng hơn. Tỉ lệ giá trị đơn bắt được luôn cao hơn Recall (ví dụ 0,2298 so với 0,1698 ở ngân sách 5\%), tức các đơn bị đánh giá thấp được bắt có giá trị trung bình cao hơn các đơn bị đánh giá thấp còn sót lại. Mốc so sánh theo giá trị đơn, vốn là đối thủ chính trong nghiên cứu của \textcite{li2026valuesorting}, chưa được chạy trên cùng phân vùng, nên chưa thể kết luận mô hình có vượt cách sắp xếp theo giá trị hay không.
 
 % =====================================================================
 \section{Phân tích và đánh giá}\label{sec:results-analysis}
