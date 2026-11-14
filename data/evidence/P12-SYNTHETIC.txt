@@ -1,0 +1,6 @@
+SYNTHETIC DEMO ONLY
+This marker belongs to the P12 fixture workflow and is not Olist data.
+No production or confirmatory ML performance is represented.
+Command: make e2e
+Revision: 25f190b357d0608288001cab89a12e07142a8f75
+Generated at: 2026-11-01T12:26:48Z

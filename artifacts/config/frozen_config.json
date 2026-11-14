@@ -1,0 +1,23 @@
+{
+  "bootstrap_iterations": 1000,
+  "budgets": [
+    0.05,
+    0.1,
+    0.2
+  ],
+  "calibration_compare_end": "2018-04-01T00:00:00",
+  "calibration_fit_end": "2018-02-01T00:00:00",
+  "regimes": [
+    "item_unweighted",
+    "order_weight",
+    "order_reference"
+  ],
+  "rolling_folds": 3,
+  "seed": 42,
+  "selection_end": "2017-12-01T00:00:00",
+  "test_end": "2018-09-01T00:00:00",
+  "test_start": null,
+  "threshold_end": "2018-06-01T00:00:00",
+  "train_end": "2017-10-01T00:00:00",
+  "validation_start": null
+}

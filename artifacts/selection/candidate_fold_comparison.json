@@ -1,0 +1,1100 @@
+[
+  {
+    "brier_score": 0.07788843865005657,
+    "folds": [
+      {
+        "average_precision": 0.09928409947249435,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1015843429636533,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.09282779230481883,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.08466057903305728,
+    "parameters": {},
+    "regime": "item_unweighted",
+    "variant_id": "prevalence-v1"
+  },
+  {
+    "brier_score": 0.2215112482379414,
+    "folds": [
+      {
+        "average_precision": 0.15079019133423546,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16161643406433207,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1600296171995807,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12185711609364273,
+    "parameters": {
+      "model__C": "0.1",
+      "model__class_weight": "balanced",
+      "model__dual": "False",
+      "model__fit_intercept": "True",
+      "model__intercept_scaling": "1",
+      "model__l1_ratio": "0.0",
+      "model__max_iter": "2000",
+      "model__n_jobs": "None",
+      "model__penalty": "deprecated",
+      "model__random_state": "42",
+      "model__solver": "lbfgs",
+      "model__tol": "0.0001",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "item_unweighted",
+    "variant_id": "logistic-c0_1-v1"
+  },
+  {
+    "brier_score": 0.2194908178675226,
+    "folds": [
+      {
+        "average_precision": 0.1338460110349576,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14177857128142654,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13943353198607242,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.1205866792742153,
+    "parameters": {
+      "model__bootstrap": "True",
+      "model__ccp_alpha": "0.0",
+      "model__class_weight": "balanced_subsample",
+      "model__criterion": "gini",
+      "model__max_depth": "8",
+      "model__max_features": "sqrt",
+      "model__max_leaf_nodes": "None",
+      "model__max_samples": "None",
+      "model__min_impurity_decrease": "0.0",
+      "model__min_samples_leaf": "5",
+      "model__min_samples_split": "2",
+      "model__min_weight_fraction_leaf": "0.0",
+      "model__monotonic_cst": "None",
+      "model__n_estimators": "200",
+      "model__n_jobs": "1",
+      "model__oob_score": "False",
+      "model__random_state": "42",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "item_unweighted",
+    "variant_id": "random_forest-depth8-leaf5-v1"
+  },
+  {
+    "brier_score": 0.17224473369478152,
+    "folds": [
+      {
+        "average_precision": 0.1282019704747502,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.147952373953351,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12400108398166063,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11544626616836046,
+    "parameters": {
+      "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+      "model__class_weight": "balanced",
+      "model__early_stopping": "auto",
+      "model__interaction_cst": "None",
+      "model__l2_regularization": "1.0",
+      "model__learning_rate": "0.08",
+      "model__loss": "log_loss",
+      "model__max_bins": "255",
+      "model__max_depth": "None",
+      "model__max_features": "1.0",
+      "model__max_iter": "250",
+      "model__max_leaf_nodes": "31",
+      "model__min_samples_leaf": "20",
+      "model__monotonic_cst": "None",
+      "model__n_iter_no_change": "10",
+      "model__random_state": "42",
+      "model__scoring": "loss",
+      "model__tol": "1e-07",
+      "model__validation_fraction": "0.1",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "item_unweighted",
+    "variant_id": "hist_gradient_boosting-l2-1-leaf31-v1"
+  },
+  {
+    "brier_score": 0.22039578225718026,
+    "folds": [
+      {
+        "average_precision": 0.14702872951131785,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16002427981775208,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1579264317282833,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12065467563037326,
+    "parameters": {
+      "model__C": "1.0",
+      "model__class_weight": "balanced",
+      "model__dual": "False",
+      "model__fit_intercept": "True",
+      "model__intercept_scaling": "1",
+      "model__l1_ratio": "0.0",
+      "model__max_iter": "2000",
+      "model__n_jobs": "None",
+      "model__penalty": "deprecated",
+      "model__random_state": "42",
+      "model__solver": "lbfgs",
+      "model__tol": "0.0001",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "item_unweighted",
+    "variant_id": "logistic-c1-v1"
+  },
+  {
+    "brier_score": 0.2039441597211262,
+    "folds": [
+      {
+        "average_precision": 0.13647594090169904,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.15346962448264917,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1407246732103785,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12479424134434562,
+    "parameters": {
+      "model__bootstrap": "True",
+      "model__ccp_alpha": "0.0",
+      "model__class_weight": "balanced_subsample",
+      "model__criterion": "gini",
+      "model__max_depth": "12",
+      "model__max_features": "sqrt",
+      "model__max_leaf_nodes": "None",
+      "model__max_samples": "None",
+      "model__min_impurity_decrease": "0.0",
+      "model__min_samples_leaf": "10",
+      "model__min_samples_split": "2",
+      "model__min_weight_fraction_leaf": "0.0",
+      "model__monotonic_cst": "None",
+      "model__n_estimators": "200",
+      "model__n_jobs": "1",
+      "model__oob_score": "False",
+      "model__random_state": "42",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "item_unweighted",
+    "variant_id": "random_forest-depth12-leaf10-v1"
+  },
+  {
+    "brier_score": 0.19105824952065334,
+    "folds": [
+      {
+        "average_precision": 0.12403017654124954,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14823936274228902,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.14138649320617577,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11735554911783981,
+    "parameters": {
+      "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+      "model__class_weight": "balanced",
+      "model__early_stopping": "auto",
+      "model__interaction_cst": "None",
+      "model__l2_regularization": "5.0",
+      "model__learning_rate": "0.08",
+      "model__loss": "log_loss",
+      "model__max_bins": "255",
+      "model__max_depth": "None",
+      "model__max_features": "1.0",
+      "model__max_iter": "250",
+      "model__max_leaf_nodes": "15",
+      "model__min_samples_leaf": "20",
+      "model__monotonic_cst": "None",
+      "model__n_iter_no_change": "10",
+      "model__random_state": "42",
+      "model__scoring": "loss",
+      "model__tol": "1e-07",
+      "model__validation_fraction": "0.1",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "item_unweighted",
+    "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1"
+  },
+  {
+    "brier_score": 0.0775520464625265,
+    "folds": [
+      {
+        "average_precision": 0.09928409947249435,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1015843429636533,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.09282779230481883,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.08466057903305728,
+    "parameters": {},
+    "regime": "order_weight",
+    "variant_id": "prevalence-v1"
+  },
+  {
+    "brier_score": 0.2330281558216892,
+    "folds": [
+      {
+        "average_precision": 0.1575190983983703,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16880042788018282,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.16101530092063543,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12551290002609816,
+    "parameters": {
+      "model__C": "0.1",
+      "model__class_weight": "balanced",
+      "model__dual": "False",
+      "model__fit_intercept": "True",
+      "model__intercept_scaling": "1",
+      "model__l1_ratio": "0.0",
+      "model__max_iter": "2000",
+      "model__n_jobs": "None",
+      "model__penalty": "deprecated",
+      "model__random_state": "42",
+      "model__solver": "lbfgs",
+      "model__tol": "0.0001",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_weight",
+    "variant_id": "logistic-c0_1-v1"
+  },
+  {
+    "brier_score": 0.22458542115246968,
+    "folds": [
+      {
+        "average_precision": 0.1337761648659786,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.13926680861244617,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1278084346366925,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11872912577536349,
+    "parameters": {
+      "model__bootstrap": "True",
+      "model__ccp_alpha": "0.0",
+      "model__class_weight": "balanced_subsample",
+      "model__criterion": "gini",
+      "model__max_depth": "8",
+      "model__max_features": "sqrt",
+      "model__max_leaf_nodes": "None",
+      "model__max_samples": "None",
+      "model__min_impurity_decrease": "0.0",
+      "model__min_samples_leaf": "5",
+      "model__min_samples_split": "2",
+      "model__min_weight_fraction_leaf": "0.0",
+      "model__monotonic_cst": "None",
+      "model__n_estimators": "200",
+      "model__n_jobs": "1",
+      "model__oob_score": "False",
+      "model__random_state": "42",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_weight",
+    "variant_id": "random_forest-depth8-leaf5-v1"
+  },
+  {
+    "brier_score": 0.17610169265693346,
+    "folds": [
+      {
+        "average_precision": 0.13662562707659948,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.15635226823696627,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1178624009174492,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11476664090113183,
+    "parameters": {
+      "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+      "model__class_weight": "balanced",
+      "model__early_stopping": "auto",
+      "model__interaction_cst": "None",
+      "model__l2_regularization": "1.0",
+      "model__learning_rate": "0.08",
+      "model__loss": "log_loss",
+      "model__max_bins": "255",
+      "model__max_depth": "None",
+      "model__max_features": "1.0",
+      "model__max_iter": "250",
+      "model__max_leaf_nodes": "31",
+      "model__min_samples_leaf": "20",
+      "model__monotonic_cst": "None",
+      "model__n_iter_no_change": "10",
+      "model__random_state": "42",
+      "model__scoring": "loss",
+      "model__tol": "1e-07",
+      "model__validation_fraction": "0.1",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_weight",
+    "variant_id": "hist_gradient_boosting-l2-1-leaf31-v1"
+  },
+  {
+    "brier_score": 0.231468228156131,
+    "folds": [
+      {
+        "average_precision": 0.15436088712644958,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16981644981228688,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.16179053745144545,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12538331729824048,
+    "parameters": {
+      "model__C": "1.0",
+      "model__class_weight": "balanced",
+      "model__dual": "False",
+      "model__fit_intercept": "True",
+      "model__intercept_scaling": "1",
+      "model__l1_ratio": "0.0",
+      "model__max_iter": "2000",
+      "model__n_jobs": "None",
+      "model__penalty": "deprecated",
+      "model__random_state": "42",
+      "model__solver": "lbfgs",
+      "model__tol": "0.0001",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_weight",
+    "variant_id": "logistic-c1-v1"
+  },
+  {
+    "brier_score": 0.21205197168064868,
+    "folds": [
+      {
+        "average_precision": 0.13565575531817103,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1370041141085797,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12797884813212135,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11914703749784028,
+    "parameters": {
+      "model__bootstrap": "True",
+      "model__ccp_alpha": "0.0",
+      "model__class_weight": "balanced_subsample",
+      "model__criterion": "gini",
+      "model__max_depth": "12",
+      "model__max_features": "sqrt",
+      "model__max_leaf_nodes": "None",
+      "model__max_samples": "None",
+      "model__min_impurity_decrease": "0.0",
+      "model__min_samples_leaf": "10",
+      "model__min_samples_split": "2",
+      "model__min_weight_fraction_leaf": "0.0",
+      "model__monotonic_cst": "None",
+      "model__n_estimators": "200",
+      "model__n_jobs": "1",
+      "model__oob_score": "False",
+      "model__random_state": "42",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_weight",
+    "variant_id": "random_forest-depth12-leaf10-v1"
+  },
+  {
+    "brier_score": 0.18848255929301305,
+    "folds": [
+      {
+        "average_precision": 0.1332097962532809,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1625775159216568,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13966001299138373,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12196849845402048,
+    "parameters": {
+      "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+      "model__class_weight": "balanced",
+      "model__early_stopping": "auto",
+      "model__interaction_cst": "None",
+      "model__l2_regularization": "5.0",
+      "model__learning_rate": "0.08",
+      "model__loss": "log_loss",
+      "model__max_bins": "255",
+      "model__max_depth": "None",
+      "model__max_features": "1.0",
+      "model__max_iter": "250",
+      "model__max_leaf_nodes": "15",
+      "model__min_samples_leaf": "20",
+      "model__monotonic_cst": "None",
+      "model__n_iter_no_change": "10",
+      "model__random_state": "42",
+      "model__scoring": "loss",
+      "model__tol": "1e-07",
+      "model__validation_fraction": "0.1",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_weight",
+    "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1"
+  },
+  {
+    "brier_score": 0.07788843865005657,
+    "folds": [
+      {
+        "average_precision": 0.09928409947249435,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1015843429636533,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.09282779230481883,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.08466057903305728,
+    "parameters": {},
+    "regime": "order_reference",
+    "variant_id": "prevalence-v1"
+  },
+  {
+    "brier_score": 0.2215112482379414,
+    "folds": [
+      {
+        "average_precision": 0.15079019133423546,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16161643406433207,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1600296171995807,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12185711609364273,
+    "parameters": {
+      "model__C": "0.1",
+      "model__class_weight": "balanced",
+      "model__dual": "False",
+      "model__fit_intercept": "True",
+      "model__intercept_scaling": "1",
+      "model__l1_ratio": "0.0",
+      "model__max_iter": "2000",
+      "model__n_jobs": "None",
+      "model__penalty": "deprecated",
+      "model__random_state": "42",
+      "model__solver": "lbfgs",
+      "model__tol": "0.0001",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_reference",
+    "variant_id": "logistic-c0_1-v1"
+  },
+  {
+    "brier_score": 0.2194908178675226,
+    "folds": [
+      {
+        "average_precision": 0.1338460110349576,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14177857128142654,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13943353198607242,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.1205866792742153,
+    "parameters": {
+      "model__bootstrap": "True",
+      "model__ccp_alpha": "0.0",
+      "model__class_weight": "balanced_subsample",
+      "model__criterion": "gini",
+      "model__max_depth": "8",
+      "model__max_features": "sqrt",
+      "model__max_leaf_nodes": "None",
+      "model__max_samples": "None",
+      "model__min_impurity_decrease": "0.0",
+      "model__min_samples_leaf": "5",
+      "model__min_samples_split": "2",
+      "model__min_weight_fraction_leaf": "0.0",
+      "model__monotonic_cst": "None",
+      "model__n_estimators": "200",
+      "model__n_jobs": "1",
+      "model__oob_score": "False",
+      "model__random_state": "42",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_reference",
+    "variant_id": "random_forest-depth8-leaf5-v1"
+  },
+  {
+    "brier_score": 0.17224473369478152,
+    "folds": [
+      {
+        "average_precision": 0.1282019704747502,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.147952373953351,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12400108398166063,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11544626616836046,
+    "parameters": {
+      "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+      "model__class_weight": "balanced",
+      "model__early_stopping": "auto",
+      "model__interaction_cst": "None",
+      "model__l2_regularization": "1.0",
+      "model__learning_rate": "0.08",
+      "model__loss": "log_loss",
+      "model__max_bins": "255",
+      "model__max_depth": "None",
+      "model__max_features": "1.0",
+      "model__max_iter": "250",
+      "model__max_leaf_nodes": "31",
+      "model__min_samples_leaf": "20",
+      "model__monotonic_cst": "None",
+      "model__n_iter_no_change": "10",
+      "model__random_state": "42",
+      "model__scoring": "loss",
+      "model__tol": "1e-07",
+      "model__validation_fraction": "0.1",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_reference",
+    "variant_id": "hist_gradient_boosting-l2-1-leaf31-v1"
+  },
+  {
+    "brier_score": 0.22039578225718026,
+    "folds": [
+      {
+        "average_precision": 0.14702872951131785,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16002427981775208,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1579264317282833,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12065467563037326,
+    "parameters": {
+      "model__C": "1.0",
+      "model__class_weight": "balanced",
+      "model__dual": "False",
+      "model__fit_intercept": "True",
+      "model__intercept_scaling": "1",
+      "model__l1_ratio": "0.0",
+      "model__max_iter": "2000",
+      "model__n_jobs": "None",
+      "model__penalty": "deprecated",
+      "model__random_state": "42",
+      "model__solver": "lbfgs",
+      "model__tol": "0.0001",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_reference",
+    "variant_id": "logistic-c1-v1"
+  },
+  {
+    "brier_score": 0.2039441597211262,
+    "folds": [
+      {
+        "average_precision": 0.13647594090169904,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.15346962448264917,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1407246732103785,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.12479424134434562,
+    "parameters": {
+      "model__bootstrap": "True",
+      "model__ccp_alpha": "0.0",
+      "model__class_weight": "balanced_subsample",
+      "model__criterion": "gini",
+      "model__max_depth": "12",
+      "model__max_features": "sqrt",
+      "model__max_leaf_nodes": "None",
+      "model__max_samples": "None",
+      "model__min_impurity_decrease": "0.0",
+      "model__min_samples_leaf": "10",
+      "model__min_samples_split": "2",
+      "model__min_weight_fraction_leaf": "0.0",
+      "model__monotonic_cst": "None",
+      "model__n_estimators": "200",
+      "model__n_jobs": "1",
+      "model__oob_score": "False",
+      "model__random_state": "42",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_reference",
+    "variant_id": "random_forest-depth12-leaf10-v1"
+  },
+  {
+    "brier_score": 0.19105824952065334,
+    "folds": [
+      {
+        "average_precision": 0.12403017654124954,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14823936274228902,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.14138649320617577,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_max_v1_pr_auc": 0.11735554911783981,
+    "parameters": {
+      "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+      "model__class_weight": "balanced",
+      "model__early_stopping": "auto",
+      "model__interaction_cst": "None",
+      "model__l2_regularization": "5.0",
+      "model__learning_rate": "0.08",
+      "model__loss": "log_loss",
+      "model__max_bins": "255",
+      "model__max_depth": "None",
+      "model__max_features": "1.0",
+      "model__max_iter": "250",
+      "model__max_leaf_nodes": "15",
+      "model__min_samples_leaf": "20",
+      "model__monotonic_cst": "None",
+      "model__n_iter_no_change": "10",
+      "model__random_state": "42",
+      "model__scoring": "loss",
+      "model__tol": "1e-07",
+      "model__validation_fraction": "0.1",
+      "model__verbose": "0",
+      "model__warm_start": "False"
+    },
+    "regime": "order_reference",
+    "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1"
+  }
+]

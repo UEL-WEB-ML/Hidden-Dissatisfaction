@@ -1,0 +1,2 @@
+select p.product_id, lower(nullif(trim(p.category_name),'')) category_name, lower(nullif(trim(t.product_category_name_english),'')) category_name_english, (p.category_name is null or trim(p.category_name)='') category_missing, (t.product_category_name is null) translation_missing, p.source_run_id, p.source_row_number
+from {{ ref('products') }} p left join {{ source('bronze','category_translation') }} t on lower(trim(t.product_category_name))=lower(p.category_name) and t.run_id='{{ var("source_run_id") }}'::uuid

@@ -3,12 +3,10 @@ hidden_dissatisfaction:
   outputs:
     dev:
       type: postgres
-      host: "{{ env_var('DBT_HOST', 'localhost') }}"
-      port: "{{ env_var('DBT_PORT', '5432') | int }}"
-      user: "{{ env_var('DBT_USER') }}"
-      password: "{{ env_var('DBT_PASSWORD') }}"
-      dbname: "{{ env_var('DBT_DATABASE', 'hidden_dissatisfaction') }}"
-      schema: "{{ env_var('DBT_TARGET_SCHEMA', 'public') }}"
-      # Keep local/WSL execution conservative; production runners can opt in
-      # to additional parallelism through DBT_THREADS after capacity review.
-      threads: "{{ env_var('DBT_THREADS', '1') | int }}"
+      host: "{{ env_var('SILVER_DB_HOST', 'localhost') }}"
+      port: "{{ env_var('SILVER_DB_PORT', '5432') | int }}"
+      user: "{{ env_var('SILVER_DB_USER') }}"
+      password: "{{ env_var('SILVER_DB_PASSWORD') }}"
+      dbname: "{{ env_var('SILVER_DB_NAME', 'ironman') }}"
+      schema: silver
+      threads: 4

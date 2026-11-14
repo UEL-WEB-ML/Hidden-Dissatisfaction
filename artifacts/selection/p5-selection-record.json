@@ -1,0 +1,13 @@
+{
+  "calibration_method": "isotonic",
+  "lock": "6e4023c9c55f33b38c7b2dcae47cb6177ce007e5fefc582bac40a61dcf83caeb",
+  "selected_key": "item_unweighted:hist_gradient_boosting-l2-5-leaf15-v1",
+  "selection_rule": "max order_max_v1_pr_auc, then min Brier, then declared simplicity",
+  "threshold_policy": {
+    "high_from": 0.2875,
+    "medium_from": 0.1665024630541872,
+    "policy": "top20_top5_order_probability"
+  },
+  "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1",
+  "variant_parameters": {}
+}

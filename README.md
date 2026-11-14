@@ -1,200 +1,21 @@
-<div align="center">
+# Bronze ingestion
 
-<img src="docs/assets/banner.svg" alt="Hidden Dissatisfaction — predicting 1–2★ reviews on orders delivered on time" width="100%">
-
-**Predicting 1–2★ reviews on orders that were delivered on time, and turning the scores into a prioritized case-handling workflow.**
-
-[![quality](https://img.shields.io/github/actions/workflow/status/UEL-WEB-ML/Hidden-Dissatisfaction/quality.yml?branch=main&style=for-the-badge&logo=github&label=quality)](https://github.com/UEL-WEB-ML/Hidden-Dissatisfaction/actions/workflows/quality.yml) ![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white) ![dbt](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyBmaWxsPSJ3aGl0ZSIgcm9sZT0iaW1nIiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BPHRpdGxlPmRidDwvdGl0bGU%2BPHBhdGggZD0iTTE3LjkwMDQgOS4zNzYzYTguMTQ4OCA4LjE0ODggMCAwIDAtMy4wNDIxLTMuMTIwNmwxLjc3MDguODM4NWExMC4yODc0IDEwLjI4NzQgMCAwIDEgMy43NCAzLjAwMDdsMy4yMzQtNS45Mjk1YTIuODU0NiAyLjg1NDYgMCAwIDAtLjA2MTEtMi45NjA0QzIyLjc1NjYuMDM3MSAyMS4yMTEyLS4zNDA5IDE5Ljk3NTQuMzMyN2wtNS44NzQ5IDMuMjEwMWE0LjM2MTIgNC4zNjEyIDAgMCAxLTQuMTc2MSAwTDQuMTc2OS40MDhhMi44NTQ1IDIuODU0NSAwIDAgMC0yLjk1OTIuMDYzMmMtMS4xNjczLjc4NTMtMS41NDUyIDIuMzMtLjg3MjMgMy41NjU1TDMuNTUgOS45MTA2YTQuMzYxMiA0LjM2MTIgMCAwIDEgMCA0LjE3NzJsLTMuMTI3MiA1Ljc0M2EyLjg2IDIuODYgMCAwIDAgLjA4NSAyLjk5NzRjLjc5NCAxLjE0MzggMi4zMjI1IDEuNTA1NCAzLjU0NDguODM4NWw2LjA1ODEtMy4zMDQ5YTEwLjI4NzcgMTAuMjg3NyAwIDAgMS0zLjAwNTEtMy43NDU0bC0uODM3NC0xLjc3MDhhOC4xNDggOC4xNDggMCAwIDAgMy4xMjA2IDMuMDQyMWwxMC41ODMyIDUuNzc5YzEuMjIxMy42NjYgMi43NDgxLjMwNTUgMy41NDI2LS44MzYzYTIuODY5OSAyLjg2OTkgMCAwIDAgLjA3OTYtMy4wMDE4TDE3LjkwMDQgOS4zNzYzem0zLjM4MDEtNy43MzUxYy42MDIyIDAgMS4wOTA0LjQ4ODIgMS4wOTA0IDEuMDkwNHMtLjQ4ODIgMS4wOTA0LTEuMDkwNCAxLjA5MDQtMS4wOTA0LS40ODgyLTEuMDkwNC0xLjA5MDQuNDg4Mi0xLjA5MDQgMS4wOTA0LTEuMDkwNHpNMi43NDQyIDMuODIyYy0uNjAyMiAwLTEuMDkwNC0uNDg4Mi0xLjA5MDQtMS4wOTA0cy40ODgyLTEuMDkwNCAxLjA5MDQtMS4wOTA0IDEuMDkwNC40ODgyIDEuMDkwNCAxLjA5MDRTMy4zNDY0IDMuODIyIDIuNzQ0MiAzLjgyMnptMCAxOC41MzYzYy0uNjAyMiAwLTEuMDkwNC0uNDg4Mi0xLjA5MDQtMS4wOTA0IDAtLjYwMjIuNDg4Mi0xLjA5MDQgMS4wOTA0LTEuMDkwNHMxLjA5MDQuNDg4MiAxLjA5MDQgMS4wOTA0YzAgLjYwMjItLjQ4ODIgMS4wOTA0LTEuMDkwNCAxLjA5MDR6bTEwLjM1ODUtMTEuNDQ4OWMtMS4yMDA4LS4wMDM1LTIuMTc3Ljk2NzItMi4xODA1IDIuMTY3OWEyLjE3MzggMi4xNzM4IDAgMCAwIC43MDUyIDEuNjA5MWMtMS40ODcyLS4yMDkxLTIuNTIzNC0xLjU4NDMtMi4zMTQyLTMuMDcxNi4yMDkxLTEuNDg3MiAxLjU4NDMtMi41MjM0IDMuMDcxNi0yLjMxNDJhMi43MTk0IDIuNzE5NCAwIDAgMSAyLjMxNDIgMi4zMTQyIDIuMTYyMyAyLjE2MjMgMCAwIDAtMS41OTYzLS43MDU0em04LjE3NzggMTEuNDQ4OWMtLjYwMjIgMC0xLjA5MDQtLjQ4ODItMS4wOTA0LTEuMDkwNCAwLS42MDIyLjQ4ODItMS4wOTA0IDEuMDkwNC0xLjA5MDRzMS4wOTA0LjQ4ODIgMS4wOTA0IDEuMDkwNGMwIC42MDIyLS40ODgyIDEuMDkwNC0xLjA5MDQgMS4wOTA0eiIvPjwvc3ZnPg%3D%3D) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white) ![Data](https://img.shields.io/badge/data-Olist%20(Kaggle)-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white) ![Scope](https://img.shields.io/badge/scope-local%20demo%20%2F%20decision%20support-orange?style=for-the-badge)
-
-[Application](#application) · [Thesis](Thesis/latex/main.tex) · [Contributing](CONTRIBUTING.md)
-
-</div>
-
-Late delivery is the best-known cause of bad reviews, so operations teams watch late orders. This project looks at the remainder: orders that arrived **on time or early** and still received 1–2 stars — *hidden dissatisfaction*. There is no delivery alert for these orders, so a customer-care team learns about them only after the review is posted.
-
-The repository contains the full path from raw data to a working tool:
-
-- a **warehouse** (PostgreSQL + dbt, Bronze → Silver → Intermediate → Gold) built from the Olist dataset;
-- an **ML pipeline** with leakage-controlled features, rolling-origin validation, calibration and a top-k priority threshold;
-- a **case-handling application** (FastAPI + static web UI) with role-based access, SLA tracking and an append-only audit trail;
-- the **course report** (LaTeX, Vietnamese) in [`Thesis/latex/`](Thesis/latex/main.tex).
-
-> **Read this first.** Model results are exploratory development results, not a confirmatory estimate. The bundled demo UI shows deterministic **synthetic scores**, not production model inference. All claims are predictive/associational, never causal.
-
-## Application
-
-The web app puts the risk score to work: specialists claim and contact customers, managers assign HIGH-risk cases, and every change is audited. The UI is in Vietnamese.
-
-**Risk queue** — orders ranked by priority, with SLA ageing, owner and next action.
-
-![Risk queue](Thesis/latex/images/ui-risk-queue.png)
-
-**Risk overview** — workload, SLA breaches, daily inflow and risk-band mix.
-
-![Risk overview dashboard](Thesis/latex/images/ui-dashboard.png)
-
-<table>
-  <tr>
-    <td width="50%"><b>Order detail</b> — score, item-level context and handling history<br><img src="Thesis/latex/images/ui-order-detail.png" alt="Order detail"></td>
-    <td width="50%"><b>Contact attempt</b> — evidence-backed customer contact<br><img src="Thesis/latex/images/ui-contact-attempt.png" alt="Contact attempt"></td>
-  </tr>
-</table>
-
-| Role | Can do |
-|---|---|
-| `SPECIALIST` | View the queue, claim valid LOW/MEDIUM cases within capacity, record contact attempts |
-| `MANAGER` | Assign HIGH cases, reopen cases, set decisions, review audit, change parameters |
-
-Cases move through `PENDING → IN_PROGRESS → COMPLETED / SKIPPED`. Authorization is enforced in the API (Bearer JWT), not in the browser.
-
-## Problem definition
-
-| | |
-|---|---|
-| **Population** | Orders delivered on time or early |
-| **Target** | Observed order review score of 1–2 (among reviewed orders) |
-| **ML grain** | Product item (`product_item_id`) — each item inherits its order's label (a *weak label*) |
-| **Split / workflow grain** | Order (`order_id`); all items of an order stay in the same split and bootstrap cluster |
-| **Prediction time** | Right after delivery confirmation, before any review information |
-| **Order score** | `max-v1`: the maximum item score in the order |
-| **Decision use** | Rank a human review queue. No automatic customer action |
-
-Because Olist only records reviews per order, an item score means *"this order is at risk in the context of this item"*. It does not show that the item caused the dissatisfaction.
-
-## Key findings
-
-**Exploratory analysis** (full details in the report):
-
-- Late delivery dominates: **62.4%** of late orders get 1–2★ versus **9.3%** of on-time orders (6.7× lift).
-- Among on-time orders, signals are weaker but real. Orders with two sellers are rated low **45.7%** of the time versus **8.7%** for single-seller orders; the rate rises from 7.5% (1 item) to 31.9% (4+ items).
-- The study population has **85,420 orders** and a positive rate of **9.21%** — strongly imbalanced, so accuracy is not reported.
-
-<table>
-  <tr>
-    <td width="50%"><img src="Thesis/latex/images/eda/14_score_factors.png" alt="Low-review rate by eight factors"></td>
-    <td width="50%"><img src="Thesis/latex/images/eda/09_promise_vs_reality.png" alt="Delivery promise versus reality"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Low-review rate by factor</sub></td>
-    <td align="center"><sub>Delivery promise vs. reality</sub></td>
-  </tr>
-</table>
-
-**Model** (Random Forest, depth 8, order-weighted, sigmoid-calibrated; 3-fold rolling-origin on the development partition; 61 features in 7 groups):
-
-| Metric (order level, mean of 3 folds) | Retained model | Base-features model | Random baseline |
-|---|---:|---:|---:|
-| PR-AUC | **0.1465** | 0.1363 | ≈ 0.09 (prevalence, approx.) |
-| Recall@5% | **0.1212** | – | 0.05 |
-| Brier (uncalibrated) | **0.1907** | 0.2018 | – |
-
-- The top 5% of orders captures about **2.4×** more low-review orders than random selection.
-- Sigmoid calibration reduces item-level Brier from 0.2203 to 0.1049.
-- The planned PR-AUC stopping target of 0.25 was **not reached**. Of nine feature-group experiments, three were retained (seller speed/volatility, order composition, product morphology) and six were rejected.
-- The historical test partition was exposed during development, so these figures are not confirmatory. Confirmatory claims stay blocked until a replacement holdout is run.
-
-## Architecture
-
-The pipeline is split into an **offline** flow (ingest, build features, train, batch-score) and an **online** flow that only *reads* the stored score snapshot to drive the queue, assignments and handling records. Scores live in the `ml` schema; the workflow and the append-only audit log live in the `app` schema.
-
-![System architecture](Thesis/latex/images/system-architecture.png)
+Apply the versioned migration (from `Docker_Environment`):
 
 ```text
-Olist CSV → Bronze → Silver → Intermediate → Gold (ml_modelling_items) → Parquet
-          → training & selection → release scoring (max-v1) → ml.* snapshots → API → Web UI
+docker compose --env-file ~/.config/docker-environment/.env exec -T postgres psql -U postgres -d ironman -v ON_ERROR_STOP=1 -f /sql/migrations/001_bronze.sql
 ```
 
-Code follows clean layers under [`src/hidden_dissatisfaction`](src/hidden_dissatisfaction): `domain` (pure rules, no I/O) → `application` (use cases, ports) → `infrastructure` (Postgres, joblib, parquet) → `api` (FastAPI, JWT) → `interfaces` (CLI), plus `modeling`.
-
-### Research invariants
-
-- Features are computable at delivery time and fitted on training data only, with strict history cutoffs.
-- All items of one `order_id` stay in the same temporal split and bootstrap cluster.
-- Minority-class and calibration metrics are reported: PR-AUC, Brier, Recall@5%.
-- No raw data, credentials or large artifacts are committed.
-
-## Quick start
-
-**Prerequisites:** Docker with Compose v2, GNU Make, Git. Python 3.11 and [`uv`](https://docs.astral.sh/uv/) are needed only for local development and tests.
-
-```bash
-make up      # start everything
-make down    # stop everything (data volumes are kept)
-```
-
-`make up` creates `.env` with random local secrets on first run, starts PostgreSQL, applies migrations, builds and starts the API and frontend, and seeds the demo accounts. It needs Docker, `make` and `openssl` (included with Git for Windows, so run it from Git Bash).
-
-| Service | URL |
-|---|---|
-| Frontend | <http://localhost:4200> |
-| API | <http://localhost:8000> |
-| API readiness | <http://localhost:8000/health/ready> |
-
-The smoke stack (`make e2e`) uses only schema and bootstrap fixtures and does not load the full Olist dataset. Demo login credentials are written to the Git-ignored `data/evidence/P12-DEMO-CREDENTIALS.env`. Do not run `docker compose down -v` unless you intend a full local data reset.
-
-## Development
-
-```bash
-uv sync --frozen --extra db --extra api --extra ml --extra dev
-uv run ruff check .
-uv run black --check .
-uv run mypy src tests
-uv run pytest --cov=hidden_dissatisfaction --cov-report=term-missing
-```
-
-`domain` and `application` must keep **100% test coverage**. The CLI is `hidden-dissatisfaction`.
-
-### Data and ML workflows (opt-in)
-
-API startup never ingests the dataset. Download the nine Olist CSVs only for warehouse or modelling work:
-
-```bash
-kaggle datasets download -d olistbr/brazilian-ecommerce -p data/raw/olist --unzip
-make bootstrap && make bronze-manifest && make ingest
-DBT_SOURCE_RUN_ID=<completed-run-uuid> make warehouse
-TRAIN_COMMAND=... make train
-SCORE_COMMAND=... make score
-```
-
-The run UUID must identify exactly one `COMPLETE` row in `bronze.ingestion_runs`. Before promoting any modelling dataset, run the release gate against the complete warehouse:
-
-```bash
-DBT_USER=... DBT_PASSWORD=... DBT_SOURCE_RUN_ID=<uuid> make p4-release-verify
-```
-
-## Repository layout
+Then run the stdlib-only loader from this directory:
 
 ```text
-.
-├── src/hidden_dissatisfaction/   # Python package (domain, application, infrastructure, api, interfaces, modeling)
-├── dbt/                          # Silver / Intermediate / Gold models and data tests
-├── frontend/prototype/           # Delivered static web UI (nginx)
-├── infra/                        # API/jobs images and PostgreSQL migrations
-├── configs/  scripts/  tests/    # Experiment config, helper scripts, test suite
-├── BA/                           # As-built BRD, FRD, API contract, ERD, traceability
-├── Thesis/latex/                 # Course report (LaTeX, Vietnamese)
-└── compose.yaml  .env.example  pyproject.toml
+python scripts/load_bronze.py [--env-file /path/to/.env]
 ```
 
-## Documentation
+The loader validates all nine canonical files and their manifest checksums before taking an advisory lock and loading one run. It preserves historical runs and performs no Silver/Gold transformations.
 
-| Topic | Where |
-|---|---|
-| As-built product contract (BRD, FRD, API, ERD, data dictionary, traceability) | [`BA/README.md`](BA/README.md) |
-| Report (Vietnamese) | [`Thesis/latex/main.tex`](Thesis/latex/main.tex) — build with `cd Thesis/latex && latexmk -pdf main.tex` (needs `biber`) |
+## Silver
 
-## Limitations
+Create a virtualenv and install matching pinned packages: `python -m pip install 'dbt-core==1.8.2' 'dbt-postgres==1.8.2'`. Then run `python scripts/build_silver.py [--env-file PATH] [--run-id UUID] [--dbt-bin PATH]`. The default selects the latest completed Bronze run and passes exactly one `source_run_id` dbt variable. Validate without building with `dbt parse --project-dir dbt --profiles-dir dbt`.
 
-- **Weak labels:** reviews are per order; item scores are not causal attributions.
-- **Selection bias:** only customers who wrote a review are observed, so the model estimates *observed* dissatisfaction, not that of all customers.
-- **Exploratory results:** the historical test partition was exposed during development.
-- **Demo scores:** the UI uses deterministic fixtures (`olist-ui-demo-v1`), not the retained model.
-- **Batch only:** no online learning, automatic retraining or automatic promotion.
-
-## Contributing
-
-Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first. Never commit `.env`, raw Olist CSVs, credentials, evidence uploads or unreviewed experiment artifacts.
-
-## Data and attribution
-
-Built on the public [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (Kaggle). Course project, Faculty of Information Systems; see the report for authors and references.
+The runner also builds the available Gold core: historical dimensions, order/item/payment facts, distinct order bridges, safe delivery views, and Olist-only aggregates. `dim_ml_feature` is intentionally empty; risk, SLA, workload, contact, and app workflow inputs require a separately approved contract. Direct selection: `dbt build --project-dir dbt --profiles-dir dbt --vars '{source_run_id: "UUID"}'`.

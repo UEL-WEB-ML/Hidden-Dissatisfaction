@@ -1,0 +1,12 @@
+{
+  "git_commit": "bf3ffd376b4dafa959052dedf6c6578bb83cde67",
+  "packages": {
+    "catboost": null,
+    "joblib": "1.6.0",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "pyarrow": "21.0.0",
+    "scikit-learn": "1.9.1"
+  },
+  "working_tree_dirty": true
+}

@@ -1,0 +1,13 @@
+{
+  "calibration_method": "isotonic",
+  "lock": "2a2746113a9d7cd1c17e1d7b9c68c88c7895b74ead68b6ea9ecc86dbbfa29b4c",
+  "selected_key": "order_weight:logistic-c0_1-v1",
+  "selection_rule": "max order_max_v1_pr_auc, then min Brier, then declared simplicity",
+  "threshold_policy": {
+    "high_from": 0.2654668166479191,
+    "medium_from": 0.1405335068314899,
+    "policy": "top20_top5_order_probability"
+  },
+  "variant_id": "logistic-c0_1-v1",
+  "variant_parameters": {}
+}

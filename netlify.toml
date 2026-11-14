@@ -1,7 +1,0 @@
-[build]
-  base = "frontend/prototype"
-  command = "npm run build"
-  publish = "."
-
-[build.environment]
-  NODE_VERSION = "20"

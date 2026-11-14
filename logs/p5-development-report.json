@@ -1,0 +1,1895 @@
+{
+  "calibration_brier_scores": {
+    "isotonic": 0.1083967841810853,
+    "none": 0.18921988228520487,
+    "sigmoid": 0.10844191777537242
+  },
+  "calibration_method": "isotonic",
+  "candidate_comparison": [
+    {
+      "brier_score": 0.07788843865005657,
+      "folds": [
+        {
+          "average_precision": 0.09928409947249435,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1015843429636533,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.09282779230481883,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.08466057903305728,
+      "parameters": {},
+      "regime": "item_unweighted",
+      "variant_id": "prevalence-v1"
+    },
+    {
+      "brier_score": 0.21141572566590752,
+      "folds": [
+        {
+          "average_precision": 0.15086601951847822,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.16708468185326925,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.16082398081700375,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12391589786549224,
+      "parameters": {
+        "model__C": "0.1",
+        "model__class_weight": "balanced",
+        "model__dual": "False",
+        "model__fit_intercept": "True",
+        "model__intercept_scaling": "1",
+        "model__l1_ratio": "0.0",
+        "model__max_iter": "2000",
+        "model__n_jobs": "None",
+        "model__penalty": "deprecated",
+        "model__random_state": "42",
+        "model__solver": "lbfgs",
+        "model__tol": "0.0001",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "item_unweighted",
+      "variant_id": "logistic-c0_1-v1"
+    },
+    {
+      "brier_score": 0.21706920077172462,
+      "folds": [
+        {
+          "average_precision": 0.12994147362254507,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.14576631452861571,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.12879406989958397,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.1166860132404126,
+      "parameters": {
+        "model__bootstrap": "True",
+        "model__ccp_alpha": "0.0",
+        "model__class_weight": "balanced_subsample",
+        "model__criterion": "gini",
+        "model__max_depth": "8",
+        "model__max_features": "sqrt",
+        "model__max_leaf_nodes": "None",
+        "model__max_samples": "None",
+        "model__min_impurity_decrease": "0.0",
+        "model__min_samples_leaf": "5",
+        "model__min_samples_split": "2",
+        "model__min_weight_fraction_leaf": "0.0",
+        "model__monotonic_cst": "None",
+        "model__n_estimators": "200",
+        "model__n_jobs": "1",
+        "model__oob_score": "False",
+        "model__random_state": "42",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "item_unweighted",
+      "variant_id": "random_forest-depth8-leaf5-v1"
+    },
+    {
+      "brier_score": 0.17061449050916935,
+      "folds": [
+        {
+          "average_precision": 0.11395044542317073,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1380810990626044,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.13893413745754746,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.1093412613374777,
+      "parameters": {
+        "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+        "model__class_weight": "balanced",
+        "model__early_stopping": "auto",
+        "model__interaction_cst": "None",
+        "model__l2_regularization": "1.0",
+        "model__learning_rate": "0.08",
+        "model__loss": "log_loss",
+        "model__max_bins": "255",
+        "model__max_depth": "None",
+        "model__max_features": "1.0",
+        "model__max_iter": "250",
+        "model__max_leaf_nodes": "31",
+        "model__min_samples_leaf": "20",
+        "model__monotonic_cst": "None",
+        "model__n_iter_no_change": "10",
+        "model__random_state": "42",
+        "model__scoring": "loss",
+        "model__tol": "1e-07",
+        "model__validation_fraction": "0.1",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "item_unweighted",
+      "variant_id": "hist_gradient_boosting-l2-1-leaf31-v1"
+    },
+    {
+      "brier_score": 0.20988559635184875,
+      "folds": [
+        {
+          "average_precision": 0.1477091415204858,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1640986082349653,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.15875442587896998,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12240851952990044,
+      "parameters": {
+        "model__C": "1.0",
+        "model__class_weight": "balanced",
+        "model__dual": "False",
+        "model__fit_intercept": "True",
+        "model__intercept_scaling": "1",
+        "model__l1_ratio": "0.0",
+        "model__max_iter": "2000",
+        "model__n_jobs": "None",
+        "model__penalty": "deprecated",
+        "model__random_state": "42",
+        "model__solver": "lbfgs",
+        "model__tol": "0.0001",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "item_unweighted",
+      "variant_id": "logistic-c1-v1"
+    },
+    {
+      "brier_score": 0.20047912148719807,
+      "folds": [
+        {
+          "average_precision": 0.13016227692786142,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.15222016679823552,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.13729064762034843,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.11885408465472447,
+      "parameters": {
+        "model__bootstrap": "True",
+        "model__ccp_alpha": "0.0",
+        "model__class_weight": "balanced_subsample",
+        "model__criterion": "gini",
+        "model__max_depth": "12",
+        "model__max_features": "sqrt",
+        "model__max_leaf_nodes": "None",
+        "model__max_samples": "None",
+        "model__min_impurity_decrease": "0.0",
+        "model__min_samples_leaf": "10",
+        "model__min_samples_split": "2",
+        "model__min_weight_fraction_leaf": "0.0",
+        "model__monotonic_cst": "None",
+        "model__n_estimators": "200",
+        "model__n_jobs": "1",
+        "model__oob_score": "False",
+        "model__random_state": "42",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "item_unweighted",
+      "variant_id": "random_forest-depth12-leaf10-v1"
+    },
+    {
+      "brier_score": 0.18493936189258461,
+      "folds": [
+        {
+          "average_precision": 0.12605130798032657,
+          "fold": 1,
+          "regime": "item_unweighted",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1442875900191085,
+          "fold": 2,
+          "regime": "item_unweighted",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.14271646989119652,
+          "fold": 3,
+          "regime": "item_unweighted",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.11577824033281037,
+      "parameters": {
+        "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+        "model__class_weight": "balanced",
+        "model__early_stopping": "auto",
+        "model__interaction_cst": "None",
+        "model__l2_regularization": "5.0",
+        "model__learning_rate": "0.08",
+        "model__loss": "log_loss",
+        "model__max_bins": "255",
+        "model__max_depth": "None",
+        "model__max_features": "1.0",
+        "model__max_iter": "250",
+        "model__max_leaf_nodes": "15",
+        "model__min_samples_leaf": "20",
+        "model__monotonic_cst": "None",
+        "model__n_iter_no_change": "10",
+        "model__random_state": "42",
+        "model__scoring": "loss",
+        "model__tol": "1e-07",
+        "model__validation_fraction": "0.1",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "item_unweighted",
+      "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1"
+    },
+    {
+      "brier_score": 0.0775520464625265,
+      "folds": [
+        {
+          "average_precision": 0.09928409947249435,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1015843429636533,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.09282779230481883,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.08466057903305728,
+      "parameters": {},
+      "regime": "order_weight",
+      "variant_id": "prevalence-v1"
+    },
+    {
+      "brier_score": 0.2234091369954434,
+      "folds": [
+        {
+          "average_precision": 0.15375588456429173,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.17113017004607817,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.16181791057358796,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12545251012328637,
+      "parameters": {
+        "model__C": "0.1",
+        "model__class_weight": "balanced",
+        "model__dual": "False",
+        "model__fit_intercept": "True",
+        "model__intercept_scaling": "1",
+        "model__l1_ratio": "0.0",
+        "model__max_iter": "2000",
+        "model__n_jobs": "None",
+        "model__penalty": "deprecated",
+        "model__random_state": "42",
+        "model__solver": "lbfgs",
+        "model__tol": "0.0001",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_weight",
+      "variant_id": "logistic-c0_1-v1"
+    },
+    {
+      "brier_score": 0.22100364378218393,
+      "folds": [
+        {
+          "average_precision": 0.12334449151674963,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.14574305258557152,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.12009162634099982,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.11568403523590172,
+      "parameters": {
+        "model__bootstrap": "True",
+        "model__ccp_alpha": "0.0",
+        "model__class_weight": "balanced_subsample",
+        "model__criterion": "gini",
+        "model__max_depth": "8",
+        "model__max_features": "sqrt",
+        "model__max_leaf_nodes": "None",
+        "model__max_samples": "None",
+        "model__min_impurity_decrease": "0.0",
+        "model__min_samples_leaf": "5",
+        "model__min_samples_split": "2",
+        "model__min_weight_fraction_leaf": "0.0",
+        "model__monotonic_cst": "None",
+        "model__n_estimators": "200",
+        "model__n_jobs": "1",
+        "model__oob_score": "False",
+        "model__random_state": "42",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_weight",
+      "variant_id": "random_forest-depth8-leaf5-v1"
+    },
+    {
+      "brier_score": 0.1702017633518592,
+      "folds": [
+        {
+          "average_precision": 0.12334269316991643,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.16519677738822353,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.1309057552573099,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12017596430302206,
+      "parameters": {
+        "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+        "model__class_weight": "balanced",
+        "model__early_stopping": "auto",
+        "model__interaction_cst": "None",
+        "model__l2_regularization": "1.0",
+        "model__learning_rate": "0.08",
+        "model__loss": "log_loss",
+        "model__max_bins": "255",
+        "model__max_depth": "None",
+        "model__max_features": "1.0",
+        "model__max_iter": "250",
+        "model__max_leaf_nodes": "31",
+        "model__min_samples_leaf": "20",
+        "model__monotonic_cst": "None",
+        "model__n_iter_no_change": "10",
+        "model__random_state": "42",
+        "model__scoring": "loss",
+        "model__tol": "1e-07",
+        "model__validation_fraction": "0.1",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_weight",
+      "variant_id": "hist_gradient_boosting-l2-1-leaf31-v1"
+    },
+    {
+      "brier_score": 0.22141777588680958,
+      "folds": [
+        {
+          "average_precision": 0.15224254339907745,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.171070302711109,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.1617410007765669,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12523253642857915,
+      "parameters": {
+        "model__C": "1.0",
+        "model__class_weight": "balanced",
+        "model__dual": "False",
+        "model__fit_intercept": "True",
+        "model__intercept_scaling": "1",
+        "model__l1_ratio": "0.0",
+        "model__max_iter": "2000",
+        "model__n_jobs": "None",
+        "model__penalty": "deprecated",
+        "model__random_state": "42",
+        "model__solver": "lbfgs",
+        "model__tol": "0.0001",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_weight",
+      "variant_id": "logistic-c1-v1"
+    },
+    {
+      "brier_score": 0.20646346159292814,
+      "folds": [
+        {
+          "average_precision": 0.1197285413742779,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.14423379140611092,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.12083522504022516,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.1144653458413319,
+      "parameters": {
+        "model__bootstrap": "True",
+        "model__ccp_alpha": "0.0",
+        "model__class_weight": "balanced_subsample",
+        "model__criterion": "gini",
+        "model__max_depth": "12",
+        "model__max_features": "sqrt",
+        "model__max_leaf_nodes": "None",
+        "model__max_samples": "None",
+        "model__min_impurity_decrease": "0.0",
+        "model__min_samples_leaf": "10",
+        "model__min_samples_split": "2",
+        "model__min_weight_fraction_leaf": "0.0",
+        "model__monotonic_cst": "None",
+        "model__n_estimators": "200",
+        "model__n_jobs": "1",
+        "model__oob_score": "False",
+        "model__random_state": "42",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_weight",
+      "variant_id": "random_forest-depth12-leaf10-v1"
+    },
+    {
+      "brier_score": 0.18992105731898126,
+      "folds": [
+        {
+          "average_precision": 0.13266833430817254,
+          "fold": 1,
+          "regime": "order_weight",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.15541474525780508,
+          "fold": 2,
+          "regime": "order_weight",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.13501836270486167,
+          "fold": 3,
+          "regime": "order_weight",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12233547307846877,
+      "parameters": {
+        "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+        "model__class_weight": "balanced",
+        "model__early_stopping": "auto",
+        "model__interaction_cst": "None",
+        "model__l2_regularization": "5.0",
+        "model__learning_rate": "0.08",
+        "model__loss": "log_loss",
+        "model__max_bins": "255",
+        "model__max_depth": "None",
+        "model__max_features": "1.0",
+        "model__max_iter": "250",
+        "model__max_leaf_nodes": "15",
+        "model__min_samples_leaf": "20",
+        "model__monotonic_cst": "None",
+        "model__n_iter_no_change": "10",
+        "model__random_state": "42",
+        "model__scoring": "loss",
+        "model__tol": "1e-07",
+        "model__validation_fraction": "0.1",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_weight",
+      "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1"
+    },
+    {
+      "brier_score": 0.07788843865005657,
+      "folds": [
+        {
+          "average_precision": 0.09928409947249435,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1015843429636533,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.09282779230481883,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.08466057903305728,
+      "parameters": {},
+      "regime": "order_reference",
+      "variant_id": "prevalence-v1"
+    },
+    {
+      "brier_score": 0.21141572566590752,
+      "folds": [
+        {
+          "average_precision": 0.15086601951847822,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.16708468185326925,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.16082398081700375,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12391589786549224,
+      "parameters": {
+        "model__C": "0.1",
+        "model__class_weight": "balanced",
+        "model__dual": "False",
+        "model__fit_intercept": "True",
+        "model__intercept_scaling": "1",
+        "model__l1_ratio": "0.0",
+        "model__max_iter": "2000",
+        "model__n_jobs": "None",
+        "model__penalty": "deprecated",
+        "model__random_state": "42",
+        "model__solver": "lbfgs",
+        "model__tol": "0.0001",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_reference",
+      "variant_id": "logistic-c0_1-v1"
+    },
+    {
+      "brier_score": 0.21706920077172462,
+      "folds": [
+        {
+          "average_precision": 0.12994147362254507,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.14576631452861571,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.12879406989958397,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.1166860132404126,
+      "parameters": {
+        "model__bootstrap": "True",
+        "model__ccp_alpha": "0.0",
+        "model__class_weight": "balanced_subsample",
+        "model__criterion": "gini",
+        "model__max_depth": "8",
+        "model__max_features": "sqrt",
+        "model__max_leaf_nodes": "None",
+        "model__max_samples": "None",
+        "model__min_impurity_decrease": "0.0",
+        "model__min_samples_leaf": "5",
+        "model__min_samples_split": "2",
+        "model__min_weight_fraction_leaf": "0.0",
+        "model__monotonic_cst": "None",
+        "model__n_estimators": "200",
+        "model__n_jobs": "1",
+        "model__oob_score": "False",
+        "model__random_state": "42",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_reference",
+      "variant_id": "random_forest-depth8-leaf5-v1"
+    },
+    {
+      "brier_score": 0.17061449050916935,
+      "folds": [
+        {
+          "average_precision": 0.11395044542317073,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1380810990626044,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.13893413745754746,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.1093412613374777,
+      "parameters": {
+        "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+        "model__class_weight": "balanced",
+        "model__early_stopping": "auto",
+        "model__interaction_cst": "None",
+        "model__l2_regularization": "1.0",
+        "model__learning_rate": "0.08",
+        "model__loss": "log_loss",
+        "model__max_bins": "255",
+        "model__max_depth": "None",
+        "model__max_features": "1.0",
+        "model__max_iter": "250",
+        "model__max_leaf_nodes": "31",
+        "model__min_samples_leaf": "20",
+        "model__monotonic_cst": "None",
+        "model__n_iter_no_change": "10",
+        "model__random_state": "42",
+        "model__scoring": "loss",
+        "model__tol": "1e-07",
+        "model__validation_fraction": "0.1",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_reference",
+      "variant_id": "hist_gradient_boosting-l2-1-leaf31-v1"
+    },
+    {
+      "brier_score": 0.20988559635184875,
+      "folds": [
+        {
+          "average_precision": 0.1477091415204858,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1640986082349653,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.15875442587896998,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.12240851952990044,
+      "parameters": {
+        "model__C": "1.0",
+        "model__class_weight": "balanced",
+        "model__dual": "False",
+        "model__fit_intercept": "True",
+        "model__intercept_scaling": "1",
+        "model__l1_ratio": "0.0",
+        "model__max_iter": "2000",
+        "model__n_jobs": "None",
+        "model__penalty": "deprecated",
+        "model__random_state": "42",
+        "model__solver": "lbfgs",
+        "model__tol": "0.0001",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_reference",
+      "variant_id": "logistic-c1-v1"
+    },
+    {
+      "brier_score": 0.20047912148719807,
+      "folds": [
+        {
+          "average_precision": 0.13016227692786142,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.15222016679823552,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.13729064762034843,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.11885408465472447,
+      "parameters": {
+        "model__bootstrap": "True",
+        "model__ccp_alpha": "0.0",
+        "model__class_weight": "balanced_subsample",
+        "model__criterion": "gini",
+        "model__max_depth": "12",
+        "model__max_features": "sqrt",
+        "model__max_leaf_nodes": "None",
+        "model__max_samples": "None",
+        "model__min_impurity_decrease": "0.0",
+        "model__min_samples_leaf": "10",
+        "model__min_samples_split": "2",
+        "model__min_weight_fraction_leaf": "0.0",
+        "model__monotonic_cst": "None",
+        "model__n_estimators": "200",
+        "model__n_jobs": "1",
+        "model__oob_score": "False",
+        "model__random_state": "42",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_reference",
+      "variant_id": "random_forest-depth12-leaf10-v1"
+    },
+    {
+      "brier_score": 0.18493936189258461,
+      "folds": [
+        {
+          "average_precision": 0.12605130798032657,
+          "fold": 1,
+          "regime": "order_reference",
+          "train_rows": 10681,
+          "validation_end": "2017-07-18T20:42:29",
+          "validation_rows": 5308,
+          "validation_start": "2017-06-01T12:27:11"
+        },
+        {
+          "average_precision": 0.1442875900191085,
+          "fold": 2,
+          "regime": "order_reference",
+          "train_rows": 15989,
+          "validation_end": "2017-08-24T20:04:21",
+          "validation_rows": 5365,
+          "validation_start": "2017-07-18T20:43:22"
+        },
+        {
+          "average_precision": 0.14271646989119652,
+          "fold": 3,
+          "regime": "order_reference",
+          "train_rows": 21354,
+          "validation_end": "2017-09-30T20:09:53",
+          "validation_rows": 5354,
+          "validation_start": "2017-08-24T20:05:52"
+        }
+      ],
+      "order_max_v1_pr_auc": 0.11577824033281037,
+      "parameters": {
+        "model__categorical_features": "[False, False, False, False, False, False, False, False, False, False, False, True, True]",
+        "model__class_weight": "balanced",
+        "model__early_stopping": "auto",
+        "model__interaction_cst": "None",
+        "model__l2_regularization": "5.0",
+        "model__learning_rate": "0.08",
+        "model__loss": "log_loss",
+        "model__max_bins": "255",
+        "model__max_depth": "None",
+        "model__max_features": "1.0",
+        "model__max_iter": "250",
+        "model__max_leaf_nodes": "15",
+        "model__min_samples_leaf": "20",
+        "model__monotonic_cst": "None",
+        "model__n_iter_no_change": "10",
+        "model__random_state": "42",
+        "model__scoring": "loss",
+        "model__tol": "1e-07",
+        "model__validation_fraction": "0.1",
+        "model__verbose": "0",
+        "model__warm_start": "False"
+      },
+      "regime": "order_reference",
+      "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1"
+    }
+  ],
+  "config": {
+    "bootstrap_iterations": 1000,
+    "budgets": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "calibration_compare_end": "2018-04-01T00:00:00",
+    "calibration_fit_end": "2018-02-01T00:00:00",
+    "regimes": [
+      "item_unweighted",
+      "order_weight",
+      "order_reference"
+    ],
+    "rolling_folds": 3,
+    "seed": 42,
+    "selection_end": "2017-12-01T00:00:00",
+    "test_end": "2018-09-01T00:00:00",
+    "test_start": null,
+    "threshold_end": "2018-06-01T00:00:00",
+    "train_end": "2017-10-01T00:00:00",
+    "validation_start": null
+  },
+  "data": {
+    "path": "data/processed/modelling_items.parquet",
+    "rows": 97884,
+    "sha256": "6f9abe68437dedcf0d81c57b11737007ba83576a84b0bbca2dc1c47a9a8369ba"
+  },
+  "dataset_hashes": {
+    "dataset": "6f9abe68437dedcf0d81c57b11737007ba83576a84b0bbca2dc1c47a9a8369ba",
+    "manifest": "c5c4b29624a6a8089d0cc6095d664bcda261d96decd8ca549bf027032f2749fa"
+  },
+  "evaluation_status": "development",
+  "feature_schema": [
+    "price",
+    "freight_value",
+    "payment_count",
+    "payment_amount",
+    "max_payment_installments",
+    "seller_prior_review_count",
+    "seller_prior_review_score_avg",
+    "category_prior_review_count",
+    "category_prior_review_score_avg",
+    "seller_history_low_support_flag",
+    "category_history_low_support_flag",
+    "product_category",
+    "customer_state"
+  ],
+  "partitions": {
+    "calibration_compare": {
+      "end": "2018-03-31T21:55:48",
+      "item_count": 12265,
+      "order_count": 10623,
+      "prevalence": 0.13795352629433347,
+      "start": "2018-02-01T00:04:20",
+      "two_class": true
+    },
+    "calibration_fit": {
+      "end": "2018-01-31T23:58:36",
+      "item_count": 13444,
+      "order_count": 11759,
+      "prevalence": 0.12741743528711694,
+      "start": "2017-12-01T00:28:05",
+      "two_class": true
+    },
+    "selection": {
+      "end": "2017-11-30T23:59:03",
+      "item_count": 9957,
+      "order_count": 8586,
+      "prevalence": 0.11921261424123732,
+      "start": "2017-10-01T11:52:06",
+      "two_class": true
+    },
+    "test": {
+      "end": "2018-08-30T23:58:44",
+      "item_count": 21191,
+      "order_count": 18561,
+      "start": "2018-06-01T10:52:03"
+    },
+    "threshold": {
+      "end": "2018-05-31T19:05:39",
+      "item_count": 14319,
+      "order_count": 12351,
+      "prevalence": 0.11613939520916265,
+      "start": "2018-04-01T12:36:43",
+      "two_class": true
+    },
+    "train": {
+      "end": "2017-09-30T20:09:53",
+      "item_count": 26708,
+      "order_count": 23545,
+      "prevalence": 0.1013179571663921,
+      "start": "2016-10-11T13:46:32",
+      "two_class": true
+    }
+  },
+  "reproducibility": {
+    "git_commit": "12b222085c466875c0b57672b3caeabf1c110308",
+    "packages": {
+      "catboost": null,
+      "joblib": "1.6.0",
+      "numpy": "2.4.6",
+      "pandas": "2.3.3",
+      "pyarrow": "21.0.0",
+      "scikit-learn": "1.9.1"
+    },
+    "source_snapshot_sha256": "50f96630ab47df9c700b36e80c2953c6dfb9b53525de0998ce9714cc6654024f",
+    "working_tree_dirty": true
+  },
+  "rolling_validation": {
+    "item_unweighted:hist_gradient_boosting-l2-1-leaf31-v1": [
+      {
+        "average_precision": 0.11395044542317073,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1380810990626044,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13893413745754746,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "item_unweighted:hist_gradient_boosting-l2-5-leaf15-v1": [
+      {
+        "average_precision": 0.12605130798032657,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1442875900191085,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.14271646989119652,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "item_unweighted:logistic-c0_1-v1": [
+      {
+        "average_precision": 0.15086601951847822,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16708468185326925,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.16082398081700375,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "item_unweighted:logistic-c1-v1": [
+      {
+        "average_precision": 0.1477091415204858,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1640986082349653,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.15875442587896998,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "item_unweighted:prevalence-v1": [
+      {
+        "average_precision": 0.09928409947249435,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1015843429636533,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.09282779230481883,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "item_unweighted:random_forest-depth12-leaf10-v1": [
+      {
+        "average_precision": 0.13016227692786142,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.15222016679823552,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13729064762034843,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "item_unweighted:random_forest-depth8-leaf5-v1": [
+      {
+        "average_precision": 0.12994147362254507,
+        "fold": 1,
+        "regime": "item_unweighted",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14576631452861571,
+        "fold": 2,
+        "regime": "item_unweighted",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12879406989958397,
+        "fold": 3,
+        "regime": "item_unweighted",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:hist_gradient_boosting-l2-1-leaf31-v1": [
+      {
+        "average_precision": 0.11395044542317073,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1380810990626044,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13893413745754746,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:hist_gradient_boosting-l2-5-leaf15-v1": [
+      {
+        "average_precision": 0.12605130798032657,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1442875900191085,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.14271646989119652,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:logistic-c0_1-v1": [
+      {
+        "average_precision": 0.15086601951847822,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16708468185326925,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.16082398081700375,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:logistic-c1-v1": [
+      {
+        "average_precision": 0.1477091415204858,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1640986082349653,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.15875442587896998,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:prevalence-v1": [
+      {
+        "average_precision": 0.09928409947249435,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1015843429636533,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.09282779230481883,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:random_forest-depth12-leaf10-v1": [
+      {
+        "average_precision": 0.13016227692786142,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.15222016679823552,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13729064762034843,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_reference:random_forest-depth8-leaf5-v1": [
+      {
+        "average_precision": 0.12994147362254507,
+        "fold": 1,
+        "regime": "order_reference",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14576631452861571,
+        "fold": 2,
+        "regime": "order_reference",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12879406989958397,
+        "fold": 3,
+        "regime": "order_reference",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:hist_gradient_boosting-l2-1-leaf31-v1": [
+      {
+        "average_precision": 0.12334269316991643,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.16519677738822353,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1309057552573099,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:hist_gradient_boosting-l2-5-leaf15-v1": [
+      {
+        "average_precision": 0.13266833430817254,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.15541474525780508,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.13501836270486167,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:logistic-c0_1-v1": [
+      {
+        "average_precision": 0.15375588456429173,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.17113017004607817,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.16181791057358796,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:logistic-c1-v1": [
+      {
+        "average_precision": 0.15224254339907745,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.171070302711109,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.1617410007765669,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:prevalence-v1": [
+      {
+        "average_precision": 0.09928409947249435,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.1015843429636533,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.09282779230481883,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:random_forest-depth12-leaf10-v1": [
+      {
+        "average_precision": 0.1197285413742779,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14423379140611092,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12083522504022516,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ],
+    "order_weight:random_forest-depth8-leaf5-v1": [
+      {
+        "average_precision": 0.12334449151674963,
+        "fold": 1,
+        "regime": "order_weight",
+        "train_rows": 10681,
+        "validation_end": "2017-07-18T20:42:29",
+        "validation_rows": 5308,
+        "validation_start": "2017-06-01T12:27:11"
+      },
+      {
+        "average_precision": 0.14574305258557152,
+        "fold": 2,
+        "regime": "order_weight",
+        "train_rows": 15989,
+        "validation_end": "2017-08-24T20:04:21",
+        "validation_rows": 5365,
+        "validation_start": "2017-07-18T20:43:22"
+      },
+      {
+        "average_precision": 0.12009162634099982,
+        "fold": 3,
+        "regime": "order_weight",
+        "train_rows": 21354,
+        "validation_end": "2017-09-30T20:09:53",
+        "validation_rows": 5354,
+        "validation_start": "2017-08-24T20:05:52"
+      }
+    ]
+  },
+  "selected_model": "hist_gradient_boosting",
+  "selected_regime": "item_unweighted",
+  "selected_variant": "hist_gradient_boosting-l2-5-leaf15-v1",
+  "selection_average_precision": {
+    "item_unweighted:hist_gradient_boosting-l2-1-leaf31-v1": 0.13032189398110752,
+    "item_unweighted:hist_gradient_boosting-l2-5-leaf15-v1": 0.13768512263021054,
+    "item_unweighted:logistic-c0_1-v1": 0.15959156072958372,
+    "item_unweighted:logistic-c1-v1": 0.15685405854480702,
+    "item_unweighted:prevalence-v1": 0.09789874491365551,
+    "item_unweighted:random_forest-depth12-leaf10-v1": 0.13989103044881512,
+    "item_unweighted:random_forest-depth8-leaf5-v1": 0.1348339526835816,
+    "order_reference:hist_gradient_boosting-l2-1-leaf31-v1": 0.13032189398110752,
+    "order_reference:hist_gradient_boosting-l2-5-leaf15-v1": 0.13768512263021054,
+    "order_reference:logistic-c0_1-v1": 0.15959156072958372,
+    "order_reference:logistic-c1-v1": 0.15685405854480702,
+    "order_reference:prevalence-v1": 0.09789874491365551,
+    "order_reference:random_forest-depth12-leaf10-v1": 0.13989103044881512,
+    "order_reference:random_forest-depth8-leaf5-v1": 0.1348339526835816,
+    "order_weight:hist_gradient_boosting-l2-1-leaf31-v1": 0.1398150752718166,
+    "order_weight:hist_gradient_boosting-l2-5-leaf15-v1": 0.14103381409027976,
+    "order_weight:logistic-c0_1-v1": 0.1622346550613193,
+    "order_weight:logistic-c1-v1": 0.16168461562891778,
+    "order_weight:prevalence-v1": 0.09789874491365551,
+    "order_weight:random_forest-depth12-leaf10-v1": 0.12826585260687132,
+    "order_weight:random_forest-depth8-leaf5-v1": 0.12972639014777365
+  },
+  "selection_average_precision_std": {
+    "item_unweighted:hist_gradient_boosting-l2-1-leaf31-v1": 0.011581599329387111,
+    "item_unweighted:hist_gradient_boosting-l2-5-leaf15-v1": 0.008251316545254,
+    "item_unweighted:logistic-c0_1-v1": 0.006678342930018869,
+    "item_unweighted:logistic-c1-v1": 0.006824573334640197,
+    "item_unweighted:prevalence-v1": 0.0037066337199185033,
+    "item_unweighted:random_forest-depth12-leaf10-v1": 0.009190905632719279,
+    "item_unweighted:random_forest-depth8-leaf5-v1": 0.007744526473965758,
+    "order_reference:hist_gradient_boosting-l2-1-leaf31-v1": 0.011581599329387111,
+    "order_reference:hist_gradient_boosting-l2-5-leaf15-v1": 0.008251316545254,
+    "order_reference:logistic-c0_1-v1": 0.006678342930018869,
+    "order_reference:logistic-c1-v1": 0.006824573334640197,
+    "order_reference:prevalence-v1": 0.0037066337199185033,
+    "order_reference:random_forest-depth12-leaf10-v1": 0.009190905632719279,
+    "order_reference:random_forest-depth8-leaf5-v1": 0.007744526473965758,
+    "order_weight:hist_gradient_boosting-l2-1-leaf31-v1": 0.018211225087455506,
+    "order_weight:hist_gradient_boosting-l2-5-leaf15-v1": 0.010214011432019483,
+    "order_weight:logistic-c0_1-v1": 0.0070991410737118775,
+    "order_weight:logistic-c1-v1": 0.0076865039578733665,
+    "order_weight:prevalence-v1": 0.0037066337199185033,
+    "order_weight:random_forest-depth12-leaf10-v1": 0.011300073430626152,
+    "order_weight:random_forest-depth8-leaf5-v1": 0.01140308115372552
+  },
+  "selection_record": {
+    "calibration_method": "isotonic",
+    "lock": "6e4023c9c55f33b38c7b2dcae47cb6177ce007e5fefc582bac40a61dcf83caeb",
+    "selected_key": "item_unweighted:hist_gradient_boosting-l2-5-leaf15-v1",
+    "selection_rule": "max order_max_v1_pr_auc, then min Brier, then declared simplicity",
+    "threshold_policy": {
+      "high_from": 0.2875,
+      "medium_from": 0.1665024630541872,
+      "policy": "top20_top5_order_probability"
+    },
+    "variant_id": "hist_gradient_boosting-l2-5-leaf15-v1",
+    "variant_parameters": {}
+  },
+  "threshold_policy": {
+    "high_from": 0.2875,
+    "medium_from": 0.1665024630541872,
+    "policy": "top20_top5_order_probability"
+  }
+}

@@ -1,0 +1,72 @@
+version: 2
+models:
+  - name: customers
+    data_tests: [{unique: {column_name: "customer_id || ':' || source_run_id"}}]
+  - name: orders
+    data_tests: [{unique: {column_name: "order_id || ':' || source_run_id"}}]
+    columns:
+      - name: order_status
+        data_tests: [not_null]
+  - name: order_items
+    data_tests: [{unique: {column_name: "order_id || ':' || order_item_id || ':' || source_run_id"}}]
+    columns:
+      - name: order_id
+        data_tests: [not_null, {relationships: {to: ref('orders'), field: order_id}}]
+      - name: product_id
+        data_tests: [{relationships: {to: ref('products'), field: product_id}}]
+      - name: seller_id
+        data_tests: [{relationships: {to: ref('sellers'), field: seller_id}}]
+      - name: order_item_id
+        data_tests: [not_null]
+  - name: order_payments
+    data_tests: [{unique: {column_name: "order_id || ':' || payment_sequential || ':' || source_run_id"}}]
+    columns: [{name: order_id, data_tests: [not_null]}]
+  - name: order_reviews
+    columns:
+      - name: review_score
+        data_tests: [{accepted_range: {min_value: 1, max_value: 5}}]
+  - name: order_reviews_canonical
+    data_tests:
+      - unique:
+          column_name: "source_run_id || ':' || order_id"
+    columns: [{name: order_id, data_tests: [not_null]}]
+  - name: products
+    columns: [{name: product_id, data_tests: [unique, not_null]}]
+  - name: sellers
+    columns: [{name: seller_id, data_tests: [unique, not_null]}]
+  - name: geolocation_points_valid
+    data_tests: [{unique: {column_name: "zip_code || ':' || latitude || ':' || longitude"}}]
+  - name: geolocation_zip_centroids
+    columns: [{name: zip_code, data_tests: [unique, not_null]}]
+  - name: dim_data_run
+    columns: [{name: source_run_id, data_tests: [unique, not_null]}]
+  - name: dim_date
+    columns: [{name: date_day, data_tests: [unique, not_null]}]
+  - name: dim_customer
+    columns:
+      - name: customer_id
+        data_tests: [not_null]
+  - name: dim_seller
+    columns:
+      - name: seller_id
+        data_tests: [unique, not_null]
+  - name: dim_product
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+  - name: dim_category
+    columns: [{name: category_code, data_tests: [unique, not_null]}]
+  - name: dim_geography_zip
+    columns: [{name: zip_code, data_tests: [unique, not_null]}]
+  - name: fct_order
+    data_tests: [{unique: {column_name: "source_run_id || ':' || order_id"}}]
+    columns: [{name: order_id, data_tests: [not_null]}]
+  - name: fct_order_item
+    data_tests: [{unique: {column_name: "source_run_id || ':' || order_id || ':' || order_item_id"}}]
+  - name: fct_order_payment
+    data_tests: [{unique: {column_name: "source_run_id || ':' || order_id || ':' || payment_sequential"}}]
+  - name: bridge_order_seller
+    data_tests: [{unique: {column_name: "source_run_id || ':' || order_id || ':' || seller_id"}}]
+  - name: bridge_order_category
+    data_tests: [{unique: {column_name: "source_run_id || ':' || order_id || ':' || category_code"}}]
+    columns: [{name: category_code, data_tests: [not_null]}]

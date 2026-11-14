@@ -1,0 +1,34 @@
+{
+  "bootstrap": {
+    "item_average_precision": {
+      "lower": 0.1709074658665964,
+      "upper": 0.2169450333820849,
+      "valid_iterations": 1000
+    },
+    "order_average_precision": {
+      "lower": 0.14182723909625078,
+      "upper": 0.16628332576387725,
+      "valid_iterations": 1000
+    }
+  },
+  "item": {
+    "average_precision": 0.19151271725413915,
+    "brier_score": 0.09225705669832668,
+    "minority_f1": 0.26783507471070667,
+    "minority_precision": 0.17809651875093382,
+    "minority_recall": 0.5398550724637681,
+    "prevalence": 0.10419517719786701,
+    "roc_auc": 0.6643143760588229,
+    "threshold": 0.1405335068314899
+  },
+  "order": {
+    "average_precision": 0.15370106911643827,
+    "brier_score": 0.0776340161042348,
+    "minority_f1": 0.22260220736825742,
+    "minority_precision": 0.1476593111981852,
+    "minority_recall": 0.45202020202020204,
+    "prevalence": 0.08534022951349604,
+    "roc_auc": 0.642726188372504,
+    "threshold": 0.1405335068314899
+  }
+}

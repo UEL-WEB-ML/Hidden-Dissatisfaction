@@ -1,0 +1,2 @@
+select trim(review_id) review_id, trim(order_id) order_id, nullif(trim(review_score),'')::int review_score, nullif(trim(review_comment_title),'') comment_title, nullif(trim(review_comment_message),'') comment_message, nullif(trim(review_creation_date),'')::timestamptz creation_at, nullif(trim(review_answer_timestamp),'')::timestamptz answer_at, run_id source_run_id, source_row_number
+from {{ source('bronze','order_reviews') }} where run_id='{{ var("source_run_id") }}'::uuid
